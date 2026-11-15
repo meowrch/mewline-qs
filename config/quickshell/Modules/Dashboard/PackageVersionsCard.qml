@@ -188,7 +188,8 @@ Card {
             spacing: Constants.sizeSm
 
             MeowrchLogo {
-                size: Constants.size3Xl + 4
+                // Matches the user avatar size in MeowrchInfoCard.
+                size: Constants.size5Xl
             }
 
             ThemedText {
