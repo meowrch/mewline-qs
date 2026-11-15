@@ -96,7 +96,8 @@ Item {
     }
 
     function triggerStartupTimer() {
-        startupApplyTimer.start();
+        // Intentionally does nothing: the startup layout/animation push was
+        // removed because Hyprland input config belongs to hyprland.lua.
     }
 
     function applyMouseSettings() {
@@ -182,18 +183,12 @@ Item {
         if (!SettingsService.settingsLoaded)
             return ;
 
-        // The layout can change from Hyprland itself, when the user presses
-        // the keybind, and that path sets isSyncing to avoid pushing the
-        // value back to Hyprland. The saved value still has to be updated,
-        // otherwise the startup timer would restore the previous layout on
-        // the next run.
+        // Keep the persisted value in sync for display purposes only. The
+        // layout list is owned by hyprland.lua and switching happens through
+        // Hyprland's own keybind, so kb_layout is never pushed back — a
+        // single-code push would wipe multi-layout setups like "us,ru" and
+        // break Latin-key binds while a non-Latin layout is active.
         SettingsService.saveSettings();
-
-        if (!isSyncing) {
-            changeLayoutProc.command = ["hyprctl", "eval", "hl.config({ input = { kb_layout = '" + keyboardLayout + "' } })"];
-            changeLayoutProc.running = false;
-            changeLayoutProc.running = true;
-        }
     }
     onHyprBlurChanged: {
         if (hyprPrefsLoaded && !isSyncing)
@@ -397,19 +392,6 @@ Item {
 
     Process {
         id: mouseApplyProc
-    }
-
-    Timer {
-        id: startupApplyTimer
-
-        interval: 1000
-        running: false
-        repeat: false
-        onTriggered: {
-            changeLayoutProc.command = ["hyprctl", "eval", "hl.config({ input = { kb_layout = '" + hyprlandService.keyboardLayout + "' } })"];
-            changeLayoutProc.running = false;
-            changeLayoutProc.running = true;
-        }
     }
 
     Process {
