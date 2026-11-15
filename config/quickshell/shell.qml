@@ -45,6 +45,34 @@ ShellRoot {
     }
 
     IpcHandler {
+        function right() {
+            KeyNavService.dispatch("right");
+        }
+
+        function left() {
+            KeyNavService.dispatch("left");
+        }
+
+        function up() {
+            KeyNavService.dispatch("up");
+        }
+
+        function down() {
+            KeyNavService.dispatch("down");
+        }
+
+        function enter() {
+            KeyNavService.dispatch("enter");
+        }
+
+        function esc() {
+            KeyNavService.dispatch("esc");
+        }
+
+        target: "keynav"
+    }
+
+    IpcHandler {
         function showVolume(volume: string, isMuted: string) {
             OsdService.displayVolume(volume, isMuted);
         }

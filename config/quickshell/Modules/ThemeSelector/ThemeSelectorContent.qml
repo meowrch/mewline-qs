@@ -205,6 +205,14 @@ Item {
     }
 
     function handleKey(event) {
+        // While the modal Hyprland binds are active they deliver every key
+        // through IPC; handling the same event locally would double-step.
+        if (KeyNavService.bindsActive) {
+            if (event.key === Qt.Key_Escape)
+                event.accepted = true;
+
+            return ;
+        }
         if (root.variantsOpen) {
             if (event.key === Qt.Key_Left) {
                 variantView.currentIndex = Math.max(0, variantView.currentIndex - 1);
@@ -259,6 +267,14 @@ Item {
         }
 
         target: PawletteService
+    }
+
+    Connections {
+        function onNavigate(action) {
+            root.handleAction(action);
+        }
+
+        target: KeyNavService
     }
 
     NumberAnimation {
@@ -391,7 +407,6 @@ Item {
                     required property string name
                     required property int index
                     readonly property bool isCurrent: ListView.isCurrentItem
-                    readonly property bool isApplied: PawletteService.lastAppliedTheme === root.variantsTheme && PawletteService.lastAppliedVariant === variantCard.name
                     readonly property color fillColor: root.variantsColors[variantCard.name] ? root.variantsColors[variantCard.name] : Theme.bgSecondary
                     readonly property string displayName: variantCard.name === "default" ? "Default" : variantCard.name.replace(/-/g, " ").replace(/_/g, " ")
 
@@ -436,8 +451,8 @@ Item {
                             customSize: Constants.sizeXs
                             horizontalAlignment: Text.AlignHCenter
                             elide: Text.ElideRight
-                            color: variantCard.isApplied ? Theme.accent : Theme.white
-                            font.bold: variantCard.isApplied
+                            color: Theme.white
+                            font.bold: variantCard.isCurrent
                             z: 11
                         }
 
@@ -445,8 +460,8 @@ Item {
                             anchors.fill: parent
                             radius: Constants.sizeMd
                             color: "transparent"
-                            border.color: variantCard.isApplied ? Theme.accent : (variantCard.isCurrent ? Theme.accent : Theme.border)
-                            border.width: variantCard.isApplied || variantCard.isCurrent ? 2 : 1
+                            border.color: variantCard.isCurrent ? Theme.accent : Theme.border
+                            border.width: variantCard.isCurrent ? 2 : 1
                             z: 10
                         }
 

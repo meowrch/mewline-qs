@@ -39,15 +39,6 @@ Item {
         return Theme.bgAccent;
     }
     readonly property bool isCurrent: ListView.isCurrentItem || (targetView && targetView.currentIndex === index)
-    readonly property bool isApplied: {
-        if (isDynamicTile)
-            return PawletteService.dynamicEnabled;
-
-        if (isRandomTile)
-            return false;
-
-        return PawletteService.lastAppliedTheme === name;
-    }
 
     width: selectorRoot ? selectorRoot.cardItemWidth : 0
     height: selectorRoot ? selectorRoot.cardItemHeight : 0
@@ -215,8 +206,8 @@ Item {
             customSize: Constants.sizeSm
             horizontalAlignment: Text.AlignHCenter
             elide: Text.ElideRight
-            color: delegateRoot.isApplied ? Theme.accent : Theme.white
-            font.bold: delegateRoot.isApplied || delegateRoot.isCurrent
+            color: Theme.white
+            font.bold: delegateRoot.isCurrent
             z: 11
 
             Behavior on color {
@@ -234,8 +225,8 @@ Item {
             anchors.fill: parent
             radius: Constants.sizeLg
             color: "transparent"
-            border.color: delegateRoot.isApplied ? Theme.accent : (delegateRoot.isCurrent ? Theme.accent : (hoverHandler.hovered ? Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.35) : Theme.border))
-            border.width: delegateRoot.isApplied || delegateRoot.isCurrent ? 2 : 1
+            border.color: delegateRoot.isCurrent ? Theme.accent : (hoverHandler.hovered ? Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.35) : Theme.border)
+            border.width: delegateRoot.isCurrent ? 2 : 1
             z: 10
 
             Behavior on border.color {
