@@ -101,7 +101,9 @@ Item {
         if (filteredModel.count === 0)
             return ;
 
-        let newIdx = Math.max(0, Math.min(idx, filteredModel.count - 1));
+        // Wrap around so arrows can cycle the list in one direction.
+        let count = filteredModel.count;
+        let newIdx = ((idx % count) + count) % count;
         themeView.currentIndex = newIdx;
         root.ensureVisible(newIdx);
     }
@@ -182,7 +184,7 @@ Item {
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 root.applyVariant(variantView.currentIndex);
                 event.accepted = true;
-            } else if (event.key === Qt.Key_Escape || event.key === Qt.Key_Backspace) {
+            } else if (event.key === Qt.Key_Up || event.key === Qt.Key_Escape || event.key === Qt.Key_Backspace) {
                 root.closeVariants();
                 event.accepted = true;
             }
@@ -194,11 +196,15 @@ Item {
         } else if (event.key === Qt.Key_Left) {
             root.selectIndex(themeView.currentIndex - 1);
             event.accepted = true;
-        } else if (event.key === Qt.Key_Down || event.key === Qt.Key_PageDown) {
-            root.selectIndex(themeView.currentIndex + 4);
-            event.accepted = true;
-        } else if (event.key === Qt.Key_Up || event.key === Qt.Key_PageUp) {
-            root.selectIndex(themeView.currentIndex - 4);
+        } else if (event.key === Qt.Key_Down) {
+            // Drop into the accent variants of the selected theme.
+            let idx = themeView.currentIndex >= 0 ? themeView.currentIndex : 0;
+            if (idx >= 2 && idx < filteredModel.count) {
+                let theme = filteredModel.get(idx);
+                if (Object.keys(theme.variants || {}).length > 0)
+                    root.openVariants(theme);
+
+            }
             event.accepted = true;
         } else if (event.key === Qt.Key_Home) {
             root.selectIndex(0);
@@ -457,6 +463,7 @@ Item {
         onSearchRequested: (text) => {
             return root.rebuildModel();
         }
+        textField.Keys.priority: Keys.BeforeItem
         textField.Keys.onPressed: (event) => {
             return root.handleKey(event);
         }
