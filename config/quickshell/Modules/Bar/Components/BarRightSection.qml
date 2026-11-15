@@ -114,6 +114,24 @@ Rectangle {
 
         }
 
+        DateTimeIsland {
+            id: dateTimeIsland
+
+            Layout.alignment: Qt.AlignVCenter
+        }
+
+        BatteryIsland {
+            id: batteryIsland
+
+            Layout.alignment: Qt.AlignVCenter
+        }
+
+        WifiBluetoothGroup {
+            id: wifiBtGroup
+
+            Layout.alignment: Qt.AlignVCenter
+        }
+
         PowerButton {
             id: powerBtn
 
