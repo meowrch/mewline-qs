@@ -86,14 +86,6 @@ Rectangle {
                 anchors.centerIn: parent
                 spacing: Constants.size3Xs
 
-                ControlCenterButton {
-                    id: ccBtn
-
-                    notificationService: root.notificationService
-                    controlCenterWidget: root.controlCenterWidget
-                    Layout.alignment: Qt.AlignVCenter
-                }
-
                 NotificationsButton {
                     id: notifBtn
 

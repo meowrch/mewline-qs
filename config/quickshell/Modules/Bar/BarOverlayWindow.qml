@@ -95,7 +95,11 @@ PanelWindow {
     // keyboard grab. PanelWindow.focusable would race it with an OnDemand
     // mode, which never receives keys until the layer is clicked — that is
     // why keybind-opened menus were dead.
-    WlrLayershell.keyboardFocus: needsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    // Convex menus (control center, dashboards): OnDemand + HyprlandFocusGrab
+    // — the Caelestia/DMS consensus. Exclusive + grab captures the pointer
+    // too (noctalia) and kills every click inside the window. Island menus
+    // keep Exclusive (island host works with it).
+    WlrLayershell.keyboardFocus: !needsFocus ? WlrKeyboardFocus.None : (menuKeyboardGrab && !activeHost ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)
     color: "transparent"
     focusable: false
 

@@ -26,8 +26,9 @@ Rectangle {
     Layout.alignment: Qt.AlignVCenter
     scale: DisplayProfileService.gameModeActive ? 1 : (isPressed ? 0.95 : (isHovered ? 1.03 : 1))
 
-    // "Charging" only: a plugged but full/idle battery is not charging.
-    readonly property bool charging: SystemInfoService.batteryStatus === "Charging"
+    // The bolt follows the adapter: charging AND plugged-but-full both count
+    // (the user reads "plugged in" as "charging"); only unplugged hides it.
+    readonly property bool charging: SystemInfoService.isPluggedIn
     readonly property bool lowBattery: !charging && SystemInfoService.batteryLevel <= 20
     readonly property color fillColor: lowBattery ? (PawletteService.paletteReady && PawletteService.palette.color_red ? PawletteService.palette.color_red : "#ff5c5c") : (charging ? Theme.accent : Theme.fg)
 
