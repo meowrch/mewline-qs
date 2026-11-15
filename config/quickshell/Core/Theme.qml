@@ -32,13 +32,15 @@ QtObject {
     property color bg: Qt.rgba(_rawBg.r, _rawBg.g, _rawBg.b, bgOpacity)
     property bool isDark: ColorUtils.isDark(_rawBg)
     property color overlayBase: isDark ? Qt.rgba(fg.r * 0.3 + accent.r * 0.7, fg.g * 0.3 + accent.g * 0.7, fg.b * 0.3 + accent.b * 0.7, 1) : accent
-    property color bgSecondary: Qt.rgba(overlayBase.r, overlayBase.g, overlayBase.b, isDark ? 0.06 : 0.1)
-    property color bgTertiary: Qt.rgba(overlayBase.r, overlayBase.g, overlayBase.b, isDark ? 0.02 : 0.04)
+    property color bgSecondary: PawletteService.paletteReady && PawletteService.bgSecondary !== "" ? PawletteService.bgSecondary : Qt.rgba(overlayBase.r, overlayBase.g, overlayBase.b, isDark ? 0.06 : 0.1)
+    property color bgTertiary: PawletteService.paletteReady && PawletteService.bgTertiary !== "" ? PawletteService.bgTertiary : Qt.rgba(overlayBase.r, overlayBase.g, overlayBase.b, isDark ? 0.02 : 0.04)
     property color bgAccent: Qt.rgba(accent.r, accent.g, accent.b, isDark ? 0.15 : 0.3)
     property color bgAccentComplementary: Qt.rgba(accentComplementary.r, accentComplementary.g, accentComplementary.b, isDark ? 0.15 : 0.3)
     property color fg: themes[0].dark.fg
-    property color muted: Qt.rgba(fg.r, fg.g, fg.b, 0.4)
-    property color border: isDark ? Qt.rgba(fg.r, fg.g, fg.b, 0.1) : Qt.rgba(fg.r, fg.g, fg.b, 0.2)
+    // Pawlette (the meowrch theme engine) owns muted/border when its palette
+    // is loaded; otherwise the values are derived the same way as before.
+    property color muted: PawletteService.paletteReady && PawletteService.muted !== "" ? PawletteService.muted : Qt.rgba(fg.r, fg.g, fg.b, 0.4)
+    property color border: PawletteService.paletteReady && PawletteService.border !== "" ? PawletteService.border : (isDark ? Qt.rgba(fg.r, fg.g, fg.b, 0.1) : Qt.rgba(fg.r, fg.g, fg.b, 0.2))
     property color accent: themes[0].dark.accent
     property color accentComplementary: themes[0].dark.accentComplementary
     property color shadow: isDark ? Qt.rgba(0, 0, 0, 0.75) : Qt.rgba(0, 0, 0, 0.45)
@@ -60,10 +62,26 @@ QtObject {
     property Process wallpaperVariantsLoader
     property Process variantSelectProc
     property Process generatorProc
-    property Process applyThemeProc
     property Connections wpConn
 
-    signal themeApplied()
+    // Pawlette drives the core colors: every palette load/change from the
+    // theme engine (CLI apply, dynamic wallpaper mode) re-applies the scheme.
+    property Connections pawletteConn: Connections {
+        target: PawletteService
+
+        function onApplied() {
+            if (!PawletteService.paletteReady)
+                return ;
+
+            root.applyScheme({
+                "name": PawletteService.lastAppliedTheme === "__dynamic__" ? "Wallpaper Theme" : "Pawlette",
+                "bg": PawletteService.bg,
+                "fg": PawletteService.fg,
+                "accent": PawletteService.accent,
+                "accentComplementary": PawletteService.accentComplementary
+            });
+        }
+    }
 
     function applyScheme(scheme) {
         currentScheme = scheme.name;
@@ -259,11 +277,6 @@ QtObject {
 
     saver: Process {
         onExited: function(exitCode) {
-            if (exitCode === 0) {
-                applyThemeProc.running = false;
-                applyThemeProc.command = ["python3", Quickshell.shellDir + "/Scripts/theme/apply_theme.py"];
-                applyThemeProc.running = true;
-            }
         }
     }
 
@@ -297,9 +310,6 @@ QtObject {
                     if (colors.accentComplementary)
                         root.accentComplementary = colors.accentComplementary;
 
-                    applyThemeProc.running = false;
-                    applyThemeProc.command = ["python3", Quickshell.shellDir + "/Scripts/theme/apply_theme.py"];
-                    applyThemeProc.running = true;
                 } catch (e) {
                     root.applyScheme(root.themes[0].dark);
                 }
@@ -365,14 +375,6 @@ QtObject {
     }
 
     variantSelectProc: Process {
-    }
-
-    applyThemeProc: Process {
-        onExited: function(exitCode) {
-            if (exitCode === 0)
-                root.themeApplied();
-
-        }
     }
 
 }

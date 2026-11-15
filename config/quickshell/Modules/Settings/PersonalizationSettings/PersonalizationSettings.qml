@@ -150,8 +150,34 @@ AppContainer {
     }
 
     AppGroup {
+        title: "Pawlette"
+        icon: "color-palette"
+        visible: PawletteService.installed
+
+        SettingToggle {
+            label: "Dynamic Theme"
+            description: "Colors follow the current wallpaper (pawlette dynamic mode)"
+            checked: PawletteService.dynamicEnabled
+            onCheckedChanged: {
+                if (checked !== PawletteService.dynamicEnabled)
+                    PawletteService.toggleDynamic();
+
+            }
+        }
+
+        ThemedButton {
+            text: "Open Theme Selector"
+            onClicked: {
+                AppState.openWidget("pawlette");
+            }
+        }
+
+    }
+
+    AppGroup {
         title: "Color Theme"
         icon: "color-palette"
+        visible: !PawletteService.paletteReady
 
         SettingToggle {
             label: "Dynamic Colors"
@@ -228,6 +254,13 @@ AppContainer {
             description: "Use dark variant of the selected theme"
             bindTarget: appearanceRoot
             bindProperty: "showingDark"
+        }
+
+        ThemedText {
+            visible: PawletteService.installed && !PawletteService.paletteReady
+            text: "Pawlette is installed but no palette is active yet — apply a theme from the selector"
+            customSize: Constants.sizeXs
+            color: Theme.muted
         }
 
     }

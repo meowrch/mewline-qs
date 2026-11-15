@@ -7,6 +7,7 @@ import qs.Modules.LockScreen
 import qs.Modules.PackageManager
 import qs.Modules.Pomodoro
 import qs.Modules.Settings
+import qs.Modules.ThemeSelector
 import qs.Modules.WallpaperSelector
 
 Item {
@@ -65,6 +66,17 @@ Item {
 
         sourceComponent: Component {
             WallpaperSelector {
+            }
+
+        }
+
+    }
+
+    WidgetLoader {
+        widgetId: "pawlette"
+
+        sourceComponent: Component {
+            ThemeSelector {
             }
 
         }

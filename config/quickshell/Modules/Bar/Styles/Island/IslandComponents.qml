@@ -14,6 +14,7 @@ import qs.Modules.NotificationCenter as NotificationCenterModule
 import qs.Modules.PowerMenu as PowerMenuModule
 import qs.Modules.ScreenCapture as ScreenCaptureModule
 import qs.Modules.SystemUsage as SystemUsageModule
+import qs.Modules.ThemeSelector as ThemeModule
 import qs.Modules.WallpaperSelector as WallpaperModule
 
 Item {
@@ -90,6 +91,8 @@ Item {
             return clipboardComp;
         case "wallpaper":
             return wallpaperComp;
+        case "pawlette":
+            return pawletteComp;
         case "screenshot":
             return screenshotComp;
         case "powerMenu":
@@ -177,6 +180,15 @@ Item {
         id: wallpaperComp
 
         WallpaperModule.WallpaperSelectorContent {
+            widget: root.islandBar
+        }
+
+    }
+
+    Component {
+        id: pawletteComp
+
+        ThemeModule.ThemeSelectorContent {
             widget: root.islandBar
         }
 

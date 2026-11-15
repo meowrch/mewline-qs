@@ -29,7 +29,7 @@ Item {
     property bool hasActiveNotification: false
     property real activeNotificationWidth: 0
     property real activeNotificationHeight: 0
-    readonly property var focusWidgets: ["launcher", "clipboard", "wallpaper", "screenshot", "powerMenu"]
+    readonly property var focusWidgets: ["launcher", "clipboard", "wallpaper", "pawlette", "screenshot", "powerMenu"]
     readonly property var standaloneWindows: ["minflair_settings", "minflair_keybinds", "packagemanager", "pomodoro"]
     readonly property int activeTrayIndex: {
         if (!activeWidget || !activeWidget.startsWith("systemTray_"))
@@ -66,6 +66,21 @@ Item {
 
     function isBarOverlayWidget(id) {
         return isFocusWidget(id) || isBarWidget(id);
+    }
+
+    // True while any bar-attached menu (dashboard, calendar, control center,
+    // ...) is visible. The bar window uses it to grab the keyboard so Escape
+    // can close the menu even when it was opened through a keybind.
+    readonly property bool barMenuOpen: {
+        if (activeWidget !== "" && isBarOverlayWidget(activeWidget))
+            return true;
+
+        for (let i = 0; i < activeWidgetsList.length; i++) {
+            if (isBarOverlayWidget(activeWidgetsList[i]))
+                return true;
+
+        }
+        return false;
     }
 
     function isStandaloneWindow(id) {

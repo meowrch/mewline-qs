@@ -155,15 +155,11 @@ PanelWindow {
         id: styleLoader
 
         anchors.fill: parent
-        sourceComponent: {
-            switch (root.activeStyle) {
-            case "island":
-                return islandComponent;
-            case "floating":
-            default:
-                return floatingComponent;
-            }
-        }
+        // A single style component handles both island (bar-attached) and
+        // floating (bottom sheet) placement through widget.positionAtBottom.
+        // The old "floatingComponent" branch referenced an undefined Component
+        // and crashed every bottom popup in convex mode.
+        sourceComponent: islandComponent
         onStatusChanged: {
             if (status === Loader.Ready && root.isOpen)
                 initialFocusTimer.restart();
