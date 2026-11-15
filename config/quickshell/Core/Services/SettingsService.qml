@@ -12,8 +12,6 @@ Item {
     property string aurHelper: "yay"
     property int clipboardMaxItems: 100
     property var enabledKbLayouts: ["us", "latam"]
-    property string githubUsername: ""
-    property string githubToken: ""
     property string musicPlayer: "none"
     property string musicPlayerCommand: ""
     property var availableBrowsers: []
@@ -40,6 +38,19 @@ Item {
     property bool islandSinglePill: false
     readonly property int barWidgetHeight: 28
     property int numberOfWorkspaces: 10
+    // Folder scanned by the wallpaper selector / shuffle. Changed from the
+    // wallpaper settings page; absolute paths are preferred, "~" is expanded
+    // by resolveWallpaperFolder() before it reaches any command.
+    property string wallpaperFolder: Quickshell.env("HOME") + "/.local/share/wallpapers"
+
+    function resolveWallpaperFolder() {
+        let folder = wallpaperFolder;
+        if (folder === "~" || folder.startsWith("~/"))
+            folder = Quickshell.env("HOME") + folder.substring(1);
+        if (folder === "")
+            folder = Quickshell.env("HOME") + "/.local/share/wallpapers";
+        return folder;
+    }
 
     function saveSettings() {
         saveTimer.restart();
@@ -105,16 +116,6 @@ Item {
 
     }
     onEnabledKbLayoutsChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onGithubUsernameChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onGithubTokenChanged: {
         if (settingsLoaded)
             saveSettings();
 
@@ -218,6 +219,11 @@ Item {
             saveSettings();
 
     }
+    onWallpaperFolderChanged: {
+        if (settingsLoaded)
+            saveSettings();
+
+    }
 
     Timer {
         id: saveTimer
@@ -233,8 +239,6 @@ Item {
                 "clipboardMaxItems": settingsService.clipboardMaxItems,
                 "enabledKbLayouts": settingsService.enabledKbLayouts,
                 "animationSpeedFactor": HyprlandService.animationSpeedFactor,
-                "githubUsername": settingsService.githubUsername,
-                "githubToken": settingsService.githubToken,
                 "musicPlayer": settingsService.musicPlayer,
                 "musicPlayerCommand": settingsService.musicPlayerCommand,
                 "launcherBrowser": settingsService.launcherBrowser,
@@ -279,9 +283,7 @@ Item {
                 "fontFamily": settingsService.fontFamily
             };
             settingsSaver.running = false;
-            // The file holds the GitHub token, so it is created with a
-            // restrictive umask instead of being tightened afterwards. The
-            // umask applies to the temporary file as well, so the token is
+            // Preferences are created with a restrictive umask so they are
             // never readable by another user, not even for an instant.
             settingsSaver.command = ["sh", "-c", "umask 077 && mkdir -p ~/.cache/quickshell && cat << 'EOF' > ~/.cache/quickshell/settings_prefs.json.tmp
 " + JSON.stringify(data) + "
@@ -330,12 +332,6 @@ fi"];
 
                         if (prefs.animationSpeedFactor !== undefined)
                             HyprlandService.animationSpeedFactor = prefs.animationSpeedFactor;
-
-                        if (prefs.githubUsername !== undefined)
-                            settingsService.githubUsername = prefs.githubUsername;
-
-                        if (prefs.githubToken !== undefined)
-                            settingsService.githubToken = prefs.githubToken;
 
                         if (prefs.musicPlayer !== undefined)
                             settingsService.musicPlayer = prefs.musicPlayer;
@@ -412,10 +408,9 @@ fi"];
                         if (prefs.kittyFontFamily !== undefined)
                             settingsService.kittyFontFamily = prefs.kittyFontFamily;
 
-                        if (prefs.hyprScale !== undefined) {
+                        if (prefs.hyprScale !== undefined)
                             settingsService.hyprScale = prefs.hyprScale;
-                            hyprScaleApplyProc.running = true;
-                        }
+
                         if (prefs.clock24h !== undefined)
                             settingsService.clock24h = prefs.clock24h;
 
@@ -431,9 +426,9 @@ fi"];
                         if (prefs.cursorSize !== undefined)
                             settingsService.cursorSize = prefs.cursorSize;
 
-                        applyCursor(settingsService.cursorTheme, settingsService.cursorSize);
-                        applyFont(settingsService.fontFamily, Math.round(11 * settingsService.fontScale));
-                        applyKittyFont(settingsService.kittyFontFamily);
+                        // Cursor and fonts are only pushed to the system when
+                        // the user changes them in the settings UI, never at
+                        // startup: this shell must not rewrite system config.
                         if (prefs.barStyle !== undefined) {
                             if (prefs.barStyle === "island")
                                 settingsService.barStyle = "island";
@@ -462,18 +457,10 @@ fi"];
                 } else {
                     SystemInfoService.applyProfile("balanced");
                     settingsService.saveSettings();
-                    // An empty file is handled like a missing one, so the
-                    // cursor theme and the fonts are applied either way.
-                    settingsService.applyCursor(settingsService.cursorTheme, settingsService.cursorSize);
-                    settingsService.applyFont(settingsService.fontFamily, Math.round(11 * settingsService.fontScale));
-                    settingsService.applyKittyFont(settingsService.kittyFontFamily);
                 }
             } else {
                 SystemInfoService.applyProfile("balanced");
                 settingsService.saveSettings();
-                settingsService.applyCursor(settingsService.cursorTheme, settingsService.cursorSize);
-                settingsService.applyFont(settingsService.fontFamily, Math.round(11 * settingsService.fontScale));
-                settingsService.applyKittyFont(settingsService.kittyFontFamily);
             }
             settingsService.settingsLoaded = true;
             settingsService.syncLauncherBrowser();
@@ -529,12 +516,6 @@ fi"];
             id: browsersOutput
         }
 
-    }
-
-    Process {
-        id: hyprScaleApplyProc
-
-        command: ["sh", "-c", "\"$1\" \"$2\"", "minflair-hypr-scale", Quickshell.shellDir + "/Scripts/system/hypr_scale.sh", "" + settingsService.hyprScale]
     }
 
     Process {
