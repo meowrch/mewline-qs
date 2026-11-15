@@ -52,12 +52,35 @@ Singleton {
         return Quickshell.iconPath(path, true);
     }
 
+    // Hostname for the no-focus fallback label (user@host, like mewline).
+    property string hostname: {
+        try {
+            if (hostFile.loaded && hostFile.text() !== "")
+                return hostFile.text().trim();
+
+        } catch (e) {
+        }
+        return "";
+    }
+
+    FileView {
+        id: hostFile
+
+        path: "/etc/hostname"
+    }
+
     // Text shown in the bar: the live window title, falling back to the
-    // desktop entry's name and then to the raw window class.
+    // desktop entry's name, then the raw window class, then user@hostname
+    // when the desktop itself is focused (nothing is).
     readonly property string displayTitle: {
         let title = windowTitle.trim();
         if (title !== "")
             return title;
+
+        if (windowClass.trim() === "" || windowClass === "undefined") {
+            let user = Quickshell.env("USER") || "user";
+            return user + "@" + (hostname !== "" ? hostname : "hyprland");
+        }
 
         let entry = DesktopEntries.heuristicLookup(windowClass);
         if (entry && entry.name && entry.name.trim() !== "")

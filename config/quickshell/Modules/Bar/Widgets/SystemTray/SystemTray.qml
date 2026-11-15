@@ -80,7 +80,7 @@ Item {
             isOpen: root.isOpen
             alignTop: true
             topOffset: SettingsService.barConvexMode ? 80 : Constants.size4Xl
-            positionAtLeft: false
+            positionAtLeft: true
             backgroundColor: Theme.bg
             contentWidth: 300
             contentHeight: 340
