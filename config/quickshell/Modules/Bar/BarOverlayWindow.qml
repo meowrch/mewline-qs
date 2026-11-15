@@ -28,7 +28,7 @@ PanelWindow {
     readonly property bool usesFloatingPopups: styleData.usesFloatingPopups
     readonly property bool isPill: styleData.isPill && !root.isGameMode
     readonly property QtObject activeHost: (SettingsService.barIslandMode && !root.isGameMode) ? barStrip : null
-    readonly property bool needsFocus: (activeHost && activeHost.isOpen && activeHost.needsFocus)
+    readonly property bool needsFocus: (activeHost && activeHost.isOpen && activeHost.needsFocus) || (!root.isGameMode && AppState.barMenuOpen)
 
     function triggerStyleSwitch() {
         if (!root.isShellReady || !SettingsService.settingsLoaded) {
@@ -88,6 +88,21 @@ PanelWindow {
     WlrLayershell.keyboardFocus: needsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     color: "transparent"
     focusable: needsFocus
+
+    // Escape closes any open bar menu (dashboard, calendar, control center,
+    // notifications, music, system usage). The catcher only receives keys
+    // while the window holds the keyboard, which happens exactly when a menu
+    // is open.
+    Item {
+        anchors.fill: parent
+        focus: root.focusable
+
+        Keys.onEscapePressed: {
+            if (AppState.barMenuOpen)
+                AppState.closeAllWidgets();
+
+        }
+    }
     Component.onCompleted: {
         activeBarStyle = SettingsService.barStyle;
     }
