@@ -13,9 +13,13 @@ OverlayWindow {
     WlrLayershell.keyboardFocus: root.isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
 
     widgetId: "pawlette"
-    enableShadow: true
     positionAtBottom: true
-    preferredWidth: content.implicitWidth + (contentPadding * 2)
+    // Drawer geometry identical to ConvexBottomHost for full (non-compact)
+    // widgets: the ConvexDrawerShape inlays its straight sides by
+    // cornerRadius, so the window adds cornerRadius * 2 around the content
+    // (the host's safeMarginX = cornerRadius * 2 + contentPadding * 2).
+    readonly property int drawerCornerRadius: Constants.sizeLg * 2
+    preferredWidth: content.implicitWidth + (contentPadding * 2) + (drawerCornerRadius * 2)
     preferredHeight: content.implicitHeight + (contentPadding * 2)
     initialFocusItem: content.initialFocusItem
     onWidgetOpened: {

@@ -21,6 +21,7 @@ Item {
     readonly property int cardSpacing: Constants.sizeLg
     readonly property int layoutSpacing: Constants.sizeLg
     readonly property int variantsRowHeight: 72
+    readonly property int variantChipWidth: 160
     property bool variantsOpen: false
     property string variantsTheme: ""
     property var variantsColors: ({})
@@ -58,6 +59,8 @@ Item {
         root.variantsTheme = theme.name;
         root.variantsColors = theme.variants || {};
         root.variantsOpen = true;
+        variantScrollAnim.stop();
+        variantView.contentX = 0;
         variantView.currentIndex = 0;
     }
 
@@ -154,18 +157,29 @@ Item {
             root.openVariants(theme);
     }
 
-    // Keep the current variant chip inside the visible strip (the wallpaper
-    // selector does the same for its cards).
+    // Keep the current variant chip inside the visible strip. Mirrors the
+    // wallpaper selector's ensureVisible: only scroll when the chip leaves
+    // the visible window, scroll it flush to the edge it crossed, and clamp
+    // to the true content bounds (count * width + (count - 1) * spacing).
     function variantEnsureVisible(idx) {
         if (idx < 0 || idx >= variantModel.count)
             return ;
 
-        let step = 160 + root.cardSpacing;
-        let maxScroll = Math.max(0, variantModel.count * step - variantView.width);
-        let targetX = Math.max(0, Math.min(idx * step, maxScroll));
-        if (Math.abs(targetX - variantView.contentX) > 1) {
+        let step = root.variantChipWidth + root.cardSpacing;
+        let chipsPerView = Math.max(1, Math.floor((variantView.width + root.cardSpacing) / step));
+        let maxScroll = Math.max(0, (variantModel.count - chipsPerView) * step);
+        let currentX = variantView.contentX;
+        let firstVisibleIndex = Math.floor((currentX + 5) / step);
+        let lastVisibleIndex = firstVisibleIndex + chipsPerView - 1;
+        let targetX = currentX;
+        if (idx < firstVisibleIndex)
+            targetX = idx * step;
+        else if (idx > lastVisibleIndex)
+            targetX = (idx - chipsPerView + 1) * step;
+        targetX = Math.max(0, Math.min(targetX, maxScroll));
+        if (Math.abs(targetX - currentX) > 1) {
             variantScrollAnim.stop();
-            variantScrollAnim.from = variantView.contentX;
+            variantScrollAnim.from = currentX;
             variantScrollAnim.to = targetX;
             variantScrollAnim.start();
         }
@@ -227,9 +241,11 @@ Item {
         if (root.variantsOpen) {
             if (event.key === Qt.Key_Left) {
                 variantView.currentIndex = Math.max(0, variantView.currentIndex - 1);
+                root.variantEnsureVisible(variantView.currentIndex);
                 event.accepted = true;
             } else if (event.key === Qt.Key_Right) {
                 variantView.currentIndex = Math.min(variantModel.count - 1, variantView.currentIndex + 1);
+                root.variantEnsureVisible(variantView.currentIndex);
                 event.accepted = true;
             } else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
                 root.applyVariant(variantView.currentIndex);
@@ -422,7 +438,7 @@ Item {
                     readonly property color fillColor: root.variantsColors[variantCard.name] ? root.variantsColors[variantCard.name] : Theme.bgSecondary
                     readonly property string displayName: variantCard.name === "default" ? "Default" : variantCard.name.replace(/-/g, " ").replace(/_/g, " ")
 
-                    width: 160
+                    width: root.variantChipWidth
                     height: root.variantsRowHeight
 
                     Rectangle {

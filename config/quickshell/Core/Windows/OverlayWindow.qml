@@ -262,8 +262,11 @@ PanelWindow {
         enabled: HyprlandService.enableAnimations
 
         NumberAnimation {
-            duration: root.isOpen ? ((root.isIsland && AppState.hasActiveNotification) ? Constants.animSlow : (root.isIsland ? Constants.animExpressive : Constants.animNormal)) : Constants.animNormal
-            easing.type: root.isIsland ? (root.isOpen ? Easing.OutQuint : Easing.OutCubic) : (root.isOpen ? Easing.OutCubic : Easing.InCubic)
+            // Bottom sheets use the ConvexBottomHost drawer physics:
+            // expressive OutQuint on open, normal OutCubic on close. Island
+            // and plain floating popups keep their own curves.
+            duration: root.positionAtBottom ? (root.isOpen ? Constants.animExpressive : Constants.animNormal) : (root.isOpen ? ((root.isIsland && AppState.hasActiveNotification) ? Constants.animSlow : (root.isIsland ? Constants.animExpressive : Constants.animNormal)) : Constants.animNormal)
+            easing.type: root.positionAtBottom ? (root.isOpen ? Easing.OutQuint : Easing.OutCubic) : (root.isIsland ? (root.isOpen ? Easing.OutQuint : Easing.OutCubic) : (root.isOpen ? Easing.OutCubic : Easing.InCubic))
         }
 
     }

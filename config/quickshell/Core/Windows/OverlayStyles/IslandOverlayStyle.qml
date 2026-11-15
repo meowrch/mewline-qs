@@ -21,11 +21,17 @@ Item {
     property alias contentSlot: contentLayoutContainer
     property alias container: mainContainer
     property bool isHandover: false
-    property bool isClosing: false
     readonly property real bounceProgress: widget ? widget.bounceProgress : 0
 
     anchors.fill: parent
     onIsOpenChanged: {
+        // Bottom sheets (positionAtBottom widgets) never morph from the bar
+        // island: they reveal from the bottom edge exactly like the wallpaper
+        // drawer in ConvexBottomHost, so they don't touch the island morph
+        // state either.
+        if (mainContainer.isBottomSheet)
+            return ;
+
         if (isOpen) {
             handoverTimer.stop();
             isHandover = false;
@@ -72,35 +78,49 @@ Item {
     Item {
         id: mainContainer
 
+        // Bottom sheets are standalone fullscreen windows (positionAtBottom
+        // widgets like the theme selector) that must render exactly like the
+        // wallpaper drawer hosted by ConvexBottomHost: a ConvexDrawerShape on
+        // the bottom edge, full width immediately, growing upward from just
+        // above the screen edge. No width morph, no pill radius, ever.
+        readonly property bool isBottomSheet: widget ? widget.positionAtBottom : false
+        // Same corner radius ConvexBottomHost uses for full (non-compact)
+        // drawers. The drawer shape inlays its straight sides by this radius,
+        // so content windows must compensate for it in their preferred width.
+        readonly property real drawerRadius: Constants.sizeLg * 2
+
         readonly property real notifW: (AppState.hasActiveNotification && AppState.activeNotificationWidth > 0) ? AppState.activeNotificationWidth : 0
         readonly property real notifH: (AppState.hasActiveNotification && AppState.activeNotificationHeight > 0) ? AppState.activeNotificationHeight : 0
         property real fromWidth: notifW > 0 ? notifW : ((AppState.barIslandWidth > 0) ? AppState.barIslandWidth : ((AppState.islandWidth > 0) ? AppState.islandWidth : 180))
         property real fromHeight: notifH > 0 ? notifH : ((AppState.barIslandHeight > 0) ? AppState.barIslandHeight : ((AppState.islandHeight > 0) ? AppState.islandHeight : Constants.islandBarHeight))
         property real fromRadius: notifH > 0 ? Constants.sizeXl : fromHeight / 2
-        readonly property real openY: widget && widget.positionAtBottom ? Math.max(8, widget.height - preferredHeight - 10) : 8
-        readonly property real currentWidth: Math.round(fromWidth + (preferredWidth - fromWidth) * bounceProgress)
-        readonly property real currentHeight: Math.round(fromHeight + (preferredHeight - fromHeight) * bounceProgress)
-        readonly property real currentRadius: Math.round(fromRadius + (windowRadius - fromRadius) * bounceProgress)
+        readonly property real currentWidth: isBottomSheet ? Math.round(preferredWidth) : Math.round(fromWidth + (preferredWidth - fromWidth) * bounceProgress)
+        // Bottom sheets grow from the bottom edge with the shared progress
+        // curve, like ConvexBottomHost's contentContainer
+        // (currentHeight = height * openProgress).
+        readonly property real currentHeight: isBottomSheet ? Math.max(preferredHeight * bounceProgress, 0.01) : Math.round(fromHeight + (preferredHeight - fromHeight) * bounceProgress)
+        readonly property real currentRadius: isBottomSheet ? drawerRadius : Math.round(fromRadius + (windowRadius - fromRadius) * bounceProgress)
 
         width: currentWidth
         height: currentHeight
         anchors.horizontalCenter: parent.horizontalCenter
-        transformOrigin: (widget && widget.positionAtBottom) ? Item.Bottom : Item.Top
-        // Bottom sheets reveal exactly like ConvexBottomHost: the bottom
-        // edge stays pinned just above the screen edge while the height
-        // grows upward, so the sheet slides out of the bottom border.
-        y: (widget && widget.positionAtBottom) ? parent.height - currentHeight - 10 : openY
+        // The bottom edge stays pinned just above the screen edge (same gap
+        // as ConvexBottomHost's bezelSize margin) while the height grows
+        // upward; island popups hang below the bar as before.
+        y: isBottomSheet ? Math.round(parent.height - currentHeight - Constants.sizeLg) : 8
+        clip: isBottomSheet
         opacity: (_windowVisible || isHandover || forceVisible) ? 1 : 0
 
         // Bottom sheets draw the exact same drawer background as the
-        // wallpaper selector's ConvexBottomHost.
+        // wallpaper selector's ConvexBottomHost: rounded top corners, flat
+        // flare toward the screen bottom, no border, no shadow, no capsule.
         Loader {
             anchors.fill: parent
             active: mainContainer.isBottomSheet
 
             sourceComponent: ConvexStyle.ConvexDrawerShape {
                 color: widget ? widget.backgroundColor : Theme.bg
-                cornerRadius: mainContainer.currentRadius
+                cornerRadius: mainContainer.drawerRadius
                 edge: Qt.BottomEdge
                 enableShadow: false
             }
@@ -163,10 +183,24 @@ Item {
         Item {
             id: contentLayoutContainer
 
-            anchors.fill: parent
-            anchors.margins: contentPadding
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.top: parent.top
+            anchors.leftMargin: contentPadding + (mainContainer.isBottomSheet ? mainContainer.drawerRadius : 0)
+            anchors.rightMargin: contentPadding + (mainContainer.isBottomSheet ? mainContainer.drawerRadius : 0)
+            anchors.topMargin: contentPadding
+            anchors.bottomMargin: contentPadding
+            // Bottom sheets keep the content at its final size pinned to the
+            // drawer bottom (ConvexBottomHost pins its loader above the same
+            // margin) and the growing container reveals it upward. Island
+            // mode fills the morphing container as before.
+            height: mainContainer.isBottomSheet ? Math.max(0, preferredHeight - contentPadding * 2) : (parent.height - contentPadding * 2)
+            // island mode anchors only bottom (height drives position); top
+            // anchor is a no-op there because height is pinned to the parent
+            // minus margins
             clip: true
-            transformOrigin: Item.Top
+            transformOrigin: mainContainer.isBottomSheet ? Item.Bottom : Item.Top
             opacity: !isOpen ? Math.min(1, Math.max(0, (bounceProgress - 0.4) / 0.6)) : Math.min(1, Math.max(0, (bounceProgress - 0.2) / 0.8))
             scale: !isOpen ? (0.94 + 0.06 * Math.min(1, Math.max(0, (bounceProgress - 0.3) / 0.7))) : (0.94 + 0.06 * Math.min(1, Math.max(0, (bounceProgress - 0.15) / 0.85)))
         }
