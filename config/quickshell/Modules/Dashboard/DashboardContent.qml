@@ -21,13 +21,13 @@ GridLayout {
 
         spacing: root.isVertical ? Constants.sizeLg : Constants.sizeMd
         Layout.fillWidth: true
-        Layout.preferredWidth: root.isVertical ? -1 : githubWidget.implicitWidth
+        Layout.preferredWidth: root.isVertical ? -1 : meowrchInfoCard.implicitWidth
         Layout.fillHeight: !root.isVertical
-        implicitWidth: githubWidget.implicitWidth
-        implicitHeight: githubWidget.implicitHeight
+        implicitWidth: meowrchInfoCard.implicitWidth
+        implicitHeight: meowrchInfoCard.implicitHeight
 
-        GithubWidget {
-            id: githubWidget
+        MeowrchInfoCard {
+            id: meowrchInfoCard
 
             Layout.fillWidth: true
             Layout.fillHeight: !root.isVertical
@@ -38,7 +38,7 @@ GridLayout {
     ColumnLayout {
         id: rightCol
 
-        readonly property real contentColWidth: Math.max(githubContributionsWidget.implicitWidth, updatesCard.implicitWidth, quoteWidget.implicitWidth)
+        readonly property real contentColWidth: Math.max(updatesCard.implicitWidth, quoteWidget.implicitWidth)
 
         Layout.alignment: Qt.AlignTop
         spacing: root.isVertical ? Constants.sizeLg : Constants.sizeMd
@@ -46,14 +46,7 @@ GridLayout {
         Layout.preferredWidth: root.isVertical ? -1 : contentColWidth
         Layout.fillHeight: !root.isVertical
         implicitWidth: contentColWidth
-        implicitHeight: githubContributionsWidget.implicitHeight + updatesCard.implicitHeight + quoteWidget.implicitHeight + spacing * 2
-
-        GithubContributionsWidget {
-            id: githubContributionsWidget
-
-            Layout.fillWidth: true
-            Layout.fillHeight: false
-        }
+        implicitHeight: updatesCard.implicitHeight + quoteWidget.implicitHeight + spacing
 
         UpdatesCard {
             id: updatesCard

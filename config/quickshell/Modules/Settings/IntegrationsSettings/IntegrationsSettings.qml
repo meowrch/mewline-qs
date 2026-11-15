@@ -168,48 +168,5 @@ AppContainer {
 
     }
 
-    AppGroup {
-        title: "GitHub Integration"
-        icon: "github"
-        showDividers: false
-
-        ColumnLayout {
-            Layout.fillWidth: true
-
-            ThemedText {
-                text: "GitHub Username"
-            }
-
-            ThemedTextField {
-                Layout.fillWidth: true
-                placeholderText: "octocat"
-                text: SettingsService.githubUsername
-                onEditingFinished: {
-                    SettingsService.githubUsername = text;
-                }
-            }
-
-        }
-
-        ColumnLayout {
-            Layout.fillWidth: true
-
-            ThemedText {
-                text: "GitHub Personal Access Token"
-            }
-
-            ThemedTextField {
-                Layout.fillWidth: true
-                placeholderText: "ghp_xxxxxxxxxxxxxxxxxxxx"
-                isPassword: true
-                text: SettingsService.githubToken
-                onEditingFinished: {
-                    SettingsService.githubToken = text;
-                }
-            }
-
-        }
-
-    }
 
 }

@@ -46,7 +46,7 @@ AppWindow {
         },
         "4": {
             "title": "Integrations & Apps",
-            "subtitle": "Default applications, quotes, and GitHub status",
+            "subtitle": "Default applications and quotes",
             "category": "MANAGEMENT"
         },
         "5": {

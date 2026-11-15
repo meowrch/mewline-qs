@@ -44,8 +44,6 @@ Item {
         "url": "https://en.wikipedia.org/w/index.php?search="
     }, {
         "prefix": "gh",
-        "name": "GitHub",
-        "url": "https://github.com/search?q="
     }, {
         "prefix": "ddg",
         "name": "DuckDuckGo",
