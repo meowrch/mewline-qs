@@ -36,9 +36,9 @@ QtObject {
     function reapplyCurrentWallpaper() {
         let p = currentWallpaperPath;
         if (p && !p.startsWith("/"))
-            p = Quickshell.env("HOME") + "/Pictures/Wallpapers/" + p;
+            p = SettingsService.resolveWallpaperFolder() + "/" + p;
         else if (!p && currentWallpaper)
-            p = currentWallpaper.startsWith("/") ? currentWallpaper : (Quickshell.env("HOME") + "/Pictures/Wallpapers/" + currentWallpaper);
+            p = currentWallpaper.startsWith("/") ? currentWallpaper : (SettingsService.resolveWallpaperFolder() + "/" + currentWallpaper);
         if (p)
             applyWallpaperInstant(p);
 
@@ -83,9 +83,11 @@ QtObject {
         // The wallpaper name is passed as a positional argument and written with
         // printf, so quotes, newlines or shell metacharacters in a file name can
         // never break the command or inject code.
-        // The SDDM cache is only written when the sddm component is enabled.
-        wallpaperSaveProc.command = ["sh", "-c", "mkdir -p \"$HOME/.cache/quickshell\" && printf '%s' \"$1\" > \"$HOME/.cache/quickshell/current_wallpaper\" && if ! grep -qxF sddm \"$HOME/.config/minflair/preferences.conf\" 2>/dev/null; then mkdir -p /var/tmp/sddm-theme && printf '%s' \"$1\" > /var/tmp/sddm-theme/current_wallpaper; fi && python3 \"$2\" 2>/dev/null || true", "minflair-wallpaper", wallName, Quickshell.shellDir + "/Scripts/theme/apply_theme.py"];
+        wallpaperSaveProc.command = ["sh", "-c", "mkdir -p \"$HOME/.cache/quickshell\" && printf '%s' \"$1\" > \"$HOME/.cache/quickshell/current_wallpaper\"", "mewline-wallpaper", wallName];
         wallpaperSaveProc.startDetached();
+        // pawlette dynamic mode recolors the whole desktop from the wallpaper.
+        if (PawletteService.dynamicEnabled && PawletteService.installed)
+            PawletteService.applyImage(PawletteService.currentWallpaperPath());
     }
 
     function shuffle() {
@@ -111,7 +113,7 @@ QtObject {
     }
 
     randomWallpaperProc: Process {
-        command: ["bash", "-c", "find ~/Pictures/Wallpapers -maxdepth 2 -type f 2>/dev/null | grep -iE '\\.(jpg|jpeg|png|webp|gif)$' | shuf -n 1"]
+        command: ["bash", "-c", "find \"$1\" -maxdepth 2 -type f 2>/dev/null | grep -iE '\\.(jpg|jpeg|png|webp|gif)$' | shuf -n 1", "wallpaper-shuffle", SettingsService.resolveWallpaperFolder()]
         onExited: function(exitCode) {
             if (exitCode === 0) {
                 let path = randomWallOutput.text.trim();
@@ -136,7 +138,7 @@ QtObject {
                 let name = wallpaperLoaderOutput.text.trim();
                 if (name) {
                     root.currentWallpaper = name;
-                    root.currentWallpaperPath = name.startsWith("/") ? name : (Quickshell.env("HOME") + "/Pictures/Wallpapers/" + name);
+                    root.currentWallpaperPath = name.startsWith("/") ? name : (SettingsService.resolveWallpaperFolder() + "/" + name);
                 }
             }
         }

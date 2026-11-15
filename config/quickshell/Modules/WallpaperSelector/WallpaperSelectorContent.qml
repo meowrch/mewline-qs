@@ -186,7 +186,7 @@ Item {
 
         property var lines: []
 
-        command: ["bash", "-c", "find ~/Pictures/Wallpapers -maxdepth 2 -type f 2>/dev/null | grep -iE '\\.(jpg|jpeg|png|webp|gif)$'"]
+        command: ["bash", "-c", 'find "$1" -maxdepth 2 -type f 2>/dev/null | grep -iE "\\.(jpg|jpeg|png|webp|gif)$"', "wallpaper-scan", SettingsService.resolveWallpaperFolder()]
         onExited: function(exitCode) {
             let sortedLines = lines.sort(function(a, b) {
                 return a.name.localeCompare(b.name);
@@ -252,7 +252,7 @@ Item {
             GhostEmptyState {
                 anchors.centerIn: parent
                 visible: filteredModel.count === 0 && !loadWallpapersProc.running
-                text: searchField.text === "" ? "No wallpapers in ~/Pictures/Wallpapers" : "No wallpapers found"
+                text: searchField.text === "" ? "No wallpapers in " + SettingsService.wallpaperFolder : "No wallpapers found"
                 isAnimating: visible
             }
 

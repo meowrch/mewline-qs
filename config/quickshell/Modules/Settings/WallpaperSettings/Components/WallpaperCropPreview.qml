@@ -12,9 +12,9 @@ Card {
     readonly property string wallPath: {
         let p = WallpaperManager.currentWallpaperPath;
         if (p && !p.startsWith("/"))
-            p = Quickshell.env("HOME") + "/Pictures/Wallpapers/" + p;
+            p = SettingsService.resolveWallpaperFolder() + "/" + p;
         else if (!p && WallpaperManager.currentWallpaper)
-            p = WallpaperManager.currentWallpaper.startsWith("/") ? WallpaperManager.currentWallpaper : (Quickshell.env("HOME") + "/Pictures/Wallpapers/" + WallpaperManager.currentWallpaper);
+            p = WallpaperManager.currentWallpaper.startsWith("/") ? WallpaperManager.currentWallpaper : (SettingsService.resolveWallpaperFolder() + "/" + WallpaperManager.currentWallpaper);
         return p || "";
     }
     readonly property real screenWidth: (root.Screen && root.Screen.width > 0) ? root.Screen.width : ((Quickshell.screens && Quickshell.screens.length > 0) ? Quickshell.screens[0].width : (Screen.width > 0 ? Screen.width : 1920))

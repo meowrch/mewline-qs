@@ -13,6 +13,36 @@ AppContainer {
     id: wallpaperRoot
 
     AppGroup {
+        title: "Wallpaper Folder"
+        icon: "picture"
+        showDividers: false
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: Constants.sizeXs
+
+            ThemedText {
+                text: "Folder scanned by the wallpaper selector and auto-shuffle"
+                customSize: Constants.sizeXs
+                color: Theme.muted
+            }
+
+            ThemedTextField {
+                Layout.fillWidth: true
+                placeholderText: "~/.local/share/wallpapers"
+                text: SettingsService.wallpaperFolder
+                onEditingFinished: {
+                    if (text !== "")
+                        SettingsService.wallpaperFolder = text;
+
+                }
+            }
+
+        }
+
+    }
+
+    AppGroup {
         title: "Screen Framing & Cropping"
         icon: "picture-spark"
         showDividers: false
