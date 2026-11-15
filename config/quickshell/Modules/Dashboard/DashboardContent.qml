@@ -38,7 +38,7 @@ GridLayout {
     ColumnLayout {
         id: rightCol
 
-        readonly property real contentColWidth: Math.max(updatesCard.implicitWidth, quoteWidget.implicitWidth)
+        readonly property real contentColWidth: Math.max(versionsCard.implicitWidth, quoteWidget.implicitWidth)
 
         Layout.alignment: Qt.AlignTop
         spacing: root.isVertical ? Constants.sizeLg : Constants.sizeMd
@@ -46,10 +46,10 @@ GridLayout {
         Layout.preferredWidth: root.isVertical ? -1 : contentColWidth
         Layout.fillHeight: !root.isVertical
         implicitWidth: contentColWidth
-        implicitHeight: updatesCard.implicitHeight + quoteWidget.implicitHeight + spacing
+        implicitHeight: versionsCard.implicitHeight + quoteWidget.implicitHeight + spacing
 
-        UpdatesCard {
-            id: updatesCard
+        PackageVersionsCard {
+            id: versionsCard
 
             widget: root.widget
             Layout.fillWidth: true
