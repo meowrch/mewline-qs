@@ -75,8 +75,22 @@ Item {
     property var barMenuFocusItem: null
 
     // True while any bar-attached menu (dashboard, calendar, control center,
-    // ...) is visible. The bar window uses it to grab the keyboard so Escape
-    // can close the menu even when it was opened through a keybind.
+    // ...) is visible.
+    readonly property bool barAttachedMenuOpen: {
+        if (activeWidget !== "" && isBarWidget(activeWidget))
+            return true;
+
+        for (let i = 0; i < activeWidgetsList.length; i++) {
+            if (isBarWidget(activeWidgetsList[i]))
+                return true;
+
+        }
+        return false;
+    }
+
+    // True while ANY bar menu is open (attached menus AND focus popups).
+    // The bar window registers a plain Escape bind for its lifetime so every
+    // menu can be dismissed with the keyboard without stealing focus.
     readonly property bool barMenuOpen: {
         if (activeWidget !== "" && isBarOverlayWidget(activeWidget))
             return true;

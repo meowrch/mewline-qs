@@ -37,6 +37,14 @@ ShellRoot {
     }
 
     IpcHandler {
+        function esc() {
+            AppState.closeAllWidgets();
+        }
+
+        target: "barscape"
+    }
+
+    IpcHandler {
         function showVolume(volume: string, isMuted: string) {
             OsdService.displayVolume(volume, isMuted);
         }

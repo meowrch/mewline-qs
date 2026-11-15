@@ -28,7 +28,13 @@ PanelWindow {
     readonly property bool usesFloatingPopups: styleData.usesFloatingPopups
     readonly property bool isPill: styleData.isPill && !root.isGameMode
     readonly property QtObject activeHost: (SettingsService.barIslandMode && !root.isGameMode) ? barStrip : null
-    readonly property bool needsFocus: (activeHost && activeHost.isOpen && activeHost.needsFocus) || (!root.isGameMode && AppState.barMenuOpen)
+    // Only bar-attached menus (dashboard, calendar, ...) take the keyboard
+    // grab: they have no inputs of their own and are modal by design.
+    // Focus popups (wallpaper/launcher/theme sheets) must NOT grab — a grab
+    // traps the user's focus while those popups get keys through their own
+    // exclusive window or the plain Escape bind below.
+    readonly property bool menuKeyboardGrab: !root.isGameMode && AppState.barAttachedMenuOpen
+    readonly property bool needsFocus: (activeHost && activeHost.isOpen && activeHost.needsFocus) || menuKeyboardGrab
 
     function triggerStyleSwitch() {
         if (!root.isShellReady || !SettingsService.settingsLoaded) {
@@ -111,6 +117,29 @@ PanelWindow {
                 AppState.closeAllWidgets();
 
         }
+    }
+
+    // Plain Escape bind for the lifetime of any bar menu: closes whatever is
+    // open without needing the layer window to hold the keyboard focus.
+    // Registered/unregistered as barMenuOpen flips, so the key is untouched
+    // the rest of the time.
+    Process {
+        id: escapeBindProc
+    }
+
+    Connections {
+        function onBarMenuOpenChanged() {
+            if (AppState.barMenuOpen)
+                escapeBindProc.command = ["hyprctl", "eval", "hl.bind(\"ESCAPE\", hl.dsp.exec_cmd(\"qs -p " + Quickshell.shellDir + " ipc call barscape esc\"))"];
+
+            else
+                escapeBindProc.command = ["hyprctl", "eval", "hl.unbind(\"ESCAPE\")"];
+
+            escapeBindProc.running = false;
+            escapeBindProc.running = true;
+        }
+
+        target: AppState
     }
     Component.onCompleted: {
         activeBarStyle = SettingsService.barStyle;

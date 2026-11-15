@@ -84,7 +84,7 @@ Item {
         width: currentWidth
         height: currentHeight
         anchors.horizontalCenter: parent.horizontalCenter
-        transformOrigin: Item.Top
+        transformOrigin: (widget && widget.positionAtBottom) ? Item.Bottom : Item.Top
         y: openY
         opacity: (_windowVisible || isHandover || forceVisible) ? 1 : 0
 
