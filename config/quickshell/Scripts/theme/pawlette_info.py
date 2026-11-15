@@ -29,6 +29,11 @@ from pathlib import Path
 
 sys.dont_write_bytecode = True
 
+try:
+    from PIL import Image
+except Exception:
+    Image = None
+
 THEMES_DIR = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share"))) / "pawlette" / "themes"
 CONFIG_PATH = Path(os.environ.get("XDG_CONFIG_HOME", str(Path.home() / ".config"))) / "pawlette" / "pawlette.toml"
 
@@ -66,6 +71,45 @@ def parse_theme_colors(theme_dir: Path) -> dict[str, str | None]:
             if isinstance(section, dict):
                 result[name] = variant_color(section)
     return result
+
+
+PREVIEW_SIZE = (480, 324)  # 2x the card (240x162) for crisp scaling
+
+
+def make_full_bleed_preview(logo_path: Path, out_path: Path) -> str | None:
+    """Crop the transparent padding off a theme logo and cover-resize it to
+    the card aspect so the artwork fills the whole rectangle (the raw logos
+    are round badges centered in a transparent 1000x1000 canvas). Returns
+    the preview path, or None when PIL is unavailable / processing fails."""
+    if Image is None:
+        return None
+    try:
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        img = Image.open(logo_path).convert("RGBA")
+        bbox = img.getbbox()
+        if not bbox:
+            return None
+        img = img.crop(bbox)
+        # cover: scale until both dimensions fit, then center-crop
+        scale = max(PREVIEW_SIZE[0] / img.width, PREVIEW_SIZE[1] / img.height)
+        img = img.resize(
+            (max(1, round(img.width * scale)), max(1, round(img.height * scale))),
+            Image.LANCZOS,
+        )
+        left = (img.width - PREVIEW_SIZE[0]) // 2
+        top = (img.height - PREVIEW_SIZE[1]) // 2
+        img = img.crop(
+            (
+                left,
+                top,
+                left + PREVIEW_SIZE[0],
+                top + PREVIEW_SIZE[1],
+            )
+        )
+        img.save(out_path)
+        return str(out_path)
+    except Exception:
+        return None
 
 
 def read_mode() -> str:
@@ -115,10 +159,16 @@ def collect_themes() -> list[dict]:
                 variant_colors[v] = color_map.get(v)
 
         logo = theme_dir / "logo.png"
+        logo_out = None
+        if logo.is_file():
+            preview = Path(
+                os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache"))
+            ) / "quickshell" / "theme_previews" / (name + ".png")
+            logo_out = make_full_bleed_preview(logo, preview) or str(logo)
         themes.append(
             {
                 "name": name,
-                "logo": str(logo) if logo.is_file() else None,
+                "logo": logo_out,
                 "variants": variant_colors,
             }
         )

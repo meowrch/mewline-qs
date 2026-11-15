@@ -85,7 +85,7 @@ Item {
                 anchors.centerIn: parent
                 source: {
                     if (delegateRoot.isDynamicTile)
-                        return Quickshell.shellDir + "/assets/meowrch/dynamic-theme-on-logo.png";
+                        return PawletteService.dynamicEnabled ? Quickshell.shellDir + "/assets/meowrch/dynamic-theme-on-logo.png" : Quickshell.shellDir + "/assets/meowrch/dynamic-theme-off-logo.png";
 
                     return Quickshell.shellDir + "/assets/meowrch/random.png";
                 }
