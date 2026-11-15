@@ -50,6 +50,11 @@ Item {
         if (!name || !installed)
             return ;
 
+        // Picking a static theme disables the wallpaper-driven one, exactly
+        // like the mewline pawlette widget does.
+        if (dynamicEnabled)
+            setDynamic(false);
+
         let cmd = ["pawlette", "apply", "theme", name];
         if (variant && variant !== "default" && variant !== "")
             cmd.push("--variant", variant);
@@ -220,6 +225,18 @@ Item {
         property string payload: ""
 
         command: ["python3", "-c", "import pathlib,sys; p = pathlib.Path(sys.argv[1]); p.parent.mkdir(parents=True, exist_ok=True); p.write_text(sys.argv[2])", root.dynamicStatePath, payload]
+    }
+
+    // ---- dynamic theme state (persisted by meowrch, read at startup) ------
+    FileView {
+        id: dynamicStateFile
+
+        path: root.dynamicStatePath
+        watchChanges: true
+        onFileChanged: dynamicStateFile.reload()
+        onLoaded: {
+            root.dynamicEnabled = dynamicStateFile.text().trim() === "1";
+        }
     }
 
     // ---- last applied marker (read back at startup) -----------------------

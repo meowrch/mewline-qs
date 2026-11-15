@@ -205,14 +205,7 @@ Item {
     }
 
     function handleKey(event) {
-        // While the modal Hyprland binds are active they deliver every key
-        // through IPC; handling the same event locally would double-step.
-        if (KeyNavService.bindsActive) {
-            if (event.key === Qt.Key_Escape)
-                event.accepted = true;
-
-            return ;
-        }
+        console.warn("themehandler: key", event.key, "variants:", root.variantsOpen);
         if (root.variantsOpen) {
             if (event.key === Qt.Key_Left) {
                 variantView.currentIndex = Math.max(0, variantView.currentIndex - 1);
@@ -267,14 +260,6 @@ Item {
         }
 
         target: PawletteService
-    }
-
-    Connections {
-        function onNavigate(action) {
-            root.handleAction(action);
-        }
-
-        target: KeyNavService
     }
 
     NumberAnimation {
@@ -426,6 +411,7 @@ Item {
                             anchors.right: parent.right
                             anchors.bottom: parent.bottom
                             height: parent.height * 0.6
+                            radius: Constants.sizeMd
 
                             gradient: Gradient {
                                 GradientStop {
@@ -509,7 +495,6 @@ Item {
         onSearchRequested: (text) => {
             return root.rebuildModel();
         }
-        textField.Keys.priority: Keys.BeforeItem
         textField.Keys.onPressed: (event) => {
             return root.handleKey(event);
         }

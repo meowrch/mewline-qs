@@ -104,11 +104,6 @@ Item {
         if (typeof loader.item.resetSelector === "function")
             loader.item.resetSelector();
 
-        // The theme popup is keyboard-first: register plain arrow binds for
-        // its lifetime so navigation works exactly as anywhere in this host.
-        if (displayedWidgetId === "pawlette")
-            KeyNavService.activate();
-
         if (typeof loader.item.resetSelector === "function")
             loader.item.resetSelector();
 
@@ -193,7 +188,6 @@ Item {
                 root.displayedWidgetId = "";
                 root.isClosing = false;
                 AppState.barMenuFocusItem = null;
-                KeyNavService.deactivate();
                 root.fullyClosed();
             }
         }
