@@ -68,6 +68,12 @@ Item {
         return isFocusWidget(id) || isBarWidget(id);
     }
 
+    // The focus item of the popup currently hosted in the bar window (the
+    // theme/wallpaper/launcher search field, ...). The bar's keyboard proxy
+    // forwards unhandled keys here so arrow navigation works while the
+    // window holds the keyboard grab.
+    property var barMenuFocusItem: null
+
     // True while any bar-attached menu (dashboard, calendar, control center,
     // ...) is visible. The bar window uses it to grab the keyboard so Escape
     // can close the menu even when it was opened through a keybind.

@@ -89,13 +89,18 @@ PanelWindow {
     color: "transparent"
     focusable: needsFocus
 
-    // Escape closes any open bar menu (dashboard, calendar, control center,
-    // notifications, music, system usage). The catcher only receives keys
-    // while the window holds the keyboard, which happens exactly when a menu
-    // is open.
+    // Keyboard proxy for bar menus. While a menu is open the window holds
+    // the keyboard grab; this catcher keeps focus and routes keys:
+    //  - Escape closes the menu,
+    //  - everything else is forwarded to the open popup's focus item so
+    //    arrow navigation (theme/wallpaper/launcher search fields) works
+    //    even when the menu was opened by a keybind and nothing inside was
+    //    clicked yet.
     Item {
         anchors.fill: parent
-        focus: root.focusable
+        focus: root.focusable && !AppState.barMenuFocusItem
+
+        Keys.forwardTo: AppState.barMenuFocusItem ? [AppState.barMenuFocusItem] : []
 
         Keys.onEscapePressed: {
             if (AppState.barMenuOpen)

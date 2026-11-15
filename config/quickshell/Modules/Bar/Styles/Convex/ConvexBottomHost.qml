@@ -110,6 +110,7 @@ Item {
         if (typeof loader.item.resetScreenCapture === "function")
             loader.item.resetScreenCapture();
 
+        AppState.barMenuFocusItem = (loader.item && loader.item.initialFocusItem) ? loader.item.initialFocusItem : null;
         Qt.callLater(() => {
             if (loader.item) {
                 if (loader.item.initialFocusItem)
@@ -183,6 +184,7 @@ Item {
                 root._visible = false;
                 root.displayedWidgetId = "";
                 root.isClosing = false;
+                AppState.barMenuFocusItem = null;
                 root.fullyClosed();
             }
         }
