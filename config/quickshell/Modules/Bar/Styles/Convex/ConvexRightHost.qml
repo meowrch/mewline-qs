@@ -201,7 +201,10 @@ Item {
 
         anchors.fill: parent
         widgetId: root.activeWidgetId !== "" ? root.activeWidgetId : root.displayedWidgetId
-        positionAtLeft: false
+        // Tray menus live in the LEFT bar section (behind the chevron), so
+        // their sheet opens on the left edge right below the tray island.
+        // Control / notification centers stay anchored to the right edge.
+        positionAtLeft: root.displayedWidgetId.startsWith("systemTray_")
         backgroundColor: Theme.bg
         alignTop: root.displayedWidgetId.startsWith("systemTray_")
         topOffset: SettingsService.barConvexMode ? 80 : Constants.size4Xl

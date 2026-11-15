@@ -22,8 +22,11 @@ Rectangle {
 
     signal clicked(var mouse)
 
+    // Tighter packing: the box hugs the icon instead of spanning the full
+    // bar height, so icons sit closer together (capped by customHeight so
+    // compact island usage keeps its square layout).
     implicitHeight: customHeight
-    implicitWidth: customHeight
+    implicitWidth: Math.min(customHeight, iconSize + hitPadding * 2 + Constants.sizeXs)
     width: implicitWidth
     height: implicitHeight
     Layout.preferredWidth: implicitWidth

@@ -19,7 +19,7 @@ Rectangle {
     property int iconSize: compact ? (Constants.sizeSm - 1) : Constants.sizeSm
     property int hitPadding: 0
     property real sideMargin: compact ? 6 : (hasBackground ? Constants.sizeXs : 0)
-    property real itemSpacing: compact ? 4 : (hasBackground ? Constants.sizeSm : Constants.size3Xs)
+    property real itemSpacing: compact ? 4 : (hasBackground ? Constants.sizeXs : Constants.size3Xs)
     property int customHeight: compact ? 22 : SettingsService.barWidgetHeight
     readonly property bool shouldShow: !forceHide && trayRow.implicitWidth > 0
     readonly property real targetWidth: Math.min(trayRow.implicitWidth + sideMargin * 2, Layout.maximumWidth)

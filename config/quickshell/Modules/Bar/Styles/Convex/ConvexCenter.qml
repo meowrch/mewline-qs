@@ -174,6 +174,15 @@ Item {
         visible: opacity > 0.001
         clip: true
 
+        // Whole-island click target: any empty part of the center island
+        // opens the calendar, not just the app pill's text. Declared before
+        // BarCenterSection so the app/media pills keep their own handlers.
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: AppState.toggleWidget("calendar")
+        }
+
         BarCenterSection {
             id: centerSlot
 

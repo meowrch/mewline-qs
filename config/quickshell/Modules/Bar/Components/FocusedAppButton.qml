@@ -42,6 +42,9 @@ Rectangle {
         spacing: Constants.sizeXs
 
         Item {
+            // Hidden entirely while the desktop is focused: the user@hostname
+            // fallback shows as text only, no placeholder icon.
+            visible: root.hasApp
             Layout.preferredWidth: root.iconSize
             Layout.preferredHeight: root.iconSize
             Layout.alignment: Qt.AlignVCenter
@@ -71,7 +74,10 @@ Rectangle {
         ThemedText {
             text: FocusedAppService.displayTitle
             elide: Text.ElideRight
-            visible: root.hasApp && text !== ""
+            // Keep the label visible when the desktop is focused too: the
+            // service falls back to user@hostname there, hiding it left the
+            // island with an icon and no text.
+            visible: text !== ""
             Layout.alignment: Qt.AlignVCenter
             Layout.maximumWidth: root.maxTitleWidth
             Layout.preferredWidth: Math.min(implicitWidth, root.maxTitleWidth)
