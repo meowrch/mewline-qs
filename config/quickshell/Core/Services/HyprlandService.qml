@@ -117,9 +117,9 @@ Item {
                     "enabled": enableAnimations
                 }
             };
-            patchUserPrefsProc.command = ["python3", Quickshell.shellDir + "/Core/Services/scripts/update_hypr_prefs.py", JSON.stringify(jsonArgs)];
-            patchUserPrefsProc.running = false;
-            patchUserPrefsProc.running = true;
+            // Runtime-only: hl.config merges these live and a reload reverts
+            // them. The user's userprefs.lua is NEVER written by this shell
+            // (the old file-patcher injected blocks into foreign scopes).
         }
     }
     onAnimationSpeedFactorChanged: {
@@ -346,9 +346,30 @@ Item {
                     }
                 }
             };
-            patchUserPrefsProc.command = ["python3", Quickshell.shellDir + "/Core/Services/scripts/update_hypr_prefs.py", JSON.stringify(jsonArgs)];
-            patchUserPrefsProc.running = false;
-            patchUserPrefsProc.running = true;
+            // Runtime-only: hl.config merges these live and a reload reverts
+            // them. The user's userprefs.lua is NEVER written by this shell
+            // (the old file-patcher injected blocks into foreign scopes).
+            let luaPairs = [];
+            for (let section in jsonArgs) {
+                let entries = [];
+                for (let key in jsonArgs[section]) {
+                    let v = jsonArgs[section][key];
+                    if (typeof v === "object" && v !== null) {
+                        let inner = [];
+                        for (let k2 in v) {
+                            let v2 = v[k2];
+                            inner.push(k2 + " = " + (typeof v2 === "boolean" ? (v2 ? "true" : "false") : v2));
+                        }
+                        entries.push(key + " = { " + inner.join(", ") + " }");
+                    } else {
+                        entries.push(key + " = " + (typeof v === "boolean" ? (v ? "true" : "false") : v));
+                    }
+                }
+                luaPairs.push(section + " = { " + entries.join(", ") + " }");
+            }
+            runtimeConfigProc.command = ["hyprctl", "eval", "hl.config({ " + luaPairs.join(", ") + " })"];
+            runtimeConfigProc.running = false;
+            runtimeConfigProc.running = true;
         }
     }
 
@@ -384,9 +405,30 @@ Item {
                     "no_warps": cursorNoWarps
                 }
             };
-            patchUserPrefsProc.command = ["python3", Quickshell.shellDir + "/Core/Services/scripts/update_hypr_prefs.py", JSON.stringify(jsonArgs)];
-            patchUserPrefsProc.running = false;
-            patchUserPrefsProc.running = true;
+            // Runtime-only: hl.config merges these live and a reload reverts
+            // them. The user's userprefs.lua is NEVER written by this shell
+            // (the old file-patcher injected blocks into foreign scopes).
+            let luaPairs = [];
+            for (let section in jsonArgs) {
+                let entries = [];
+                for (let key in jsonArgs[section]) {
+                    let v = jsonArgs[section][key];
+                    if (typeof v === "object" && v !== null) {
+                        let inner = [];
+                        for (let k2 in v) {
+                            let v2 = v[k2];
+                            inner.push(k2 + " = " + (typeof v2 === "boolean" ? (v2 ? "true" : "false") : v2));
+                        }
+                        entries.push(key + " = { " + inner.join(", ") + " }");
+                    } else {
+                        entries.push(key + " = " + (typeof v === "boolean" ? (v ? "true" : "false") : v));
+                    }
+                }
+                luaPairs.push(section + " = { " + entries.join(", ") + " }");
+            }
+            runtimeConfigProc.command = ["hyprctl", "eval", "hl.config({ " + luaPairs.join(", ") + " })"];
+            runtimeConfigProc.running = false;
+            runtimeConfigProc.running = true;
         }
     }
 
@@ -403,7 +445,7 @@ Item {
     }
 
     Process {
-        id: patchUserPrefsProc
+        id: runtimeConfigProc
     }
 
     Process {
