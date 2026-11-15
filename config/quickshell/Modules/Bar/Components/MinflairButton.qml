@@ -8,28 +8,24 @@ BarButton {
     id: root
 
     property int iconSize: Constants.size2Xl + 4
-    property bool enableIntervalAnim: true
 
     widgetId: "dashboard"
-    implicitWidth: minflair.implicitWidth
-    implicitHeight: minflair.implicitHeight
+    implicitWidth: logo.implicitWidth
+    implicitHeight: logo.implicitHeight
     height: implicitHeight
 
-    AnimatedMinflair {
-        id: minflair
+    // Static meowrch logo instead of the spinning minflair star.
+    Image {
+        id: logo
 
         anchors.centerIn: parent
-        iconSize: root.iconSize
-        enableIntervalAnim: root.enableIntervalAnim
-
-        Behavior on scale {
-            NumberAnimation {
-                duration: Constants.animFast
-                easing.type: Easing.OutQuad
-            }
-
-        }
-
+        source: "file://" + Quickshell.shellDir + "/assets/meowrch/meowrch-logo.png"
+        fillMode: Image.PreserveAspectFit
+        smooth: true
+        asynchronous: true
+        // Square layout box so the pill width stays stable while loading.
+        implicitWidth: root.iconSize
+        implicitHeight: root.iconSize
     }
 
 }
