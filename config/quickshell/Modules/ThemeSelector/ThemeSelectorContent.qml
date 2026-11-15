@@ -154,6 +154,23 @@ Item {
             root.openVariants(theme);
     }
 
+    // Keep the current variant chip inside the visible strip (the wallpaper
+    // selector does the same for its cards).
+    function variantEnsureVisible(idx) {
+        if (idx < 0 || idx >= variantModel.count)
+            return ;
+
+        let step = 160 + root.cardSpacing;
+        let maxScroll = Math.max(0, variantModel.count * step - variantView.width);
+        let targetX = Math.max(0, Math.min(idx * step, maxScroll));
+        if (Math.abs(targetX - variantView.contentX) > 1) {
+            variantScrollAnim.stop();
+            variantScrollAnim.from = variantView.contentX;
+            variantScrollAnim.to = targetX;
+            variantScrollAnim.start();
+        }
+    }
+
     function applyVariant(idx) {
         if (!root.variantsTheme)
             return ;
@@ -176,8 +193,10 @@ Item {
         if (root.variantsOpen) {
             if (action === "right") {
                 variantView.currentIndex = Math.min(variantModel.count - 1, variantView.currentIndex + 1);
+                root.variantEnsureVisible(variantView.currentIndex);
             } else if (action === "left") {
                 variantView.currentIndex = Math.max(0, variantView.currentIndex - 1);
+                root.variantEnsureVisible(variantView.currentIndex);
             } else if (action === "enter") {
                 root.applyVariant(variantView.currentIndex);
             } else if (action === "up" || action === "esc") {
@@ -276,6 +295,15 @@ Item {
 
     ListModel {
         id: variantModel
+    }
+
+    NumberAnimation {
+        id: variantScrollAnim
+
+        target: variantView
+        property: "contentX"
+        duration: Constants.animSlow
+        easing.type: Easing.OutQuint
     }
 
     ColumnLayout {
