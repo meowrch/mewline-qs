@@ -106,10 +106,6 @@ PanelWindow {
 
         Keys.forwardTo: AppState.barMenuFocusItem ? [AppState.barMenuFocusItem] : []
 
-        Keys.onPressed: (event) => {
-            console.warn("keyproxy: key", event.key, "focusItem:", AppState.barMenuFocusItem !== null);
-        }
-
         Keys.onEscapePressed: {
             if (AppState.barMenuOpen)
                 AppState.closeAllWidgets();

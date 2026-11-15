@@ -173,7 +173,47 @@ Item {
             AppState.activeWidget = "";
     }
 
+    function handleAction(action) {
+        if (root.variantsOpen) {
+            if (action === "right") {
+                variantView.currentIndex = Math.min(variantModel.count - 1, variantView.currentIndex + 1);
+            } else if (action === "left") {
+                variantView.currentIndex = Math.max(0, variantView.currentIndex - 1);
+            } else if (action === "enter") {
+                root.applyVariant(variantView.currentIndex);
+            } else if (action === "up" || action === "esc") {
+                root.closeVariants();
+            }
+            return ;
+        }
+        if (action === "right") {
+            root.selectIndex(themeView.currentIndex + 1);
+        } else if (action === "left") {
+            root.selectIndex(themeView.currentIndex - 1);
+        } else if (action === "down") {
+            let dIdx = themeView.currentIndex >= 0 ? themeView.currentIndex : 0;
+            if (dIdx >= 2 && dIdx < filteredModel.count) {
+                let dTheme = filteredModel.get(dIdx);
+                if (Object.keys(dTheme.variants || {}).length > 0)
+                    root.openVariants(dTheme);
+
+            }
+        } else if (action === "enter") {
+            root.activateIndex(themeView.currentIndex >= 0 ? themeView.currentIndex : 0);
+        } else if (action === "esc") {
+            root.closePopup();
+        }
+    }
+
     function handleKey(event) {
+        // While the modal Hyprland binds are registered they deliver every
+        // key through IPC; handling the same event locally would double-step.
+        if (KeyNavService.bindsActive) {
+            if (event.key === Qt.Key_Escape)
+                event.accepted = true;
+
+            return ;
+        }
         if (root.variantsOpen) {
             if (event.key === Qt.Key_Left) {
                 variantView.currentIndex = Math.max(0, variantView.currentIndex - 1);
@@ -228,6 +268,14 @@ Item {
         }
 
         target: PawletteService
+    }
+
+    Connections {
+        function onNavigate(action) {
+            root.handleAction(action);
+        }
+
+        target: KeyNavService
     }
 
     NumberAnimation {
