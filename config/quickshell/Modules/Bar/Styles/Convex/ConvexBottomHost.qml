@@ -10,7 +10,6 @@ import qs.Modules.Clipboard
 import qs.Modules.Launcher
 import qs.Modules.PowerMenu
 import qs.Modules.ScreenCapture
-import qs.Modules.ThemeSelector
 import qs.Modules.WallpaperSelector
 
 Item {
@@ -27,9 +26,6 @@ Item {
 
         if (AppState.isWidgetOpen("wallpaper"))
             return "wallpaper";
-
-        if (AppState.isWidgetOpen("pawlette"))
-            return "pawlette";
 
         if (AppState.isWidgetOpen("powerMenu"))
             return "powerMenu";
@@ -65,8 +61,6 @@ Item {
             return clipboardComp;
         case "wallpaper":
             return wallpaperComp;
-        case "pawlette":
-            return pawletteComp;
         case "powerMenu":
             return powerMenuComp;
         case "screenshot":
@@ -103,11 +97,6 @@ Item {
 
         if (typeof loader.item.resetSelector === "function")
             loader.item.resetSelector();
-
-        // The theme popup is keyboard-first: register plain arrow binds for
-        // its lifetime so navigation works without any layer focus.
-        if (displayedWidgetId === "pawlette")
-            KeyNavService.activate();
 
         if (typeof loader.item.resetPowerMenu === "function")
             loader.item.resetPowerMenu();
@@ -190,7 +179,6 @@ Item {
                 root.displayedWidgetId = "";
                 root.isClosing = false;
                 AppState.barMenuFocusItem = null;
-                KeyNavService.deactivate();
                 root.fullyClosed();
             }
         }
@@ -290,15 +278,6 @@ Item {
         id: wallpaperComp
 
         WallpaperSelectorContent {
-            widget: widgetProxy
-        }
-
-    }
-
-    Component {
-        id: pawletteComp
-
-        ThemeSelectorContent {
             widget: widgetProxy
         }
 

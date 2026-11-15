@@ -76,7 +76,7 @@ Item {
         property real fromWidth: notifW > 0 ? notifW : ((AppState.barIslandWidth > 0) ? AppState.barIslandWidth : ((AppState.islandWidth > 0) ? AppState.islandWidth : 180))
         property real fromHeight: notifH > 0 ? notifH : ((AppState.barIslandHeight > 0) ? AppState.barIslandHeight : ((AppState.islandHeight > 0) ? AppState.islandHeight : Constants.islandBarHeight))
         property real fromRadius: notifH > 0 ? Constants.sizeXl : fromHeight / 2
-        readonly property real openY: 8
+        readonly property real openY: widget && widget.positionAtBottom ? Math.max(8, widget.height - preferredHeight - 10) : 8
         readonly property real currentWidth: Math.round(fromWidth + (preferredWidth - fromWidth) * bounceProgress)
         readonly property real currentHeight: Math.round(fromHeight + (preferredHeight - fromHeight) * bounceProgress)
         readonly property real currentRadius: Math.round(fromRadius + (windowRadius - fromRadius) * bounceProgress)
