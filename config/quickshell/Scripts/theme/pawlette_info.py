@@ -112,6 +112,33 @@ def make_full_bleed_preview(logo_path: Path, out_path: Path) -> str | None:
         return None
 
 
+SHELL_DIR = Path(__file__).resolve().parents[2]
+SPECIAL_SOURCES = {
+    "__dynamic_on": SHELL_DIR / "assets" / "meowrch" / "dynamic-theme-on-logo.png",
+    "__dynamic_off": SHELL_DIR / "assets" / "meowrch" / "dynamic-theme-off-logo.png",
+    "__random": SHELL_DIR / "assets" / "meowrch" / "random.png",
+}
+
+
+def make_special_previews(preview_dir: Path) -> dict:
+    """Full-bleed previews for the Dynamic/Random tiles, regenerated only
+    when the bundled source is newer than the cached preview."""
+    out = {}
+    if Image is None:
+        return out
+    for name, src in SPECIAL_SOURCES.items():
+        dst = preview_dir / (name + ".png")
+        try:
+            if not dst.is_file() or dst.stat().st_mtime < src.stat().st_mtime:
+                result = make_full_bleed_preview(src, dst)
+                if result is None:
+                    continue
+        except Exception:
+            continue
+        out[name] = str(dst)
+    return out
+
+
 def read_mode() -> str:
     try:
         text = CONFIG_PATH.read_text(encoding="utf-8")
@@ -180,10 +207,18 @@ def main() -> None:
         "installed": False,
         "mode": read_mode(),
         "themes": [],
+        "special": {},
     }
     try:
         doc["themes"] = collect_themes()
         doc["installed"] = bool(doc["themes"])
+    except Exception:
+        pass
+    try:
+        preview_dir = Path(
+            os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache"))
+        ) / "quickshell" / "theme_previews"
+        doc["special"] = make_special_previews(preview_dir)
     except Exception:
         pass
     print(json.dumps(doc))
