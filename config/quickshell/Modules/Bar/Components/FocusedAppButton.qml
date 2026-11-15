@@ -31,7 +31,8 @@ Rectangle {
 
         anchors.fill: parent
         hoverEnabled: true
-        acceptedButtons: Qt.NoButton
+        acceptedButtons: Qt.LeftButton
+        onClicked: AppState.toggleWidget("calendar")
     }
 
     RowLayout {
