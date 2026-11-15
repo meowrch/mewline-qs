@@ -105,6 +105,8 @@ Item {
                 return mediaComp;
             case "clock":
                 return clockComp;
+            case "focusedApp":
+                return focusedAppComp;
             case "tray":
                 return trayComp;
             case "control_center":
@@ -138,6 +140,14 @@ Item {
         id: clockComp
 
         ClockButton {
+        }
+
+    }
+
+    Component {
+        id: focusedAppComp
+
+        FocusedAppButton {
         }
 
     }
