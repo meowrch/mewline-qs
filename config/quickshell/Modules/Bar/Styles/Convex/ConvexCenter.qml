@@ -33,9 +33,13 @@ Item {
     readonly property bool isOverlayActive: isOpen || (openProgress > 0.001) || isClosing
     readonly property bool isOccupied: isOverlayActive || hasActiveNotifications || hasActiveOsd
     // Geometry calculations
+    // Fixed minimum width for the idle center island (mewline reference: the
+    // island keeps a substantial presence instead of collapsing around a
+    // short window title). Content stays centered inside the island.
+    readonly property int minIdleWidth: 420
     readonly property real idleW: {
         let contentW = centerSlot.implicitWidth > 0 ? centerSlot.implicitWidth : centerSlot.targetWidth;
-        let w = Math.round(contentW + flareW * 2 + root.extraPadding);
+        let w = Math.max(root.minIdleWidth, Math.round(contentW + flareW * 2 + root.extraPadding));
         return (w % 2 === 0) ? w : (w + 1);
     }
     readonly property real idleH: BarStyleConfig.barHeight("convex")
