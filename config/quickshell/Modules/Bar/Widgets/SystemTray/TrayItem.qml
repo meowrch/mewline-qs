@@ -129,6 +129,21 @@ Rectangle {
 
             itemRoot.clicked(mouse);
         }
+        // SNI scroll action: vertical wheel scrolls (e.g. volume on mixer
+        // applets); shift+wheel maps to the horizontal scroll axis.
+        onWheel: (wheel) => {
+            if (!itemRoot.trayItem)
+                return ;
+
+            const dy = wheel.angleDelta.y;
+            const dx = wheel.angleDelta.x;
+            if (dy === 0 && dx === 0)
+                return ;
+
+            const horizontal = dy === 0;
+            const delta = (horizontal ? dx : dy) > 0 ? 1 : -1;
+            itemRoot.trayItem.scroll(delta, horizontal);
+        }
     }
 
     Behavior on color {

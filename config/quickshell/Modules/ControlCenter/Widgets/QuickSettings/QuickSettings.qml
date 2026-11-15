@@ -140,6 +140,12 @@ Item {
                         isVisible: root.quickSettingsOpen
                     }
 
+                    OcrControl {
+                        id: ocrBtn
+
+                        Layout.fillWidth: true
+                    }
+
                 }
 
                 Card {

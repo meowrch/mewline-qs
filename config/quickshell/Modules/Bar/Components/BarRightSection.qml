@@ -102,15 +102,6 @@ Rectangle {
                     Layout.alignment: Qt.AlignVCenter
                 }
 
-                SystemTrayGroup {
-                    id: trayGroup
-
-                    forceHide: false
-                    hasBackground: false
-                    Layout.alignment: Qt.AlignVCenter
-                    visible: shouldShow
-                }
-
             }
 
             Behavior on Layout.preferredWidth {

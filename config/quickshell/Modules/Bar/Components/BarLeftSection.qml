@@ -14,6 +14,9 @@ Rectangle {
     property QtObject mainBar: null
     property real sidePadding: Constants.size3Xl
     property real contentMargin: Constants.sizeLg
+    // Tray is hidden behind the chevron: the chevron reveals the tray
+    // island next to the workspaces, clicking it again collapses it.
+    property bool trayOpen: false
     readonly property real targetWidth: contentRow.implicitWidth + root.sidePadding
 
     height: parent ? parent.height : implicitHeight
@@ -28,6 +31,77 @@ Rectangle {
         anchors.leftMargin: root.contentMargin
         spacing: Constants.sizeXs
 
+        // Chevron toggle at the left end: rotates when the tray is open.
+        Rectangle {
+            id: trayChevron
+
+            readonly property bool isHovered: chevronArea.containsMouse
+            readonly property bool isPressed: chevronArea.pressed
+
+            implicitHeight: SettingsService.barWidgetHeight
+            implicitWidth: implicitHeight
+            width: implicitWidth
+            height: implicitHeight
+            Layout.preferredHeight: implicitHeight
+            Layout.preferredWidth: implicitWidth
+            Layout.alignment: Qt.AlignVCenter
+            radius: DisplayProfileService.gameModeActive ? 0 : height / 2
+            color: isPressed ? Theme.bgTertiary : (isHovered ? Theme.bgTertiary : Theme.bgSecondary)
+            scale: isPressed ? 0.95 : (isHovered ? 1.05 : 1)
+
+            SvgIcon {
+                anchors.centerIn: parent
+                icon: "chevron-down"
+                iconSize: Constants.sizeMd
+                flat: true
+                iconColor: trayChevron.isHovered ? Theme.accent : Theme.fg
+                rotation: root.trayOpen ? 180 : 0
+
+                Behavior on rotation {
+                    NumberAnimation {
+                        duration: Constants.animNormal
+                        easing.type: Easing.OutCubic
+                    }
+
+                }
+
+                Behavior on iconColor {
+                    ColorAnimation {
+                        duration: Constants.animFast
+                    }
+
+                }
+
+            }
+
+            MouseArea {
+                id: chevronArea
+
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: {
+                    root.trayOpen = !root.trayOpen;
+                }
+            }
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Constants.animFast
+                }
+
+            }
+
+            Behavior on scale {
+                NumberAnimation {
+                    duration: Constants.animFast
+                    easing.type: Easing.OutBack
+                }
+
+            }
+
+        }
+
         MinflairButton {
             id: minflairBtn
 
@@ -39,6 +113,21 @@ Rectangle {
 
             Layout.alignment: Qt.AlignVCenter
             visible: true
+        }
+
+        // System tray island: revealed next to the workspaces while the
+        // chevron is open. The width reveal follows the shell's indicator
+        // pattern (animated Layout.preferredWidth + fade, clip keeps the
+        // row hidden while collapsed).
+        SystemTrayGroup {
+            id: trayGroup
+
+            forceHide: false
+            hasBackground: true
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: root.trayOpen ? trayGroup.implicitWidth : 0
+            opacity: root.trayOpen ? 1 : 0
+            enabled: root.trayOpen
         }
 
     }
