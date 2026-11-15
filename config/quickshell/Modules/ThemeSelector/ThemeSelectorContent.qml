@@ -205,14 +205,6 @@ Item {
     }
 
     function handleKey(event) {
-        // While the modal binds are active they deliver every key through
-        // IPC; handling the same event locally would double-step.
-        if (KeyNavService.bindsActive) {
-            if (event.key === Qt.Key_Escape)
-                event.accepted = true;
-
-            return ;
-        }
         if (root.variantsOpen) {
             if (event.key === Qt.Key_Left) {
                 variantView.currentIndex = Math.max(0, variantView.currentIndex - 1);
@@ -267,14 +259,6 @@ Item {
         }
 
         target: PawletteService
-    }
-
-    Connections {
-        function onNavigate(action) {
-            root.handleAction(action);
-        }
-
-        target: KeyNavService
     }
 
     NumberAnimation {
