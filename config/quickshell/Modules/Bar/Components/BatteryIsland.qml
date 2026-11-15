@@ -26,7 +26,8 @@ Rectangle {
     Layout.alignment: Qt.AlignVCenter
     scale: DisplayProfileService.gameModeActive ? 1 : (isPressed ? 0.95 : (isHovered ? 1.03 : 1))
 
-    readonly property bool charging: SystemInfoService.isPluggedIn || SystemInfoService.batteryStatus === "Charging"
+    // "Charging" only: a plugged but full/idle battery is not charging.
+    readonly property bool charging: SystemInfoService.batteryStatus === "Charging"
     readonly property bool lowBattery: !charging && SystemInfoService.batteryLevel <= 20
     readonly property color fillColor: lowBattery ? (PawletteService.paletteReady && PawletteService.palette.color_red ? PawletteService.palette.color_red : "#ff5c5c") : (charging ? Theme.accent : Theme.fg)
 
@@ -37,7 +38,8 @@ Rectangle {
         spacing: Constants.size2Xs
 
         // Battery glyph drawn in-place (no battery svg asset in the shell):
-        // body outline + proportional fill + terminal nub.
+        // body outline + proportional fill + terminal nub, with a lightning
+        // bolt over the fill while the battery is actively charging.
         Item {
             Layout.alignment: Qt.AlignVCenter
             implicitWidth: 22
@@ -95,6 +97,19 @@ Rectangle {
 
                     }
 
+                }
+
+                // Lightning bolt while actively charging. QtQuick.Shapes
+                // renders nothing in this Quickshell build, so the bolt is a
+                // plain SvgIcon overlay (assets/bolt.svg, the same bolt path
+                // as charger-filled without the circle badge).
+                SvgIcon {
+                    anchors.centerIn: parent
+                    visible: root.charging
+                    icon: "bolt"
+                    iconSize: 10
+                    flat: true
+                    iconColor: Theme.fg
                 }
 
             }
