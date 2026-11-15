@@ -10,7 +10,6 @@ import qs.Modules.Clipboard
 import qs.Modules.Launcher
 import qs.Modules.PowerMenu
 import qs.Modules.ScreenCapture
-import qs.Modules.ThemeSelector
 import qs.Modules.WallpaperSelector
 
 Item {
@@ -27,9 +26,6 @@ Item {
 
         if (AppState.isWidgetOpen("wallpaper"))
             return "wallpaper";
-
-        if (AppState.isWidgetOpen("pawlette"))
-            return "pawlette";
 
         if (AppState.isWidgetOpen("powerMenu"))
             return "powerMenu";
@@ -65,8 +61,6 @@ Item {
             return clipboardComp;
         case "wallpaper":
             return wallpaperComp;
-        case "pawlette":
-            return pawletteComp;
         case "powerMenu":
             return powerMenuComp;
         case "screenshot":
@@ -287,15 +281,6 @@ Item {
         id: wallpaperComp
 
         WallpaperSelectorContent {
-            widget: widgetProxy
-        }
-
-    }
-
-    Component {
-        id: pawletteComp
-
-        ThemeSelectorContent {
             widget: widgetProxy
         }
 

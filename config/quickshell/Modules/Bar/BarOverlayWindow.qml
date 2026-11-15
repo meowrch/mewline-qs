@@ -28,12 +28,12 @@ PanelWindow {
     readonly property bool usesFloatingPopups: styleData.usesFloatingPopups
     readonly property bool isPill: styleData.isPill && !root.isGameMode
     readonly property QtObject activeHost: (SettingsService.barIslandMode && !root.isGameMode) ? barStrip : null
-    // Only bar-attached menus (dashboard, calendar, ...) take the keyboard
-    // grab: they have no inputs of their own and are modal by design.
-    // Focus popups (wallpaper/launcher/theme sheets) must NOT grab — a grab
-    // traps the user's focus while those popups get keys through their own
-    // exclusive window or the plain Escape bind below.
-    readonly property bool menuKeyboardGrab: !root.isGameMode && AppState.barAttachedMenuOpen
+    // While ANY bar menu is open (dashboard, calendar, wallpaper/launcher/
+    // theme sheets) the bar window holds the keyboard: the sheets have no
+    // window of their own in convex mode, so this is the only way keys reach
+    // them (the launcher does the same with focusable on its own window).
+    // Closing is always one step away: Escape bind + click-outside.
+    readonly property bool menuKeyboardGrab: !root.isGameMode && AppState.barMenuOpen
     readonly property bool needsFocus: (activeHost && activeHost.isOpen && activeHost.needsFocus) || menuKeyboardGrab
 
     function triggerStyleSwitch() {

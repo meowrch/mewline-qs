@@ -205,7 +205,6 @@ Item {
     }
 
     function handleKey(event) {
-        console.warn("themehandler: key", event.key, "variants:", root.variantsOpen);
         if (root.variantsOpen) {
             if (event.key === Qt.Key_Left) {
                 variantView.currentIndex = Math.max(0, variantView.currentIndex - 1);
