@@ -71,7 +71,9 @@ Item {
         BarWidgetLoader {
             id: slot1
 
-            widgetType: "clock"
+            // Focused app island (icon + title). The clock moved to the right
+            // section in convex mode; ClockButton itself stays for other styles.
+            widgetType: "focusedApp"
             mainBar: root.mainBar
             isCenterSlot: true
             animateTransitions: false
