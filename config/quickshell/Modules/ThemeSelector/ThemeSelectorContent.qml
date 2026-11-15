@@ -101,9 +101,8 @@ Item {
         if (filteredModel.count === 0)
             return ;
 
-        // Wrap around so arrows can cycle the list in one direction.
-        let count = filteredModel.count;
-        let newIdx = ((idx % count) + count) % count;
+        // Clamp like the wallpaper selector: arrows stop at the ends.
+        let newIdx = Math.max(0, Math.min(idx, filteredModel.count - 1));
         themeView.currentIndex = newIdx;
         root.ensureVisible(newIdx);
     }

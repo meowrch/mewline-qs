@@ -85,7 +85,10 @@ Item {
         height: currentHeight
         anchors.horizontalCenter: parent.horizontalCenter
         transformOrigin: (widget && widget.positionAtBottom) ? Item.Bottom : Item.Top
-        y: openY
+        // Bottom sheets reveal exactly like ConvexBottomHost: the bottom
+        // edge stays pinned just above the screen edge while the height
+        // grows upward, so the sheet slides out of the bottom border.
+        y: (widget && widget.positionAtBottom) ? parent.height - currentHeight - 10 : openY
         opacity: (_windowVisible || isHandover || forceVisible) ? 1 : 0
 
         IslandStyle.IslandBackground {
