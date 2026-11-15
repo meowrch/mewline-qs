@@ -110,7 +110,7 @@ Rectangle {
                     icon: "bolt"
                     iconSize: 10
                     flat: true
-                    iconColor: Theme.fg
+                    iconColor: Theme.bg
                 }
 
             }
