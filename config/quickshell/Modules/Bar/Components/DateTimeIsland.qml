@@ -58,6 +58,22 @@ Rectangle {
     readonly property string timeText: Qt.formatDateTime(SystemInfoService.currentTime, "HH:mm")
     readonly property string dateText: Qt.formatDateTime(SystemInfoService.currentTime, "dd-MM-yy")
 
+    // Layouts shown in the indicator: the real XKB list from Hyprland; the
+    // active layout is prepended if Hyprland reports something unknown.
+    readonly property var indicatorCodes: {
+        let codes = HyprlandService.layoutCodes;
+        if (!codes || codes.length === 0)
+            codes = [HyprlandService.keyboardLayout];
+        else if (HyprlandService.keyboardLayout !== "" && codes.indexOf(HyprlandService.keyboardLayout) === -1)
+            codes = [HyprlandService.keyboardLayout].concat(codes);
+        return codes;
+    }
+
+    // Caps Lock flips the whole label case: ru/en <-> RU/EN.
+    function caseFor(text) {
+        return HyprlandService.capsLockOn ? text.toUpperCase() : text.toLowerCase();
+    }
+
     color: Theme.bgSecondary
     radius: DisplayProfileService.gameModeActive ? 0 : height / 2
     implicitHeight: SettingsService.barWidgetHeight
@@ -96,11 +112,45 @@ Rectangle {
             Layout.alignment: Qt.AlignVCenter
         }
 
-        ThemedText {
-            text: root.layoutLabel(HyprlandService.keyboardLayout)
-            font.pixelSize: Math.round(Constants.sizeSm * SettingsService.fontScale)
-            font.weight: Font.DemiBold
-            color: Theme.fg
+        // Combined layout indicator: every configured layout joined by "/",
+        // active one accented; Caps Lock flips the case (ru/en <-> RU/EN).
+        Row {
+            id: layoutRow
+
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 1
+
+            Repeater {
+                model: root.indicatorCodes
+
+                delegate: Row {
+                    id: layoutChunk
+
+                    required property string modelData
+                    required property int index
+
+                    readonly property bool isActive: modelData === HyprlandService.keyboardLayout
+
+                    ThemedText {
+                        visible: layoutChunk.index > 0
+                        text: "/"
+                        font.pixelSize: Math.round(Constants.sizeSm * SettingsService.fontScale)
+                        font.weight: Font.DemiBold
+                        color: Theme.muted
+                    }
+
+                    ThemedText {
+                        text: root.caseFor(root.layoutLabel(layoutChunk.modelData))
+                        font.pixelSize: Math.round(Constants.sizeSm * SettingsService.fontScale)
+                        font.bold: layoutChunk.isActive
+                        font.weight: Font.DemiBold
+                        color: layoutChunk.isActive ? Theme.accent : Theme.muted
+                    }
+
+                }
+
+            }
+
         }
 
     }

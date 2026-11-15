@@ -12,6 +12,14 @@ Item {
     property bool enableAnimations: true
     property real animationSpeedFactor: 1
     property string keyboardLayout: "us"
+    // The full XKB layout list of the main keyboard ("us,ru") — read from
+    // hyprctl devices on every activelayout event.
+    property string layoutList: ""
+    readonly property var layoutCodes: layoutList !== "" ? layoutList.split(",") : []
+    // Caps Lock state for the bar layout indicator (case-flipped labels).
+    // Sysfs LED polling: there is no Hyprland event for caps toggles.
+    property bool capsLockOn: false
+    property string capsLedPath: ""
     property bool wpAutoShuffle: false
     property int wpShuffleInterval: 10
     property bool wpEnableTransitions: true
@@ -164,7 +172,9 @@ Item {
     Process {
         id: activeLayoutProc
 
-        command: ["sh", "-c", "hyprctl devices -j | jq -r '(.keyboards | (map(select(.main == true))[0] // .[0])) | (((.layout // \"\") | split(\",\"))[(.active_layout_index // 0)] // \"\") + \"|\" + (.active_keymap // \"\")'"]
+        // Emits: active xkb code | keymap display name | full layout list |
+        // active layout index (all from the main keyboard in one read).
+        command: ["sh", "-c", "hyprctl devices -j | jq -r '(.keyboards | (map(select(.main == true))[0] // .[0])) | (((.layout // \"\") | split(\",\"))[(.active_layout_index // 0)] // \"\") + \"|\" + (.active_keymap // \"\") + \"|\" + (.layout // \"\") + \"|\" + ((.active_layout_index // 0) | tostring)'"]
 
         stdout: SplitParser {
             onRead: (data) => {
@@ -174,6 +184,8 @@ Item {
                 let parts = data.trim().split("|");
                 let xkbCode = parts[0] ? parts[0].trim() : "";
                 let raw = parts[1] ? parts[1].trim() : "";
+                if (parts[2] !== undefined && parts[2].trim() !== "")
+                    hyprlandService.layoutList = parts[2].trim();
                 let code = "us";
                 // Comprehensive map of Hyprland keymap display names to XKB layout codes
                 const layoutMap = {
@@ -334,6 +346,47 @@ Item {
             }
         }
 
+    }
+
+    // Caps Lock tracking: resolve the keyboard's capslock LED once, then
+    // poll its brightness — sysfs does not emit inotify events, so a cheap
+    // FileView reload stands in for a change signal.
+    Process {
+        id: capsLedProbe
+
+        command: ["sh", "-c", "for f in /sys/class/leds/*::capslock/brightness; do echo \"$f\"; break; done"]
+        stdout: SplitParser {
+            onRead: (data) => {
+                if (data && data.trim() !== "")
+                    hyprlandService.capsLedPath = data.trim();
+
+            }
+        }
+
+    }
+
+    FileView {
+        id: capsLedFile
+
+        path: hyprlandService.capsLedPath
+        onLoaded: hyprlandService.capsLockOn = text().trim() === "1"
+    }
+
+    Timer {
+        id: capsPollTimer
+
+        interval: 700
+        running: hyprlandService.capsLedPath !== ""
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: capsLedFile.reload()
+    }
+
+    Component.onCompleted: {
+        // Seed the layout list / caps state once at startup — the
+        // activelayout event only fires on switches, not on shell reloads.
+        activeLayoutProc.running = true;
+        capsLedProbe.running = true;
     }
 
 }
