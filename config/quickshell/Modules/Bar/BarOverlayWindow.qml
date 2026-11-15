@@ -85,9 +85,13 @@ PanelWindow {
 
     WlrLayershell.layer: WlrLayer.Top
     WlrLayershell.exclusionMode: ExclusionMode.Ignore
+    // WlrLayershell.keyboardFocus is the single source of truth for the
+    // keyboard grab. PanelWindow.focusable would race it with an OnDemand
+    // mode, which never receives keys until the layer is clicked — that is
+    // why keybind-opened menus were dead.
     WlrLayershell.keyboardFocus: needsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     color: "transparent"
-    focusable: needsFocus
+    focusable: false
 
     // Keyboard proxy for bar menus. While a menu is open the window holds
     // the keyboard grab; this catcher keeps focus and routes keys:
@@ -98,9 +102,13 @@ PanelWindow {
     //    clicked yet.
     Item {
         anchors.fill: parent
-        focus: root.focusable && !AppState.barMenuFocusItem
+        focus: needsFocus && !AppState.barMenuFocusItem
 
         Keys.forwardTo: AppState.barMenuFocusItem ? [AppState.barMenuFocusItem] : []
+
+        Keys.onPressed: (event) => {
+            console.warn("keyproxy: key", event.key, "focusItem:", AppState.barMenuFocusItem !== null);
+        }
 
         Keys.onEscapePressed: {
             if (AppState.barMenuOpen)
@@ -158,7 +166,9 @@ PanelWindow {
     HyprlandFocusGrab {
         id: surfaceFocusGrab
 
-        active: root.focusable
+        // needsFocus (not PanelWindow.focusable) drives the grab: this is
+        // what actually hands the keyboard to the bar while a menu is open.
+        active: needsFocus
         windows: [root]
         onCleared: {
             slurpCheckProcess.running = true;
