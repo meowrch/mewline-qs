@@ -37,6 +37,34 @@ Rectangle {
             visible: RecorderService.running
         }
 
+        PrivacyDots {
+            id: privacyDots
+
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: PrivacyService.anyActive ? implicitWidth : 0
+            Layout.preferredHeight: SettingsService.barWidgetHeight
+            visible: PrivacyService.anyActive && opacity > 0.001
+            opacity: PrivacyService.anyActive ? 1 : 0
+            clip: true
+
+            Behavior on Layout.preferredWidth {
+                NumberAnimation {
+                    duration: Constants.animNormal
+                    easing.type: Easing.OutCubic
+                }
+
+            }
+
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: Constants.animNormal
+                    easing.type: Easing.OutCubic
+                }
+
+            }
+
+        }
+
         Rectangle {
             id: statusCapsule
 
