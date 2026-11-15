@@ -391,6 +391,7 @@ PanelWindow {
             anchors.fill: parent
             anchors.margins: Constants.sizeSm
             widget: widgetProxy
+            notificationService: root.notificationService
         }
 
     }

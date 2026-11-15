@@ -203,6 +203,7 @@ Item {
         id: centerPanel
 
         centerWidget: root
+        notificationService: root.notificationService
         flareW: root.flareW
         contentPadding: root.contentPadding
         isClosing: root.isClosing

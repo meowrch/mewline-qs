@@ -142,6 +142,7 @@ Item {
 
         CalendarModule.CalendarWidget {
             widget: root.islandBar
+            notificationService: root.notificationService
         }
 
     }

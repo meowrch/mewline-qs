@@ -7,6 +7,7 @@ Item {
     id: root
 
     required property QtObject centerWidget
+    property var notificationService: null
     required property int flareW
     required property int contentPadding
     required property bool isClosing
@@ -47,6 +48,7 @@ Item {
 
         CalendarModule.CalendarWidget {
             widget: root.centerWidget
+            notificationService: root.notificationService
         }
 
     }
