@@ -12,11 +12,9 @@ Card {
 
     readonly property string userName: Quickshell.env("USER") || "user"
     property string hostName: ""
-    property string meowrchVersion: ""
     property string uptimeText: ""
-    // The meowrch logo ships with the shell; a runtime copy wins if present.
-    readonly property string logoPath: runtimeLogoExists ? "file://" + Quickshell.env("HOME") + "/.local/share/meowrch/assets/meowrch-logo.png" : "file://" + Quickshell.shellDir + "/assets/meowrch/meowrch-logo.png"
-    property bool runtimeLogoExists: false
+    // Vector logo fallback for the avatar (always ships with the shell).
+    readonly property string logoPath: "file://" + Quickshell.shellDir + "/assets/meowrch/logo.svg"
     // User avatar: ~/.face.icon wins over the logo; the logo also covers a
     // face file that exists but cannot be decoded.
     property bool faceIconExists: false
@@ -198,88 +196,57 @@ Card {
 
             }
 
-            Rectangle {
-                visible: root.meowrchVersion !== ""
-                color: Theme.bgAccent
-                radius: height / 2
-                implicitWidth: versionText.implicitWidth + 16
-                implicitHeight: Constants.sizeLg + 4
-
-                ThemedText {
-                    id: versionText
-
-                    anchors.centerIn: parent
-                    text: "meowrch " + root.meowrchVersion
-                    customSize: Constants.sizeXs
-                    font.bold: true
-                    color: Theme.accent
-                }
-
-            }
-
         }
 
         Divider {
             Layout.fillWidth: true
         }
 
-        // Fastfetch-style system information block.
-        Repeater {
-            model: root.infoRows
+        // Fastfetch-style system information block; own tight spacing so the
+        // rows read as one compact table.
+        ColumnLayout {
+            id: infoRowsCol
 
-            delegate: RowLayout {
-                id: infoRow
+            Layout.fillWidth: true
+            spacing: 3
 
-                required property var modelData
+            Repeater {
+                model: root.infoRows
 
-                Layout.fillWidth: true
-                spacing: Constants.size2Xs
+                delegate: RowLayout {
+                    id: infoRow
 
-                ThemedText {
-                    text: infoRow.modelData.label + ":"
-                    customSize: root.infoTextSize
-                    color: Theme.accent
-                    elide: Text.ElideRight
-                    Layout.preferredWidth: root.labelColumnWidth
-                }
+                    required property var modelData
 
-                ThemedText {
-                    text: infoRow.modelData.value === "" ? "-" : infoRow.modelData.value
-                    customSize: root.infoTextSize
-                    color: Theme.fg
-                    elide: Text.ElideRight
                     Layout.fillWidth: true
+                    spacing: Constants.size2Xs
+
+                    ThemedText {
+                        text: infoRow.modelData.label + ":"
+                        customSize: root.infoTextSize
+                        color: Theme.accent
+                        elide: Text.ElideRight
+                        Layout.preferredWidth: root.labelColumnWidth
+                    }
+
+                    ThemedText {
+                        text: infoRow.modelData.value === "" ? "-" : infoRow.modelData.value
+                        customSize: root.infoTextSize
+                        color: Theme.fg
+                        elide: Text.ElideRight
+                        Layout.fillWidth: true
+                    }
+
                 }
 
             }
 
-        }
-
-        Divider {
-            Layout.fillWidth: true
-        }
-
-        InfoRow {
-            icon: "calendar"
-            label: "Session"
-            value: Qt.formatDateTime(SystemInfoService.currentTime, "ddd d MMM")
-        }
-
-        InfoRow {
-            icon: "charger-filled"
-            label: "Power profile"
-            value: {
-                let profile = SystemInfoService.powerProfile;
-                return profile.charAt(0).toUpperCase() + profile.slice(1);
-            }
         }
 
     }
 
     Component.onCompleted: {
         hostLoader.running = true;
-        versionLoader.running = true;
-        logoProbe.running = true;
         faceProbe.running = true;
         uptimeLoader.running = true;
     }
@@ -291,35 +258,6 @@ Card {
         stdout: StdioCollector {
             onStreamFinished: {
                 root.hostName = text.trim();
-            }
-        }
-
-    }
-
-    Process {
-        id: versionLoader
-
-        command: ["cat", "/usr/local/share/meowrch/users/" + root.userName + "/version"]
-        onExited: function(exitCode) {
-            if (exitCode !== 0)
-                root.meowrchVersion = "";
-
-        }
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.meowrchVersion = text.trim();
-            }
-        }
-
-    }
-
-    Process {
-        id: logoProbe
-
-        command: ["python3", "-c", "import os,sys; print('1' if os.path.isfile(os.path.expanduser('~/.local/share/meowrch/assets/meowrch-logo.png')) else '0')"]
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.runtimeLogoExists = text.trim() === "1";
             }
         }
 

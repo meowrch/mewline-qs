@@ -29,7 +29,9 @@ BarButton {
 
         Image {
             anchors.fill: parent
-            source: "file://" + Quickshell.shellDir + "/assets/meowrch/meowrch-logo.png"
+            // Vector logo from the meowrch Branding repo: stays crisp at
+            // any bar height, unlike the 1000px raster fallback.
+            source: "file://" + Quickshell.shellDir + "/assets/meowrch/logo.svg"
             fillMode: Image.PreserveAspectFit
             smooth: true
             asynchronous: true

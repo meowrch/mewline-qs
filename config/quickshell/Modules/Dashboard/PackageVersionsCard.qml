@@ -15,6 +15,9 @@ Card {
     readonly property var packageNames: ["meowrch", "mewline", "pawlette", "meowrch-settings", "meowrch-tools"]
     // name -> installed version (only present when the package is installed).
     property var installedVersions: ({})
+    // meowrch itself may be installed outside pacman (local /usr/local copy);
+    // its version file is the fallback when pacman does not know the package.
+    property string localMeowrchVersion: ""
     // name -> pending repository version ("pkg old -> new" from checkupdates).
     property var repoUpdates: ({})
     // name -> pending AUR version ("pkg version" from the AUR helper's -Qua).
@@ -73,6 +76,13 @@ Card {
         for (let i = 0; i < packageNames.length; i++) {
             let name = packageNames[i];
             let installed = installedVersions[name] !== undefined;
+            let version = installed ? installedVersions[name] : "";
+            if (name === "meowrch" && !installed && localMeowrchVersion !== "") {
+                // Locally installed meowrch (no pacman record) still has a
+                // version file; treat it as installed so the row shows it.
+                installed = true;
+                version = localMeowrchVersion;
+            }
             let channel = "";
             let newVersion = "";
             if (repoUpdates[name] !== undefined) {
@@ -85,7 +95,7 @@ Card {
             rows.push({
                 "name": name,
                 "installed": installed,
-                "version": installed ? installedVersions[name] : "",
+                "version": version,
                 "update": channel !== "",
                 "channel": channel,
                 "newVersion": newVersion
@@ -136,6 +146,22 @@ Card {
         UpdateService.checkUpdates();
     }
 
+    // Full-repository upgrade (every pending extra/core repo package).
+    function updateAllRepo() {
+        Quickshell.execDetached(["kitty", "--hold", "sudo", "pacman", "-Syu"]);
+        recheckTimer.runs = 0;
+        recheckTimer.restart();
+        UpdateService.checkUpdates();
+    }
+
+    // Upgrade every pending AUR package through the configured helper.
+    function updateAllAur() {
+        Quickshell.execDetached(["kitty", "--hold", SettingsService.aurHelper, "-ua"]);
+        recheckTimer.runs = 0;
+        recheckTimer.restart();
+        UpdateService.checkUpdates();
+    }
+
     contentPadding: Constants.sizeMd
     implicitHeight: contentCol.implicitHeight + root.contentPadding * 2
 
@@ -145,22 +171,44 @@ Card {
         anchors.fill: parent
         spacing: Constants.sizeXs
 
+        // Branded header: meowrch logo, name and the suite's own version.
         RowLayout {
             Layout.fillWidth: true
             spacing: Constants.sizeSm
 
-            SvgIcon {
-                icon: root.updatesCount > 0 ? "update" : "box"
-                flat: true
-                iconColor: Theme.accent
-                iconSize: Constants.sizeMd
+            Image {
+                source: "file://" + Quickshell.shellDir + "/assets/meowrch/logo.svg"
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                asynchronous: true
+                Layout.preferredWidth: Constants.size2Xl
+                Layout.preferredHeight: Constants.size2Xl
             }
 
             ThemedText {
-                text: "Package Versions"
+                text: "meowrch"
                 customSize: Constants.sizeMd
                 font.bold: true
                 color: Theme.fg
+            }
+
+            Rectangle {
+                visible: root.installedVersions["meowrch"] !== undefined || root.localMeowrchVersion !== ""
+                color: Theme.bgAccent
+                radius: height / 2
+                implicitWidth: versionPillText.implicitWidth + 12
+                implicitHeight: Constants.sizeLg + 2
+
+                ThemedText {
+                    id: versionPillText
+
+                    anchors.centerIn: parent
+                    text: root.installedVersions["meowrch"] || root.localMeowrchVersion
+                    customSize: Constants.sizeXs
+                    font.bold: true
+                    color: Theme.accent
+                }
+
             }
 
             Item {
@@ -312,15 +360,16 @@ Card {
         }
 
         Divider {
-            visible: root.updatesCount > 0
         }
 
+        // Global update actions: full repo upgrade and full AUR upgrade,
+        // each running in a hold-open terminal.
         RowLayout {
-            visible: root.updatesCount > 0
             Layout.fillWidth: true
             spacing: Constants.sizeSm
 
             ThemedText {
+                visible: root.updatesCount > 0
                 text: root.updatesCount + (root.updatesCount === 1 ? " update pending" : " updates pending")
                 customSize: Constants.sizeXs + 1
                 color: Theme.muted
@@ -331,29 +380,13 @@ Card {
             }
 
             ThemedButton {
-                id: updateAllButton
+                text: "Update extra"
+                onClicked: root.updateAllRepo()
+            }
 
-                text: "Update All"
-                onClicked: root.applyUpdates(root.pendingEntries())
-
-                SequentialAnimation on scale {
-                    running: (root.widget ? root.widget.isOpen : true) && root.updatesCount > 0
-                    loops: 3
-
-                    PropertyAnimation {
-                        to: 1.04
-                        duration: Constants.animUltraSlow * 2
-                        easing.type: Easing.InOutQuad
-                    }
-
-                    PropertyAnimation {
-                        to: 1
-                        duration: Constants.animUltraSlow * 2
-                        easing.type: Easing.InOutQuad
-                    }
-
-                }
-
+            ThemedButton {
+                text: "Update AUR"
+                onClicked: root.updateAllAur()
             }
 
         }
@@ -361,6 +394,7 @@ Card {
     }
 
     Component.onCompleted: {
+        localVersionProc.running = true;
         root.refresh();
     }
 
@@ -416,6 +450,20 @@ Card {
         stdout: StdioCollector {
             onStreamFinished: {
                 root.aurUpdates = root.parseNameVersionMap(text);
+                root.rebuildModel();
+            }
+        }
+
+    }
+
+    Process {
+        id: localVersionProc
+
+        // Version of a local (non-pacman) meowrch installation.
+        command: ["sh", "-c", "cat /usr/local/share/meowrch/users/$USER/version 2>/dev/null"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.localMeowrchVersion = text.trim();
                 root.rebuildModel();
             }
         }
