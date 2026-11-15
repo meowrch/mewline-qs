@@ -79,21 +79,35 @@ Item {
             }
 
             Image {
-                id: specialIcon
+                id: specialImg
 
                 visible: delegateRoot.isSpecial
-                anchors.centerIn: parent
+                anchors.fill: parent
                 source: {
-                    if (delegateRoot.isDynamicTile)
-                        return PawletteService.dynamicEnabled ? Quickshell.shellDir + "/assets/meowrch/dynamic-theme-on-logo.png" : Quickshell.shellDir + "/assets/meowrch/dynamic-theme-off-logo.png";
+                    if (!delegateRoot.isSpecial)
+                        return "";
 
-                    return Quickshell.shellDir + "/assets/meowrch/random.png";
+                    let base = (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/quickshell/theme_previews/";
+                    if (delegateRoot.isDynamicTile)
+                        return "file://" + base + (PawletteService.dynamicEnabled ? "__dynamic_on.png" : "__dynamic_off.png");
+
+                    return "file://" + base + "__random.png";
                 }
-                sourceSize: Qt.size(96, 96)
-                fillMode: Image.PreserveAspectFit
+                fillMode: Image.PreserveAspectCrop
                 asynchronous: true
-                smooth: true
-                opacity: (specialIcon.status === Image.Ready && !delegateRoot.isRandomTile) || delegateRoot.isRandomTile ? 1 : 0.85
+                cache: true
+                sourceSize: Qt.size(480, 324)
+                mipmap: true
+                opacity: status === Image.Ready ? 1 : 0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: Constants.animNormal
+                        easing.type: Easing.OutCubic
+                    }
+
+                }
+
             }
 
             // Theme logo fills the card like a wallpaper preview.

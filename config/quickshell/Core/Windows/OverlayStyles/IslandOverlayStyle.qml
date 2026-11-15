@@ -107,7 +107,9 @@ Item {
         // The bottom edge stays pinned just above the screen edge (same gap
         // as ConvexBottomHost's bezelSize margin) while the height grows
         // upward; island popups hang below the bar as before.
-        y: isBottomSheet ? Math.round(parent.height - currentHeight - Constants.sizeLg) : 8
+        // The sheet's bottom edge lands on the screen border (the wallpaper
+        // drawer does the same) — the visible gap is the inner content margin.
+        y: isBottomSheet ? Math.round(parent.height - currentHeight) : 8
         clip: isBottomSheet
         opacity: (_windowVisible || isHandover || forceVisible) ? 1 : 0
 
