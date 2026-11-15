@@ -19,12 +19,10 @@ Rectangle {
     readonly property string iconSource: FocusedAppService.appIconSource
 
     color: "transparent"
-    implicitWidth: hasApp ? mainLayout.implicitWidth : 0
+    implicitWidth: mainLayout.implicitWidth
     implicitHeight: mainLayout.implicitHeight
     width: implicitWidth
     height: implicitHeight
-    opacity: hasApp ? 1 : 0
-    visible: opacity > 0.001
     clip: true
     scale: DisplayProfileService.gameModeActive ? 1 : (isHovered ? 1.02 : 1)
 

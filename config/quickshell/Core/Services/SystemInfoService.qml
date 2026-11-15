@@ -102,6 +102,10 @@ Item {
     }
 
     Process {
+        id: workflowSwapProc
+    }
+
+    Process {
         id: osReleaseProc
 
         command: ["sh", "-c", "grep '^ID=' /etc/os-release | cut -d '=' -f 2 | tr -d '\"'"]
