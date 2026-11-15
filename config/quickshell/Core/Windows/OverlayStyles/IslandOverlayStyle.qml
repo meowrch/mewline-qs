@@ -2,6 +2,7 @@ import QtQuick
 import qs.Core
 import qs.Core.Components
 import qs.Core.Services
+import qs.Modules.Bar.Styles.Convex as ConvexStyle
 import qs.Modules.Bar.Styles.Island as IslandStyle
 import qs.Modules.Notifications as NotificationsModule
 
@@ -91,8 +92,24 @@ Item {
         y: (widget && widget.positionAtBottom) ? parent.height - currentHeight - 10 : openY
         opacity: (_windowVisible || isHandover || forceVisible) ? 1 : 0
 
+        // Bottom sheets draw the exact same drawer background as the
+        // wallpaper selector's ConvexBottomHost.
+        Loader {
+            anchors.fill: parent
+            active: mainContainer.isBottomSheet
+
+            sourceComponent: ConvexStyle.ConvexDrawerShape {
+                color: widget ? widget.backgroundColor : Theme.bg
+                cornerRadius: mainContainer.currentRadius
+                edge: Qt.BottomEdge
+                enableShadow: false
+            }
+
+        }
+
         IslandStyle.IslandBackground {
             anchors.fill: parent
+            visible: !mainContainer.isBottomSheet
             radius: mainContainer.currentRadius
             enableShadow: SettingsService.barIslandMode && !isHandover
         }
