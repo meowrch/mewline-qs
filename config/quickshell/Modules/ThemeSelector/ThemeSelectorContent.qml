@@ -65,8 +65,9 @@ Item {
     }
 
     function applyTheme(name, variant) {
+        // Stay open after applying: the shell recolors live, so themes can
+        // be tried one after another. Esc / click-outside close.
         PawletteService.applyTheme(name, variant);
-        root.closePopup();
     }
 
     function rebuildModel() {
@@ -142,12 +143,10 @@ Item {
         let theme = filteredModel.get(idx);
         if (theme.name === "__dynamic__") {
             PawletteService.toggleDynamic();
-            root.closePopup();
             return ;
         }
         if (theme.name === "__random__") {
             PawletteService.applyRandom();
-            root.closePopup();
             return ;
         }
         let variantCount = Object.keys(theme.variants || {}).length;
