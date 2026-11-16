@@ -88,6 +88,16 @@ Rectangle {
         width: itemRoot.iconSize
         height: itemRoot.iconSize
         useOriginalColors: {
+            // Pixmap tray icons and colored app icons render in their own
+            // colors (like the python mewline bar); only -symbolic icons get
+            // the monochrome tint.
+            if (itemRoot.iconSource.indexOf("image://qspixmap") === 0)
+                return true;
+
+            let srcName = itemRoot.iconSource.indexOf("image://icon/") === 0 ? itemRoot.iconSource.substring("image://icon/".length).split("?")[0] : "";
+            if (srcName !== "" && !srcName.endsWith("-symbolic"))
+                return true;
+
             if (!itemRoot.trayItem)
                 return true;
 
