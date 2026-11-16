@@ -125,19 +125,13 @@ Item {
                         id: caffeineBtn
 
                         Layout.fillWidth: true
+                        notificationService: root.notificationService
                     }
 
                     GameModeControl {
                         id: gamepadBtn
 
                         Layout.fillWidth: true
-                    }
-
-                    BatteryLimitControl {
-                        id: batteryLimitBtn
-
-                        Layout.fillWidth: true
-                        isVisible: root.quickSettingsOpen
                     }
 
                     OcrControl {

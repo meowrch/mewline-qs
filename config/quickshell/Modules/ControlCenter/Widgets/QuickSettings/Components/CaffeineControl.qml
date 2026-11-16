@@ -1,19 +1,21 @@
 import QtQuick
-import QtQuick.Layouts
-import Quickshell.Io
-import qs.Core
-import qs.Core.Components
-import qs.Core.Services
 
 QuickSettingsTile {
     id: root
 
-    isActive: DisplayProfileService.caffeineActive
-    icon: !isActive ? "coffee" : "coffee-filled"
+    // Shared DND state owned by NotificationService (passed down from shell.qml).
+    // The calendar/notification center DND switch binds to the exact same
+    // property, so both toggles stay in sync two-way.
+    property var notificationService: null
+
+    isActive: root.notificationService ? root.notificationService.dndEnabled : false
+    icon: isActive ? "coffee-filled" : "coffee"
     label: "Caffeine"
-    subtitle: isActive ? "Screen on" : "Off"
+    subtitle: isActive ? "DND on" : "Off"
     onMenuClicked: clicked()
     onClicked: {
-        DisplayProfileService.caffeineActive = !DisplayProfileService.caffeineActive;
+        if (root.notificationService)
+            root.notificationService.dndEnabled = !root.notificationService.dndEnabled;
+
     }
 }
