@@ -126,10 +126,9 @@ def make_special_previews(preview_dir: Path) -> dict:
     for name, src in SPECIAL_SOURCES.items():
         dst = preview_dir / (name + ".png")
         try:
-            if not dst.is_file() or dst.stat().st_mtime < src.stat().st_mtime:
-                result = make_full_bleed_preview(src, dst)
-                if result is None:
-                    continue
+            result = make_fitted_preview(src, dst)
+            if result is None:
+                continue
         except Exception:
             continue
         out[name] = str(dst)

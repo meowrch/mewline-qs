@@ -10,6 +10,8 @@ QtObject {
 
     property string currentWallpaper: ""
     property string currentWallpaperPath: ""
+    property Process currentWallLinkProc: Process {
+    }
     property string transitionType: HyprlandService.wpTransitionType
     property int transitionStep: HyprlandService.wpTransitionStep
     property string transitionPos: HyprlandService.wpTransitionPos
@@ -44,6 +46,19 @@ QtObject {
 
     }
 
+    // Mirror mewline: keep ~/.local/share/wallpapers/.current.wall as a
+    // symlink to the active wallpaper (the dynamic theme reads it for its
+    // wallpaper-driven palette).
+    function updateCurrentWallLink(rawPath) {
+        if (!rawPath || !rawPath.startsWith("/"))
+            return;
+
+        currentWallLinkProc.command = ["sh", "-c",
+            'p="$1"; d="$HOME/.local/share/wallpapers"; mkdir -p "$d"; ln="$d/.current.wall"; rm -f "$ln"; ln -s "$p" "$ln"',
+            "current-wall", rawPath];
+        currentWallLinkProc.startDetached();
+    }
+
     function applyWallpaperInstant(rawPath) {
         wallpaperApplyProc.running = false;
         let rMode = HyprlandService.wpResizeMode || "crop";
@@ -55,6 +70,7 @@ QtObject {
         cmd.push("--transition-type", "none");
         wallpaperApplyProc.command = cmd;
         wallpaperApplyProc.startDetached();
+        updateCurrentWallLink(rawPath);
     }
 
     function applyWallpaper(rawPath) {
@@ -76,6 +92,7 @@ QtObject {
             wallpaperApplyProc.command = cmd;
         }
         wallpaperApplyProc.startDetached();
+        updateCurrentWallLink(rawPath);
     }
 
     function saveCurrentWallpaper(wallName) {

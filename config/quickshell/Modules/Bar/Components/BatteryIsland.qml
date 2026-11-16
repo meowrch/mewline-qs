@@ -103,7 +103,18 @@ Rectangle {
                 // Lightning bolt while actively charging. QtQuick.Shapes
                 // renders nothing in this Quickshell build, so the bolt is a
                 // plain SvgIcon overlay (assets/bolt.svg, the same bolt path
-                // as charger-filled without the circle badge).
+                // as charger-filled without the circle badge). A slightly
+                // larger accent bolt behind acts as an outline, so the bolt
+                // stays visible over both the dark bar and the battery fill.
+                SvgIcon {
+                    anchors.centerIn: parent
+                    visible: root.charging
+                    icon: "bolt"
+                    iconSize: 13
+                    flat: true
+                    iconColor: Theme.accent
+                }
+
                 SvgIcon {
                     anchors.centerIn: parent
                     visible: root.charging

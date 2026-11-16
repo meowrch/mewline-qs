@@ -92,10 +92,9 @@ Rectangle {
     }
 
     ThemedText {
-        anchors.centerIn: parent
-        visible: root.trayGlyph !== ""
-        text: root.trayGlyph
-        font.family: SettingsService.kittyFontFamily
+        // $SHELL style aliases ("JetbrainsMono NF") are kitty-only; Qt needs the
+        // real fontconfig family for the glyphs to render.
+        font.family: "JetBrainsMono Nerd Font Mono"
         font.pixelSize: Math.round(root.iconSize * SettingsService.fontScale)
         color: itemRoot.isActive ? Theme.accent : (isHovered ? Theme.fg : Theme.muted)
     }
