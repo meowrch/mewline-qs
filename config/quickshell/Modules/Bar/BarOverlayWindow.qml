@@ -28,12 +28,20 @@ PanelWindow {
     readonly property bool usesFloatingPopups: styleData.usesFloatingPopups
     readonly property bool isPill: styleData.isPill && !root.isGameMode
     readonly property QtObject activeHost: (SettingsService.barIslandMode && !root.isGameMode) ? barStrip : null
-    // While ANY bar menu is open (dashboard, calendar, wallpaper/launcher/
-    // theme sheets) the bar window holds the keyboard: the sheets have no
-    // window of their own in convex mode, so this is the only way keys reach
-    // them (the launcher does the same with focusable on its own window).
-    // Closing is always one step away: Escape bind + click-outside.
-    readonly property bool menuKeyboardGrab: !root.isGameMode && AppState.barMenuOpen
+    // Convex drawer widgets (launcher, clipboard, wallpaper, power menu,
+    // screenshot) are hosted by the ConvexDesktop window (ConvexPanels ->
+    // ConvexBottomHost), which holds the keyboard itself while a drawer menu
+    // is open. Claiming the keyboard here as well left two OnDemand surfaces
+    // and two focus grabs fighting over delivery, and keybind/IPC-opened
+    // drawer menus stayed keyboard-dead until they were clicked. Island mode
+    // keeps the grab: there the drawer widgets live in the bar strip and are
+    // covered both by activeHost.needsFocus and by barMenuOpen.
+    readonly property bool convexDrawerHandledByDesktop: SettingsService.barConvexMode && AppState.isFocusWidgetOpen
+    // While any bar-attached menu (dashboard, calendar, control center, ...)
+    // is open this window holds the keyboard and routes keys through the
+    // proxy below. Closing is always one step away: Escape bind +
+    // click-outside.
+    readonly property bool menuKeyboardGrab: !root.isGameMode && AppState.barMenuOpen && !convexDrawerHandledByDesktop
     readonly property bool needsFocus: (activeHost && activeHost.isOpen && activeHost.needsFocus) || menuKeyboardGrab
 
     function triggerStyleSwitch() {
@@ -95,10 +103,12 @@ PanelWindow {
     // keyboard grab. PanelWindow.focusable would race it with an OnDemand
     // mode, which never receives keys until the layer is clicked — that is
     // why keybind-opened menus were dead.
-    // Convex menus (control center, dashboards): OnDemand + HyprlandFocusGrab
-    // — the Caelestia/DMS consensus. Exclusive + grab captures the pointer
-    // too (noctalia) and kills every click inside the window. Island menus
-    // keep Exclusive (island host works with it).
+    // Convex attached menus (control center, dashboards): OnDemand +
+    // HyprlandFocusGrab — the Caelestia/DMS consensus. Exclusive + grab
+    // captures the pointer too (noctalia) and kills every click inside the
+    // window. Island menus keep Exclusive (island host works with it).
+    // Convex drawer menus are NOT claimed here: ConvexBottomHost flips their
+    // host window (ConvexDesktop) to Exclusive while a drawer menu is open.
     WlrLayershell.keyboardFocus: !needsFocus ? WlrKeyboardFocus.None : (menuKeyboardGrab && !activeHost ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.Exclusive)
     color: "transparent"
     focusable: false

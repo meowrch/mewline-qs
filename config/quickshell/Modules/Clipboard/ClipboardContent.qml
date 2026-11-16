@@ -305,6 +305,10 @@ Item {
             onSearchRequested: (text) => {
                 return ClipboardService.filterClipboard(text);
             }
+            // Run before the TextField's own key handling: arrows must always
+            // move the list selection and Return must copy the current entry,
+            // even while the caret lives in the search field.
+            textField.Keys.priority: Keys.BeforeItem
             textField.Keys.onPressed: function(event) {
                 if (event.key === Qt.Key_Down) {
                     clipboardView.currentIndex = Math.min(clipboardView.currentIndex + 1, ClipboardService.filteredModel.count - 1);
