@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 import qs.Core
 import qs.Core.Components
 import qs.Core.Services
@@ -81,6 +82,35 @@ Item {
             AppState.closeAllWidgets();
     }
 
+    // The drawer is hosted inside the ConvexDesktop window, which binds BOTH
+    // PanelWindow.focusable and WlrLayershell.keyboardFocus to its needsFocus.
+    // On open the focusable write lands after the keyboardFocus binding and
+    // demotes the layer to OnDemand — which on Hyprland never receives keys
+    // for a menu opened by keybind/IPC until the surface is clicked once.
+    // That is why the clipboard and wallpaper menus were keyboard-dead on
+    // first open even though the QML focus chain was fine. Re-asserting the
+    // layer keyboard focus here (after the window's own bindings settle) makes
+    // the drawer window hold the keyboard on the first frame, the same way
+    // island menus work. Exclusive only affects keyboard routing for other
+    // surfaces while the drawer is open; click-outside-to-close still works
+    // because the dismiss MouseArea and the focus grab live on the same
+    // fullscreen window, and clicks on other monitors are dismissed too.
+    // isOpen mirrors the global AppState in every bar style, but only in
+    // convex mode is THIS drawer the visible host — never steal the keyboard
+    // for island/gaming sheets hosted elsewhere.
+    readonly property bool isVisibleDrawerHost: SettingsService.barConvexMode && !DisplayProfileService.gameModeActive
+    function updateHostKeyboardFocus() {
+        const win = root.QsWindow.window;
+        if (!win || !root.isVisibleDrawerHost)
+            return;
+
+        const layershell = win.WlrLayershell;
+        if (!layershell)
+            return;
+
+        layershell.keyboardFocus = root.isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None;
+    }
+
     function activateCurrentItem() {
         if (!loader.item)
             return ;
@@ -139,6 +169,9 @@ Item {
         }
     }
     onIsOpenChanged: {
+        // Runs for both branches: Exclusive while the drawer is open, None
+        // once it closes so the host window never keeps a stale keyboard grab.
+        Qt.callLater(root.updateHostKeyboardFocus);
         if (isOpen) {
             isClosing = false;
             closeDelayTimer.stop();

@@ -326,6 +326,11 @@ Item {
         onSearchRequested: (text) => {
             return root.filterWallpapers(text);
         }
+        // Run before the TextField's own key handling: Left/Right/Up/Down must
+        // move the wallpaper card selection while the caret lives in the
+        // search field, otherwise the TextField eats the arrows for caret
+        // movement and the selection never moves.
+        textField.Keys.priority: Keys.BeforeItem
         textField.Keys.onPressed: (event) => {
             return root.handleKey(event);
         }
