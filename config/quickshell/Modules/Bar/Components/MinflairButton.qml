@@ -16,8 +16,9 @@ BarButton {
     implicitHeight: logoWrap.implicitHeight
     height: implicitHeight
 
-    // The mewline cat silhouette, tinted with Theme.fg so it stays visible
-    // on any palette (dark themes get a light cat, light themes a dark one).
+    // The mewline cat silhouette, tinted with the palette accent so it
+    // stays visible on any palette (dark themes get a light cat, light
+    // themes a dark one).
     // visible is gated on the image being ready — mirrors the avatar recipe
     // in MeowrchInfoCard, whose layer chain is known to render reliably.
     Item {
@@ -43,7 +44,7 @@ BarButton {
             layer.enabled: true
             layer.effect: MultiEffect {
                 colorization: 1
-                colorizationColor: Theme.fg
+                colorizationColor: Theme.accent
             }
         }
 

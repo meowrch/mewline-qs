@@ -136,6 +136,7 @@ Item {
                         id: screenRecordBtn
 
                         Layout.fillWidth: true
+                        isVisible: root.quickSettingsOpen
                     }
 
                     OcrControl {

@@ -81,8 +81,13 @@ Item {
             Image {
                 id: specialImg
 
+                // Same fit + size as the theme logos below, so every card
+                // shows its artwork at an identical scale with the circular
+                // pawlette mark fully inside the card.
                 visible: delegateRoot.isSpecial
-                anchors.fill: parent
+                anchors.centerIn: parent
+                width: parent.width * 0.8
+                height: parent.height * 0.8
                 source: {
                     if (!delegateRoot.isSpecial)
                         return "";
@@ -93,7 +98,7 @@ Item {
 
                     return "file://" + base + "__random.png";
                 }
-                fillMode: Image.PreserveAspectCrop
+                fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 cache: true
                 sourceSize: Qt.size(480, 324)
@@ -110,15 +115,15 @@ Item {
 
             }
 
-            // Theme logo preview: fit with a small margin so the whole logo
-            // stays visible instead of being cropped at the card edges.
+            // Theme logo preview: identical sizing to the special tiles, so
+            // the circular pawlette mark fits fully and every card matches.
             Image {
                 id: logoImg
 
                 visible: !delegateRoot.isSpecial
                 anchors.centerIn: parent
-                width: parent.width * 0.84
-                height: parent.height * 0.84
+                width: parent.width * 0.8
+                height: parent.height * 0.8
                 source: (!delegateRoot.isSpecial && delegateRoot.logo !== "") ? "file://" + delegateRoot.logo : ""
                 fillMode: Image.PreserveAspectFit
                 asynchronous: true
