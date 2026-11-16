@@ -8,9 +8,18 @@ import qs.Core.Services
 QuickSettingsTile {
     id: root
 
-    // hyprsunset is optional; probe for it once at startup so the tile can say
-    // "Not installed" instead of silently doing nothing when the binary is missing.
+    // hyprsunset is optional; probe for it at startup and again every time
+    // the quick settings open, so installing the binary is picked up without
+    // restarting the shell.
     property bool hyprsunsetAvailable: false
+    property bool isVisible: false
+
+    onIsVisibleChanged: {
+        if (isVisible) {
+            availabilityProbe.running = false;
+            availabilityProbe.running = true;
+        }
+    }
 
     isActive: DisplayProfileService.nightLightActive
     icon: isActive ? "moon-filled" : "moon"

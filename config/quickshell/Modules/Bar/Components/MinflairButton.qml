@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
 import qs.Core
 import qs.Core.Components
@@ -15,26 +16,35 @@ BarButton {
     implicitHeight: logoWrap.implicitHeight
     height: implicitHeight
 
-    // Static meowrch logo instead of the spinning minflair star. Wrapped in
-    // an Item because Image derives implicitWidth/implicitHeight from the
-    // bitmap (read-only), and the button needs a fixed square layout box.
+    // The mewline cat silhouette, tinted with Theme.fg so it stays visible
+    // on any palette (dark themes get a light cat, light themes a dark one).
+    // visible is gated on the image being ready — mirrors the avatar recipe
+    // in MeowrchInfoCard, whose layer chain is known to render reliably.
     Item {
         id: logoWrap
 
         anchors.centerIn: parent
-        width: root.iconSize
+        width: root.iconSize + Constants.sizeXs
         height: root.iconSize
-        implicitWidth: root.iconSize
+        implicitWidth: root.iconSize + Constants.sizeXs
         implicitHeight: root.iconSize
 
         Image {
-            anchors.fill: parent
-            // Vector logo from the meowrch Branding repo: stays crisp at
-            // any bar height, unlike the 1000px raster fallback.
-            source: "file://" + Quickshell.shellDir + "/assets/meowrch/logo.svg"
+            id: catImg
+
+            anchors.centerIn: parent
+            width: parent.width
+            height: parent.height
+            source: "file://" + Quickshell.shellDir + "/assets/meowrch/cat-silhouette.png"
             fillMode: Image.PreserveAspectFit
             smooth: true
             asynchronous: true
+            visible: status === Image.Ready
+            layer.enabled: true
+            layer.effect: MultiEffect {
+                colorization: 1
+                colorizationColor: Theme.fg
+            }
         }
 
     }

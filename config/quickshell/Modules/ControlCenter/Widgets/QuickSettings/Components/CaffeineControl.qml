@@ -9,9 +9,9 @@ QuickSettingsTile {
     property var notificationService: null
 
     isActive: root.notificationService ? root.notificationService.dndEnabled : false
-    icon: isActive ? "coffee-filled" : "coffee"
-    label: "Caffeine"
-    subtitle: isActive ? "DND on" : "Off"
+    icon: isActive ? "bell-off" : "bell"
+    label: "Do Not Disturb"
+    subtitle: isActive ? "On" : "Off"
     onMenuClicked: clicked()
     onClicked: {
         if (root.notificationService)

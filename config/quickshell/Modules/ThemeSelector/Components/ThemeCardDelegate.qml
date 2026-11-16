@@ -110,14 +110,17 @@ Item {
 
             }
 
-            // Theme logo fills the card like a wallpaper preview.
+            // Theme logo preview: fit with a small margin so the whole logo
+            // stays visible instead of being cropped at the card edges.
             Image {
                 id: logoImg
 
                 visible: !delegateRoot.isSpecial
-                anchors.fill: parent
+                anchors.centerIn: parent
+                width: parent.width * 0.84
+                height: parent.height * 0.84
                 source: (!delegateRoot.isSpecial && delegateRoot.logo !== "") ? "file://" + delegateRoot.logo : ""
-                fillMode: Image.PreserveAspectCrop
+                fillMode: Image.PreserveAspectFit
                 asynchronous: true
                 cache: true
                 sourceSize: Qt.size(450, 270)

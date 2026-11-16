@@ -122,6 +122,7 @@ Item {
                         id: nightLightBtn
 
                         Layout.fillWidth: true
+                        isVisible: root.quickSettingsOpen
                     }
 
                     CaffeineControl {
@@ -131,8 +132,8 @@ Item {
                         notificationService: root.notificationService
                     }
 
-                    GameModeControl {
-                        id: gamepadBtn
+                    ScreenRecordControl {
+                        id: screenRecordBtn
 
                         Layout.fillWidth: true
                     }
