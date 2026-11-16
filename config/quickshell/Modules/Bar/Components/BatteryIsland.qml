@@ -31,6 +31,9 @@ Rectangle {
     readonly property bool charging: SystemInfoService.isPluggedIn
     readonly property bool lowBattery: !charging && SystemInfoService.batteryLevel <= 20
     readonly property color fillColor: lowBattery ? (PawletteService.paletteReady && PawletteService.palette.color_red ? PawletteService.palette.color_red : "#ff5c5c") : (charging ? Theme.accent : Theme.fg)
+    // The 10px bolt spans ~x6..x16 of the 22px body; the fill starts at x2,
+    // so the glyph sits on the fill once the level reaches ~78%.
+    readonly property bool boltOverFill: fill.width >= 14
 
     RowLayout {
         id: contentRow
@@ -103,25 +106,17 @@ Rectangle {
                 // Lightning bolt while actively charging. QtQuick.Shapes
                 // renders nothing in this Quickshell build, so the bolt is a
                 // plain SvgIcon overlay (assets/bolt.svg, the same bolt path
-                // as charger-filled without the circle badge). A slightly
-                // larger accent bolt behind acts as an outline, so the bolt
-                // stays visible over both the dark bar and the battery fill.
-                SvgIcon {
-                    anchors.centerIn: parent
-                    visible: root.charging
-                    icon: "bolt"
-                    iconSize: 13
-                    flat: true
-                    iconColor: Theme.accent
-                }
-
+                // as charger-filled without the circle badge). The color
+                // follows what is behind the glyph: dark bolt over the
+                // colored fill, fg bolt over the island background — visible
+                // at every charge level.
                 SvgIcon {
                     anchors.centerIn: parent
                     visible: root.charging
                     icon: "bolt"
                     iconSize: 10
                     flat: true
-                    iconColor: Theme.bg
+                    iconColor: root.boltOverFill ? Theme.bg : Theme.fg
                 }
 
             }

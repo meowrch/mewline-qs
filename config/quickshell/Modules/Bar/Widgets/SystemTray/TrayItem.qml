@@ -56,6 +56,7 @@ Rectangle {
         return parts.join(" ").toLowerCase();
     }
     readonly property string trayGlyph: {
+        try {
         const glyphs = {
             "telegram": "\uF2C6",
             "telegram-desktop": "\uF2C6",
@@ -83,26 +84,36 @@ Rectangle {
             "keepassxc": "\uF084",
             "qbittorrent": "\uF0EA"
         };
+        let result = "";
         for (let key in glyphs) {
-            if (trayIdent.indexOf(key) !== -1)
-                return glyphs[key];
+            if (trayIdent.indexOf(key) !== -1) {
+                result = glyphs[key];
+                break;
+            }
 
         }
-        return "";
+        return result;
+        } catch (e) {
+            console.log("[TrayItem] glyph error:", e);
+            return "";
+        }
     }
 
     ThemedText {
         // $SHELL style aliases ("JetbrainsMono NF") are kitty-only; Qt needs the
         // real fontconfig family for the glyphs to render.
+        anchors.centerIn: parent
+        visible: itemRoot.trayGlyph !== ""
+        text: itemRoot.trayGlyph
         font.family: "JetBrainsMono Nerd Font Mono"
-        font.pixelSize: Math.round(root.iconSize * SettingsService.fontScale)
+        font.pixelSize: Math.round(itemRoot.iconSize * SettingsService.fontScale)
         color: itemRoot.isActive ? Theme.accent : (isHovered ? Theme.fg : Theme.muted)
     }
 
     SvgIcon {
         id: iconImage
 
-        visible: root.trayGlyph === ""
+        visible: itemRoot.trayGlyph === ""
         anchors.centerIn: parent
         iconSize: itemRoot.iconSize
         width: itemRoot.iconSize
@@ -152,18 +163,22 @@ Rectangle {
                 return "";
 
             try {
+                // Quickshell's own icon property resolves pixmap-based SNI
+                // icons (e.g. zcode_status_icon) that have no theme name;
+                // iconName alone often misses them.
+                let icon = itemRoot.trayItem.icon;
+                if (icon !== undefined && icon !== null && icon.toString() !== "") {
+                    let iconStr = icon.toString();
+                    if (iconStr.indexOf("://") !== -1 || iconStr.startsWith("/"))
+                        return iconStr;
+
+                    return "image://icon/" + iconStr + "?fallback=false";
+                }
+
                 if (itemRoot.trayItem.iconName !== undefined && itemRoot.trayItem.iconName !== "")
                     return "image://icon/" + itemRoot.trayItem.iconName + "?fallback=false";
 
-                let icon = itemRoot.trayItem.icon;
-                if (!icon)
-                    return "";
-
-                let iconStr = icon.toString();
-                if (iconStr.indexOf("://") !== -1 || iconStr.startsWith("/"))
-                    return iconStr;
-
-                return "image://icon/" + iconStr + "?fallback=false";
+                return "";
             } catch (e) {
                 return "";
             }
