@@ -1,3 +1,7 @@
+//@ pragma IconTheme Tela-pawlette
+// Tela-pawlette only ships folder recolors and inherits Tela-circle-dracula;
+// without this pragma Qt's theme lookup stops there and every standard
+// -symbolic icon (Adwaita) renders as the provider's placeholder squares.
 import QtQuick
 import Quickshell
 import Quickshell.Io
