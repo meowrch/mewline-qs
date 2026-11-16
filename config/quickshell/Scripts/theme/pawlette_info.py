@@ -76,11 +76,12 @@ def parse_theme_colors(theme_dir: Path) -> dict[str, str | None]:
 PREVIEW_SIZE = (480, 324)  # 2x the card (240x162) for crisp scaling
 
 
-def make_full_bleed_preview(logo_path: Path, out_path: Path) -> str | None:
-    """Crop the transparent padding off a theme logo and cover-resize it to
-    the card aspect so the artwork fills the whole rectangle (the raw logos
-    are round badges centered in a transparent 1000x1000 canvas). Returns
-    the preview path, or None when PIL is unavailable / processing fails."""
+def make_fitted_preview(logo_path: Path, out_path: Path) -> str | None:
+    """Crop the transparent padding off a theme logo and fit-resize it onto
+    the card-aspect canvas with transparency, so the round badge stays fully
+    visible (the raw logos are round badges centered in a transparent
+    1000x1000 canvas). Returns the preview path, or None when PIL is
+    unavailable / processing fails."""
     if Image is None:
         return None
     try:
@@ -90,23 +91,19 @@ def make_full_bleed_preview(logo_path: Path, out_path: Path) -> str | None:
         if not bbox:
             return None
         img = img.crop(bbox)
-        # cover: scale until both dimensions fit, then center-crop
-        scale = max(PREVIEW_SIZE[0] / img.width, PREVIEW_SIZE[1] / img.height)
+        # contain: scale until the artwork fits inside the canvas entirely
+        scale = min(PREVIEW_SIZE[0] / img.width, PREVIEW_SIZE[1] / img.height)
         img = img.resize(
             (max(1, round(img.width * scale)), max(1, round(img.height * scale))),
             Image.LANCZOS,
         )
-        left = (img.width - PREVIEW_SIZE[0]) // 2
-        top = (img.height - PREVIEW_SIZE[1]) // 2
-        img = img.crop(
-            (
-                left,
-                top,
-                left + PREVIEW_SIZE[0],
-                top + PREVIEW_SIZE[1],
-            )
+        canvas = Image.new("RGBA", PREVIEW_SIZE, (0, 0, 0, 0))
+        canvas.paste(
+            img,
+            ((PREVIEW_SIZE[0] - img.width) // 2, (PREVIEW_SIZE[1] - img.height) // 2),
+            img,
         )
-        img.save(out_path)
+        canvas.save(out_path)
         return str(out_path)
     except Exception:
         return None
@@ -191,7 +188,7 @@ def collect_themes() -> list[dict]:
             preview = Path(
                 os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache"))
             ) / "quickshell" / "theme_previews" / (name + ".png")
-            logo_out = make_full_bleed_preview(logo, preview) or str(logo)
+            logo_out = make_fitted_preview(logo, preview) or str(logo)
         themes.append(
             {
                 "name": name,

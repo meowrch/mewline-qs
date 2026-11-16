@@ -36,9 +36,74 @@ Rectangle {
     radius: height / 2
     scale: isPressed ? 0.92 : (isHovered ? 1.05 : 1)
 
+    // Well-known tray apps are drawn as nerd-font glyphs (the same font the
+    // old mewline bar used), which keeps the tray monochrome and consistent.
+    // Unmapped apps fall back to their real tray icon image.
+    readonly property string trayIdent: {
+        if (!trayItem)
+            return "";
+
+        let parts = [];
+        if (trayItem.iconName !== undefined && trayItem.iconName !== null)
+            parts.push(trayItem.iconName.toString());
+
+        if (trayItem.id !== undefined && trayItem.id !== null)
+            parts.push(trayItem.id.toString());
+
+        if (trayItem.title !== undefined && trayItem.title !== null)
+            parts.push(trayItem.title.toString());
+
+        return parts.join(" ").toLowerCase();
+    }
+    readonly property string trayGlyph: {
+        const glyphs = {
+            "telegram": "\uF2C6",
+            "telegram-desktop": "\uF2C6",
+            "discord": "\uF392",
+            "vesktop": "\uF392",
+            "webcord": "\uF392",
+            "spotify": "\uF1BC",
+            "playerctl": "\uF1BC",
+            "steam": "\uF1B6",
+            "chrome": "\uF268",
+            "google-chrome": "\uF268",
+            "chromium": "\uF268",
+            "brave": "\uF268",
+            "github": "\uF09B",
+            "nm-applet": "\uF1EB",
+            "network-manager": "\uF1EB",
+            "network-wireless": "\uF1EB",
+            "blueman": "\uF293",
+            "blueman-tray": "\uF293",
+            "bluetooth": "\uF293",
+            "kdeconnect": "\uF10B",
+            "kdeconnect-indicator": "\uF10B",
+            "pasystray": "\uF028",
+            "volumeicon": "\uF028",
+            "keepassxc": "\uF084",
+            "qbittorrent": "\uF0EA"
+        };
+        for (let key in glyphs) {
+            if (trayIdent.indexOf(key) !== -1)
+                return glyphs[key];
+
+        }
+        return "";
+    }
+
+    ThemedText {
+        anchors.centerIn: parent
+        visible: root.trayGlyph !== ""
+        text: root.trayGlyph
+        font.family: SettingsService.kittyFontFamily
+        font.pixelSize: Math.round(root.iconSize * SettingsService.fontScale)
+        color: itemRoot.isActive ? Theme.accent : (isHovered ? Theme.fg : Theme.muted)
+    }
+
     SvgIcon {
         id: iconImage
 
+        visible: root.trayGlyph === ""
         anchors.centerIn: parent
         iconSize: itemRoot.iconSize
         width: itemRoot.iconSize

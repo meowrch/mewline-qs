@@ -12,11 +12,22 @@ Item {
     property color iconColor: Theme.accent
     property color bgColor: Theme.bgSecondary
     property bool hasAppIcon: (notifData && notifData.appIcon && notifData.appIcon !== "") || (notifData && notifData.image)
+    // Battery notifications from the desktop daemon carry theme glyph names
+    // that are often missing from the icon theme (rendering as a broken
+    // blob); route them to the shell's own battery icon instead.
+    readonly property bool isBatteryIcon: {
+        let ic = (notifData && notifData.appIcon) ? notifData.appIcon.toLowerCase() : "";
+        return ic.indexOf("battery") !== -1 || ic.indexOf("gpm-") !== -1 || ic.indexOf("upower") !== -1;
+    }
+    readonly property bool useShellIcon: !hasAppIcon || isBatteryIcon
     property bool isUrgencyIcon: !hasAppIcon
 
     function getUrgencyIcon() {
         if (!notifData)
             return "info-filled";
+
+        if (isBatteryIcon)
+            return "battery";
 
         if (notifData.urgency === 2)
             return "warning";
@@ -29,8 +40,8 @@ Item {
 
     SvgIcon {
         anchors.fill: parent
-        visible: !root.hasAppIcon
-        icon: root.hasAppIcon ? "" : getUrgencyIcon()
+        visible: root.useShellIcon
+        icon: root.hasAppIcon ? "battery" : getUrgencyIcon()
         iconSize: root.isUrgencyIcon ? Constants.sizeLg : Constants.size2Xl
         iconColor: root.iconColor
         flat: root.isUrgencyIcon
@@ -42,7 +53,7 @@ Item {
         id: imageBg
 
         anchors.fill: parent
-        visible: root.hasAppIcon
+        visible: root.hasAppIcon && !root.isBatteryIcon
         color: "transparent"
         radius: Constants.sizeXs
 
