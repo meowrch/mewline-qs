@@ -106,7 +106,9 @@ Rectangle {
         visible: itemRoot.trayGlyph !== ""
         text: itemRoot.trayGlyph
         font.family: "JetBrainsMono Nerd Font Mono"
-        font.pixelSize: Math.round(itemRoot.iconSize * SettingsService.fontScale)
+        // NF glyphs sit on a large em box: bump the size so they match the
+        // neighboring SvgIcons.
+        font.pixelSize: Math.round((itemRoot.iconSize + 5) * SettingsService.fontScale)
         color: itemRoot.isActive ? Theme.accent : (isHovered ? Theme.fg : Theme.muted)
     }
 
@@ -163,20 +165,33 @@ Rectangle {
                 return "";
 
             try {
-                // Quickshell's own icon property resolves pixmap-based SNI
-                // icons (e.g. zcode_status_icon) that have no theme name;
-                // iconName alone often misses them.
+                // Resolve a desktop-entry icon from the item's id/title
+                // (ZCode_status_icon_1 -> zcode.desktop's icon): the raw SNI
+                // pixmap for some apps is a flat placeholder square.
+                let base = (itemRoot.trayItem.id || itemRoot.trayItem.title || "").toString().replace(/_?status_?icon.*$/i, "").replace(/-tray$/i, "").trim();
+                if (base !== "") {
+                    let entry = DesktopEntries.heuristicLookup(base) || DesktopEntries.heuristicLookup(base.toLowerCase());
+                    if (entry && entry.icon && entry.icon !== "" && Quickshell.hasThemeIcon(entry.icon))
+                        return "image://icon/" + entry.icon;
+
+                }
+
                 let icon = itemRoot.trayItem.icon;
                 if (icon !== undefined && icon !== null && icon.toString() !== "") {
                     let iconStr = icon.toString();
                     if (iconStr.indexOf("://") !== -1 || iconStr.startsWith("/"))
                         return iconStr;
 
-                    return "image://icon/" + iconStr + "?fallback=false";
+                    // The icon provider paints a pink/black placeholder for
+                    // missing names even with fallback=false: gate instead.
+                    if (Quickshell.hasThemeIcon(iconStr))
+                        return "image://icon/" + iconStr;
+
+                    return "";
                 }
 
-                if (itemRoot.trayItem.iconName !== undefined && itemRoot.trayItem.iconName !== "")
-                    return "image://icon/" + itemRoot.trayItem.iconName + "?fallback=false";
+                if (itemRoot.trayItem.iconName !== undefined && itemRoot.trayItem.iconName !== "" && Quickshell.hasThemeIcon(itemRoot.trayItem.iconName))
+                    return "image://icon/" + itemRoot.trayItem.iconName;
 
                 return "";
             } catch (e) {

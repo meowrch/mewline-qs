@@ -1,4 +1,5 @@
 import QtQuick
+import Quickshell
 import QtQuick.Effects
 import QtQuick.Layouts
 import qs.Core
@@ -19,7 +20,23 @@ Item {
         let ic = (notifData && notifData.appIcon) ? notifData.appIcon.toLowerCase() : "";
         return ic.indexOf("battery") !== -1 || ic.indexOf("gpm-") !== -1 || ic.indexOf("upower") !== -1;
     }
-    readonly property bool useShellIcon: !hasAppIcon || isBatteryIcon
+    // Internal icon names ("warning") and unknown names are not theme icons:
+    // the icon provider paints a pink/black placeholder for those, so they
+    // fall back to the urgency glyph instead.
+    readonly property bool appIconIsThemeIcon: {
+        let ic = (notifData && notifData.appIcon) ? notifData.appIcon : "";
+        if (ic === "")
+            return false;
+
+        if (ic.startsWith("file://") || ic.startsWith("/"))
+            return false;
+
+        return Quickshell.hasThemeIcon(ic);
+    }
+    readonly property bool appIconIsPath: (notifData && notifData.appIcon) ? (notifData.appIcon.startsWith("file://") || notifData.appIcon.startsWith("/")) : false
+    readonly property bool hasImage: notifData !== undefined && notifData !== null && (notifData.image !== undefined && notifData.image !== null && notifData.image !== "")
+    readonly property bool imageVisible: hasImage || appIconIsPath || (appIconIsThemeIcon && !isBatteryIcon)
+    readonly property bool useShellIcon: !imageVisible
     property bool isUrgencyIcon: !hasAppIcon
 
     function getUrgencyIcon() {
@@ -53,7 +70,7 @@ Item {
         id: imageBg
 
         anchors.fill: parent
-        visible: root.hasAppIcon && !root.isBatteryIcon
+        visible: root.imageVisible
         color: "transparent"
         radius: Constants.sizeXs
 

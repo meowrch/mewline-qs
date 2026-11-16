@@ -1,3 +1,4 @@
+import Quickshell
 import QtQuick
 import QtQuick.Layouts
 import qs.Core
@@ -65,7 +66,13 @@ Rectangle {
                         if (icStr.indexOf("://") !== -1 || icStr.startsWith("/"))
                             return icStr;
 
-                        return "image://icon/" + icStr + "?fallback=false";
+                        // The icon provider paints a placeholder for missing
+                        // names even with fallback=false: hide the icon
+                        // entirely unless the theme really has it.
+                        if (!Quickshell.hasThemeIcon(icStr))
+                            return "";
+
+                        return "image://icon/" + icStr;
                     } catch (e) {
                         return "";
                     }
