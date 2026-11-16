@@ -396,7 +396,10 @@ Item {
                 spacing: Constants.size3Xs
 
                 ThemedText {
-                    Layout.alignment: Qt.AlignHCenter
+                    // fillWidth + text alignment: Layout.alignment alone was
+                    // leaving the clock stuck to the panel's left edge.
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
                     text: Qt.formatDateTime(root.today, "HH:mm")
                     customSize: 58
                     font.weight: Font.DemiBold
@@ -405,7 +408,8 @@ Item {
                 }
 
                 ThemedText {
-                    Layout.alignment: Qt.AlignHCenter
+                    Layout.fillWidth: true
+                    horizontalAlignment: Text.AlignHCenter
                     text: Qt.formatDate(root.today, "dd-MM-yy")
                     customSize: Constants.sizeMd
                     color: Theme.muted

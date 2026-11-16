@@ -196,6 +196,21 @@ Card {
 
             }
 
+            // Shell settings shortcut: opens the minflair settings window.
+            SvgIconButton {
+                id: settingsBtn
+
+                icon: "tune"
+                iconSize: Constants.sizeLg
+                flat: true
+                Layout.alignment: Qt.AlignVCenter
+
+                onClicked: {
+                    AppState.closeAllWidgets();
+                    AppState.toggleWidget("minflair_settings");
+                }
+            }
+
         }
 
         Divider {

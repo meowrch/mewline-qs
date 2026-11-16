@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-
+import pwd
 sys.dont_write_bytecode = True
 
 import json
@@ -351,9 +351,9 @@ def get_system_specs():
     data["hostname"] = platform.node()
     data["username"] = os.environ.get("USER", os.environ.get("LOGNAME", ""))
 
-    # Shell
-    shell_env = os.environ.get("SHELL", "")
-    data["shell"] = Path(shell_env).name if shell_env else "zsh"
+    # Shell: the login shell from the passwd database — $SHELL reflects
+    # the environment quickshell was started from and goes stale after chsh.
+    data["shell"] = Path(pwd.getpwuid(os.getuid()).pw_shell).name
 
     # Window Manager / Compositor
     data["wm"] = "Hyprland (Wayland)"

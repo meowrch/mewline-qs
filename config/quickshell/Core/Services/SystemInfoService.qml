@@ -60,6 +60,7 @@ Item {
         setPowerProfileProc.running = false;
         setPowerProfileProc.command = ["powerprofilesctl", "set", targetProfile];
         setPowerProfileProc.running = true;
+        applyHyprWorkflow(targetProfile);
         if (targetProfile === "performance") {
             systemInfoService.performanceInterval = 1000;
             HyprlandService.enableAnimations = true;
@@ -85,6 +86,26 @@ Item {
 
     }
 
+    // The user's userprefs.lua reserves a slot for per-mode Hyprland tuning:
+    // require("workflows/default" | "powersaver" | "gaming"). Rewriting that
+    // line and reloading applies the matching workflow; the reload only
+    // happens when the line actually changed (startup with a saved profile).
+    function applyHyprWorkflow(profile) {
+        let wf = profile === "performance" ? "gaming" : (profile === "power-saver" ? "powersaver" : "default");
+        workflowSwapProc.command = ["python3", "-c",
+            "import os, re\n" +
+            "p = os.path.expanduser('~/.config/hypr/userprefs.lua')\n" +
+            "if not os.path.isfile(p):\n" +
+            "    raise SystemExit(1)\n" +
+            "s = open(p).read()\n" +
+            "s2, n = re.subn(r'require\\(\"workflows/[a-z]+\"\\)', 'require(\"workflows/" + wf + "\")', s)\n" +
+            "if n == 0 or s2 == s:\n" +
+            "    raise SystemExit(1)\n" +
+            "open(p, 'w').write(s2)"];
+        workflowSwapProc.running = false;
+        workflowSwapProc.running = true;
+    }
+
     onPerformanceIntervalChanged: {
         if (SettingsService.settingsLoaded)
             SettingsService.saveSettings();
@@ -103,6 +124,20 @@ Item {
 
     Process {
         id: workflowSwapProc
+
+        // Reload Hyprland only when the workflow line actually changed —
+        // the full config re-run re-applies the new require() cleanly.
+        onExited: (exitCode) => {
+            if (exitCode === 0)
+                hyprctlReload.running = true;
+
+        }
+    }
+
+    Process {
+        id: hyprctlReload
+
+        command: ["hyprctl", "reload"]
     }
 
     Process {
