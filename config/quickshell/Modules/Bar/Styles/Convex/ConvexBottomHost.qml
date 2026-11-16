@@ -41,12 +41,14 @@ Item {
     property bool _visible: false
     readonly property bool isCompactWidget: displayedWidgetId === "powerMenu" || displayedWidgetId === "screenshot"
     property int cornerRadius: isCompactWidget ? Constants.sizeMd : Constants.sizeLg * 2
-    property int contentPadding: isCompactWidget ? 0 : Constants.sizeLg
+    // Power menu buttons sit flush against the edge without padding, so it
+    // gets its own breathing room; screenshot keeps the flush compact look.
+    property int contentPadding: displayedWidgetId === "powerMenu" ? Constants.sizeMd : (isCompactWidget ? 0 : Constants.sizeLg)
     property color backgroundColor: Theme.bg
     property real contentWidth: loader.item ? (loader.item.implicitWidth > 0 ? loader.item.implicitWidth : loader.item.width) : 0
     property real contentHeight: loader.item ? (loader.item.implicitHeight > 0 ? loader.item.implicitHeight : loader.item.height) : 0
     property real safeMarginX: cornerRadius * 2 + (contentPadding * 2)
-    property real safeMarginY: isCompactWidget ? 0 : (contentPadding * 2)
+    property real safeMarginY: displayedWidgetId === "powerMenu" ? (contentPadding * 2) : (isCompactWidget ? 0 : (contentPadding * 2))
     property real openProgress: 0
     property real contentCrossFade: 1
     property real targetWidth: contentWidth > 0 ? contentWidth + safeMarginX : 0

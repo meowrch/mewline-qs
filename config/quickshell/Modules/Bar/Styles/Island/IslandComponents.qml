@@ -23,8 +23,12 @@ Item {
     required property var notificationService
 
     function getTargetPadding(panel) {
-        if (panel === "" || panel === "screenshot" || panel === "powerMenu")
+        if (panel === "" || panel === "screenshot")
             return 0;
+
+        // Power menu buttons otherwise sit flush against the island edge.
+        if (panel === "powerMenu")
+            return Constants.sizeMd;
 
         return Constants.sizeLg;
     }
