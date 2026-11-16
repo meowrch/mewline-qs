@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Io
 import Quickshell.Services.Notifications
 import qs.Core
 import qs.Core.Services
@@ -18,6 +19,103 @@ Item {
     })
     property var groupRepresentationIds: ({
     })
+    property string _lastSavedPayload: ""
+    property bool _historyRestored: false
+
+    // History survives shell restarts: the last 50 notifications are kept in
+    // a state-dir JSON file and rebuilt (without popups or actions — the
+    // sender is gone) when the shell comes back up.
+    FileView {
+        id: historyFile
+
+        path: Quickshell.stateDir + "/notification_history.json"
+        onLoaded: root.restoreHistory()
+        // First run: the file does not exist yet — unblock saving and seed it.
+        onLoadFailed: root._historyRestored = true
+    }
+
+    // FileView.setText does not flush in this Quickshell build, so the
+    // history is written through a shell redirect (same pattern the settings
+    // saver uses).
+    Process {
+        id: historySaveProc
+    }
+
+    function saveHistoryIfChanged() {
+        if (!root._historyRestored)
+            return ;
+
+        let entries = [];
+        for (let i = 0; i < historyListModel.count && entries.length < 50; i++) {
+            let nd = historyListModel.get(i).notifData;
+            if (!nd)
+                continue;
+
+            entries.push({
+                "id": String(nd.notificationId),
+                "summary": nd.summary,
+                "body": nd.body,
+                "appName": nd.appName,
+                "appIcon": nd.appIcon,
+                "urgency": nd.urgency,
+                "timestamp": nd.timestamp
+            });
+        }
+        let payload = JSON.stringify(entries);
+        if (payload === root._lastSavedPayload)
+            return ;
+
+        root._lastSavedPayload = payload;
+        historySaveProc.command = ["sh", "-c",
+            'umask 077; mkdir -p "$1"; cat > "$1/.nh.tmp" <<\'MH_EOF\'\n' + payload + '\nMH_EOF\nmv -f "$1/.nh.tmp" "$1/notification_history.json"',
+            "sh", Quickshell.stateDir];
+        historySaveProc.startDetached();
+    }
+
+    function restoreHistory() {
+        try {
+            let raw = historyFile.text();
+            root._historyRestored = true;
+            if (!raw || raw.trim() === "")
+                return ;
+
+            let entries = JSON.parse(raw);
+            for (let i = 0; i < entries.length && historyListModel.count < 50; i++) {
+                let e = entries[i];
+                if (!e || !e.id || notificationObjects[e.id])
+                    continue;
+
+                let nd = notificationDataComponent.createObject(root, {
+                    "notificationId": String(e.id),
+                    "summary": e.summary || "",
+                    "body": e.body || "",
+                    "appName": e.appName || "System",
+                    "appIcon": e.appIcon || "",
+                    "urgency": e.urgency || 0,
+                    "timestamp": e.timestamp || new Date().getTime(),
+                    "popup": false,
+                    "progress": 0
+                });
+                notificationObjects[e.id] = nd;
+                historyListModel.append({
+                    "id": e.id,
+                    "notifData": nd
+                });
+            }
+        } catch (e) {
+            console.log("[Notifications] history restore failed:", e);
+        }
+        root._historyRestored = true;
+    }
+
+    Timer {
+        interval: 2000
+        running: true
+        repeat: true
+        onTriggered: root.saveHistoryIfChanged()
+    }
+
+    Component.onCompleted: historyFile.reload()
 
     function pruneActiveNotifications() {
         let maxCount = 1;

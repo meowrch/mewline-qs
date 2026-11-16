@@ -104,7 +104,6 @@ Rectangle {
                         return "";
 
                     try {
-                        console.log("[MenuItem]", JSON.stringify(String(modelData.icon)), "checkState:", modelData.checkState, "btnType:", modelData.buttonType);
                         let ic = modelData.icon;
                         let icStr = ic.toString().trim();
                         if (icStr === "")

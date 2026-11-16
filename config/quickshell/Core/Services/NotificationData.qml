@@ -21,6 +21,9 @@ QtObject {
     property bool closed: false
     property bool isTransient: summary === "Volume" || summary === "Brightness" || summary === "Microphone" || summary === "Power Menu" || body.includes("Taking shot in")
     property real progress: 1
+    // Actions declared by the sender; empty for notifications restored from
+    // the history file (the sender is gone by then).
+    readonly property var actions: notification ? notification.actions : []
     property var locks: ({
     })
     readonly property bool isLocked: Object.keys(locks).length > 0

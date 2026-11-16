@@ -65,61 +65,78 @@ Item {
         return h > 0 ? h : Constants.size2Xl;
     }
     readonly property int calculatedIconSize: Math.max(Constants.sizeLg, Math.round(textContentHeight))
+    readonly property bool hasActions: (notifData && notifData.actions && notifData.actions.length > 0)
 
     implicitHeight: layout.implicitHeight
 
-    RowLayout {
+    ColumnLayout {
         id: layout
 
         anchors.fill: parent
         anchors.margins: Constants.sizeSm
-        spacing: Constants.sizeSm
+        spacing: root.hasActions ? Constants.size3Xs : 0
 
-        NotificationIcon {
-            id: iconContainer
-
-            Layout.alignment: iconContainer.isUrgencyIcon ? (Qt.AlignTop | Qt.AlignLeft) : Qt.AlignVCenter
-            Layout.topMargin: iconContainer.isUrgencyIcon ? Constants.size3Xs : 0
-            Layout.preferredWidth: iconContainer.isUrgencyIcon ? Constants.sizeLg : root.calculatedIconSize
-            Layout.preferredHeight: iconContainer.isUrgencyIcon ? Constants.sizeLg : root.calculatedIconSize
-            notifData: root.notifData
-            bgColor: root.isConvex ? "transparent" : Theme.bgSecondary
-        }
-
-        ColumnLayout {
-            id: textColumn
+        RowLayout {
+            id: contentRow
 
             Layout.fillWidth: true
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 0
+            spacing: Constants.sizeSm
 
-            ThemedText {
-                id: summaryText
+            NotificationIcon {
+                id: iconContainer
 
-                Layout.fillWidth: true
-                text: root.parsedNotif.title
-                color: Theme.fg
-                customSize: Constants.sizeSm
-                font.weight: Font.DemiBold
-                maximumLineCount: 1
-                elide: Text.ElideRight
-                wrapMode: Text.Wrap
-                visible: root.parsedNotif.title !== ""
+                Layout.alignment: iconContainer.isUrgencyIcon ? (Qt.AlignTop | Qt.AlignLeft) : Qt.AlignVCenter
+                Layout.topMargin: iconContainer.isUrgencyIcon ? Constants.size3Xs : 0
+                Layout.preferredWidth: iconContainer.isUrgencyIcon ? Constants.sizeLg : root.calculatedIconSize
+                Layout.preferredHeight: iconContainer.isUrgencyIcon ? Constants.sizeLg : root.calculatedIconSize
+                notifData: root.notifData
+                bgColor: root.isConvex ? "transparent" : Theme.bgSecondary
             }
 
-            ThemedText {
-                id: bodyText
+            ColumnLayout {
+                id: textColumn
 
                 Layout.fillWidth: true
-                text: root.parsedNotif.message
-                wrapMode: Text.Wrap
-                color: Theme.muted
-                customSize: Constants.sizeXs + 2
-                maximumLineCount: 2
-                elide: Text.ElideRight
-                visible: root.parsedNotif.message !== ""
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 0
+
+                ThemedText {
+                    id: summaryText
+
+                    Layout.fillWidth: true
+                    text: root.parsedNotif.title
+                    color: Theme.fg
+                    customSize: Constants.sizeSm
+                    font.weight: Font.DemiBold
+                    maximumLineCount: 1
+                    elide: Text.ElideRight
+                    wrapMode: Text.Wrap
+                    visible: root.parsedNotif.title !== ""
+                }
+
+                ThemedText {
+                    id: bodyText
+
+                    Layout.fillWidth: true
+                    text: root.parsedNotif.message
+                    wrapMode: Text.Wrap
+                    color: Theme.muted
+                    customSize: Constants.sizeXs + 2
+                    maximumLineCount: 2
+                    elide: Text.ElideRight
+                    visible: root.parsedNotif.message !== ""
+                }
+
             }
 
+        }
+
+        // Reserves the strip the action buttons overlay occupies when the
+        // popup is hovered (BaseNotifLayer draws the real buttons there).
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: root.hasActions ? Constants.size2Xl : 0
+            visible: root.hasActions
         }
 
     }

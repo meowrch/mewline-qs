@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Core
+import qs.Core.Components
 import qs.Modules.Notifications as NotificationsModule
 
 Item {
@@ -277,6 +278,64 @@ Item {
                 closeNotificationImmediately();
             }
         }
+    }
+
+    // Notification action buttons. Live above the mouse catcher (z 50) so
+    // clicks reach them; visible only while the popup is hovered/locked —
+    // the delegate reserves the strip so the popup grows to fit.
+    Row {
+        id: actionsOverlay
+
+        z: 60
+        visible: root.currentNotifData && root.currentNotifData.actions && root.currentNotifData.actions.length > 0
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: Constants.sizeSm + 4
+        anchors.right: parent.right
+        anchors.rightMargin: Constants.sizeSm + 4
+        spacing: Constants.sizeXs
+
+        Repeater {
+            model: (root.currentNotifData && root.currentNotifData.actions) ? root.currentNotifData.actions : []
+
+            Rectangle {
+                id: actionBtn
+
+                required property var modelData
+
+                radius: height / 2
+                implicitHeight: Constants.sizeLg + 2
+                implicitWidth: actionBtnText.implicitWidth + Constants.sizeSm + 2
+                color: actionMa.containsMouse ? Theme.bgAccent : Theme.bgTertiary
+                border.width: 1
+                border.color: Theme.border
+
+                ThemedText {
+                    id: actionBtnText
+
+                    anchors.centerIn: parent
+                    text: actionBtn.modelData.text
+                    customSize: Constants.sizeXs + 1
+                    color: actionMa.containsMouse ? Theme.accent : Theme.fg
+                }
+
+                MouseArea {
+                    id: actionMa
+
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        actionBtn.modelData.invoke();
+                        if (root.currentNotifData)
+                            root.currentNotifData.popup = false;
+
+                    }
+                }
+
+            }
+
+        }
+
     }
 
     DragHandler {
