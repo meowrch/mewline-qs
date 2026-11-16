@@ -10,7 +10,7 @@ Item {
     required property var notificationService
     property var mainPanelWidget: null
     readonly property string currentPanel: AppState.activeWidget
-    readonly property bool isHostPanel: SettingsService.barIslandMode && (currentPanel === "dashboard" || currentPanel === "controlCenter" || currentPanel === "notificationsCenter" || currentPanel === "music" || currentPanel === "calendar" || currentPanel === "systemUsage" || currentPanel === "launcher" || currentPanel === "clipboard" || currentPanel === "wallpaper" || currentPanel === "screenshot" || currentPanel === "powerMenu" || currentPanel.startsWith("systemTray_"))
+    readonly property bool isHostPanel: SettingsService.barIslandMode && (currentPanel === "dashboard" || currentPanel === "controlCenter" || currentPanel === "wifiMenu" || currentPanel === "bluetoothMenu" || currentPanel === "notificationsCenter" || currentPanel === "music" || currentPanel === "calendar" || currentPanel === "systemUsage" || currentPanel === "launcher" || currentPanel === "clipboard" || currentPanel === "wallpaper" || currentPanel === "screenshot" || currentPanel === "powerMenu" || currentPanel.startsWith("systemTray_"))
     property string activePanelName: ""
     readonly property string effectivePanel: (AppState.activeWidget !== "" && islandBar.isHostPanel) ? AppState.activeWidget : activePanelName
     property bool isOpen: false
@@ -103,11 +103,13 @@ Item {
             if (panel === "music")
                 return "right";
 
-            if (panel === "controlCenter")
+            // The dedicated wifi/bluetooth menus expand the same pill as the
+            // control center.
+            if (panel === "controlCenter" || panel === "wifiMenu" || panel === "bluetoothMenu")
                 return "center";
 
         } else {
-            if (panel === "controlCenter")
+            if (panel === "controlCenter" || panel === "wifiMenu" || panel === "bluetoothMenu")
                 return "right";
 
             if (panel === "music")

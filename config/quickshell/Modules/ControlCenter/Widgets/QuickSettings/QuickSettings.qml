@@ -15,6 +15,9 @@ Item {
     property bool quickSettingsOpen: false
     property var notificationService
     property int activePageIndex: 0
+    // Page shown when the panel opens (0 main tiles, 1 wifi, 2 bluetooth);
+    // hosts set it so dedicated wifi/bluetooth menus skip the tile grid.
+    property int initialPage: 0
     property real extraExpandedHeight: 0
 
     function resetView() {
@@ -26,7 +29,7 @@ Item {
             resetPageTimer.restart();
         } else {
             resetPageTimer.stop();
-            root.resetView();
+            root.activePageIndex = root.initialPage;
         }
     }
     implicitWidth: mainPage.implicitWidth

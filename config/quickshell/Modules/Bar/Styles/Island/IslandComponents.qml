@@ -71,6 +71,18 @@ Item {
         return Constants.size3Xl;
     }
 
+    // Starting page of the control center content per panel: the dedicated
+    // wifi/bluetooth menus open straight on their device list.
+    function panelInitialPage(panel) {
+        if (panel === "wifiMenu")
+            return 1;
+
+        if (panel === "bluetoothMenu")
+            return 2;
+
+        return 0;
+    }
+
     function getComponent(panelName) {
         if (panelName.startsWith("systemTray_"))
             return trayComp;
@@ -79,6 +91,8 @@ Item {
         case "dashboard":
             return dashboardComp;
         case "controlCenter":
+        case "wifiMenu":
+        case "bluetoothMenu":
             return controlCenterComp;
         case "notificationsCenter":
             return notificationsCenterComp;
@@ -118,6 +132,7 @@ Item {
         ControlCenterModule.ControlCenterContent {
             widget: root.islandBar
             notificationService: root.notificationService
+            initialPage: root.panelInitialPage(root.islandBar ? root.islandBar.effectivePanel : "")
         }
 
     }

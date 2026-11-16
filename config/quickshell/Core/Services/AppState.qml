@@ -57,7 +57,7 @@ Item {
         if (!id)
             return false;
 
-        return id === "dashboard" || id === "controlCenter" || id === "notificationsCenter" || id === "music" || id === "calendar" || id === "systemUsage" || id.startsWith("systemTray_");
+        return id === "dashboard" || id === "controlCenter" || id === "wifiMenu" || id === "bluetoothMenu" || id === "notificationsCenter" || id === "music" || id === "calendar" || id === "systemUsage" || id.startsWith("systemTray_");
     }
 
     function isFocusWidget(id) {
@@ -230,7 +230,9 @@ Item {
         if (widgetId === "music" || widgetId === "calendar" || widgetId === "systemUsage")
             return "center";
 
-        if (widgetId === "controlCenter" || widgetId === "notificationsCenter" || widgetId.startsWith("systemTray_"))
+        // The dedicated wifi/bluetooth menus open the control center sidebar
+        // directly on their device list, so they share its right-hand slot.
+        if (widgetId === "controlCenter" || widgetId === "wifiMenu" || widgetId === "bluetoothMenu" || widgetId === "notificationsCenter" || widgetId.startsWith("systemTray_"))
             return "right";
 
         return widgetId;

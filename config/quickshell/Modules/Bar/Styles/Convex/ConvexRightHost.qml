@@ -63,6 +63,12 @@ Item {
         if (AppState.activeWidget === "controlCenter")
             return "controlCenter";
 
+        // Dedicated wifi/bluetooth menus open the control center sidebar on
+        // their device list page; keep their ids so the stack and the initial
+        // page binding can react.
+        if (AppState.activeWidget === "wifiMenu" || AppState.activeWidget === "bluetoothMenu")
+            return AppState.activeWidget;
+
         if (AppState.activeWidget === "notificationsCenter")
             return "notificationsCenter";
 
@@ -74,6 +80,12 @@ Item {
 
         if (isNotificationsCenter)
             return "notificationsCenter";
+
+        if (AppState.isWidgetOpen("wifiMenu"))
+            return "wifiMenu";
+
+        if (AppState.isWidgetOpen("bluetoothMenu"))
+            return "bluetoothMenu";
 
         for (let i = 0; i < AppState.activeWidgetsList.length; i++) {
             let item = AppState.activeWidgetsList[i];
@@ -215,6 +227,10 @@ Item {
             if (root.displayedWidgetId === "controlCenter")
                 return ccContent.implicitWidth > 0 ? ccContent.implicitWidth : 500;
 
+            // Wifi/bluetooth menus share the control center content and size.
+            if (root.displayedWidgetId === "wifiMenu" || root.displayedWidgetId === "bluetoothMenu")
+                return ccContent.implicitWidth > 0 ? ccContent.implicitWidth : 500;
+
             if (root.displayedWidgetId === "notificationsCenter")
                 return ncContent.implicitWidth > 0 ? ncContent.implicitWidth : 400;
 
@@ -225,6 +241,9 @@ Item {
         }
         contentHeight: {
             if (root.displayedWidgetId === "controlCenter")
+                return ccContent.implicitHeight > 0 ? ccContent.implicitHeight : 600;
+
+            if (root.displayedWidgetId === "wifiMenu" || root.displayedWidgetId === "bluetoothMenu")
                 return ccContent.implicitHeight > 0 ? ccContent.implicitHeight : 600;
 
             if (root.displayedWidgetId === "notificationsCenter")
@@ -254,6 +273,10 @@ Item {
                 if (root.displayedWidgetId === "controlCenter")
                     return 0;
 
+                // Wifi/bluetooth menus reuse the control center layer.
+                if (root.displayedWidgetId === "wifiMenu" || root.displayedWidgetId === "bluetoothMenu")
+                    return 0;
+
                 if (root.displayedWidgetId === "notificationsCenter")
                     return 1;
 
@@ -263,7 +286,9 @@ Item {
                 return 0;
             }
 
-            // Layer 0: Control Center (exact original content)
+            // Layer 0: Control Center (exact original content). The dedicated
+            // wifi/bluetooth menus reuse this instance and start on their own
+            // device list page via initialPage.
             ControlCenterContent {
                 id: ccContent
 
@@ -271,6 +296,7 @@ Item {
                 Layout.fillHeight: true
                 widget: sidebarWindow
                 notificationService: root.notificationService
+                initialPage: root.displayedWidgetId === "wifiMenu" ? 1 : (root.displayedWidgetId === "bluetoothMenu" ? 2 : 0)
             }
 
             // Layer 1: Notification Center (exact original content)
