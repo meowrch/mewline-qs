@@ -11,17 +11,22 @@ Item {
     id: root
 
     property var widget: null
+    // Lock is built in: hyprlock on Wayland, betterlockscreen on X11 — no
+    // external script dependency. Suspend locks after wake, matching the
+    // user's lock flow.
+    readonly property string sessionType: Quickshell.env("XDG_SESSION_TYPE")
+    readonly property string lockCommand: sessionType === "x11" ? "betterlockscreen -l dim" : "hyprlock"
     property var menuModel: [{
         "id": "lock",
         "label": "Lock",
         "icon": "lock",
-        "command": ["sh", "-c", "sleep 0.3; socat - UNIX-CONNECT:/tmp/quickshell_lockScreen"],
+        "command": ["sh", "-c", "sleep 0.3; exec " + root.lockCommand],
         "confirm": false
     }, {
         "id": "suspend",
         "label": "Suspend",
         "icon": "moon",
-        "command": ["sh", "-c", "mpc -q pause; amixer set Master mute; systemctl suspend"],
+        "command": ["sh", "-c", "mpc -q pause; amixer set Master mute; systemctl suspend; " + root.lockCommand],
         "confirm": true
     }, {
         "id": "logout",

@@ -2,7 +2,6 @@ import QtQuick
 import qs.Core.Components
 import qs.Modules.Clipboard
 import qs.Modules.Launcher
-import qs.Modules.LockScreen
 import qs.Modules.Settings
 import qs.Modules.ThemeSelector
 import qs.Modules.WallpaperSelector
@@ -99,10 +98,6 @@ Item {
 
         }
 
-    }
-
-    LockScreen {
-        id: lockScreen
     }
 
 }
