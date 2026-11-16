@@ -36,86 +36,53 @@ Rectangle {
     radius: height / 2
     scale: isPressed ? 0.92 : (isHovered ? 1.05 : 1)
 
-    // Well-known tray apps are drawn as nerd-font glyphs (the same font the
-    // old mewline bar used), which keeps the tray monochrome and consistent.
-    // Unmapped apps fall back to their real tray icon image.
-    readonly property string trayIdent: {
+    // Icon resolution mirrors the python mewline bar: icon name with a
+    // -symbolic variant through the theme first, then the item's own icon
+    // URL (theme name or pixmap). The provider paints a pink/black
+    // placeholder for missing names even with fallback=false, so every
+    // theme lookup is gated with hasThemeIcon.
+    readonly property string iconSource: {
         if (!trayItem)
             return "";
 
-        let parts = [];
-        if (trayItem.iconName !== undefined && trayItem.iconName !== null)
-            parts.push(trayItem.iconName.toString());
-
-        if (trayItem.id !== undefined && trayItem.id !== null)
-            parts.push(trayItem.id.toString());
-
-        if (trayItem.title !== undefined && trayItem.title !== null)
-            parts.push(trayItem.title.toString());
-
-        return parts.join(" ").toLowerCase();
-    }
-    readonly property string trayGlyph: {
         try {
-        const glyphs = {
-            "telegram": "\uF2C6",
-            "telegram-desktop": "\uF2C6",
-            "discord": "\uF392",
-            "vesktop": "\uF392",
-            "webcord": "\uF392",
-            "spotify": "\uF1BC",
-            "playerctl": "\uF1BC",
-            "steam": "\uF1B6",
-            "chrome": "\uF268",
-            "google-chrome": "\uF268",
-            "chromium": "\uF268",
-            "brave": "\uF268",
-            "github": "\uF09B",
-            "nm-applet": "\uF1EB",
-            "network-manager": "\uF1EB",
-            "network-wireless": "\uF1EB",
-            "blueman": "\uF293",
-            "blueman-tray": "\uF293",
-            "bluetooth": "\uF293",
-            "kdeconnect": "\uF10B",
-            "kdeconnect-indicator": "\uF10B",
-            "pasystray": "\uF028",
-            "volumeicon": "\uF028",
-            "keepassxc": "\uF084",
-            "qbittorrent": "\uF0EA"
-        };
-        let result = "";
-        for (let key in glyphs) {
-            if (trayIdent.indexOf(key) !== -1) {
-                result = glyphs[key];
-                break;
+            let name = (trayItem.iconName !== undefined && trayItem.iconName !== null) ? trayItem.iconName.toString().trim() : "";
+            if (name !== "") {
+                let sym = name.endsWith("-symbolic") ? name : name + "-symbolic";
+                if (Quickshell.hasThemeIcon(sym))
+                    return "image://icon/" + sym;
+
+                if (Quickshell.hasThemeIcon(name))
+                    return "image://icon/" + name;
+
             }
 
-        }
-        return result;
+            let ic = (trayItem.icon !== undefined && trayItem.icon !== null) ? trayItem.icon.toString().trim() : "";
+            if (ic !== "") {
+                if (ic.indexOf("image://icon/") === 0) {
+                    let n = ic.substring("image://icon/".length).split("?")[0];
+                    let sym = n.endsWith("-symbolic") ? n : n + "-symbolic";
+                    if (Quickshell.hasThemeIcon(sym))
+                        return "image://icon/" + sym;
+
+                    if (Quickshell.hasThemeIcon(n))
+                        return "image://icon/" + n;
+
+                    return ic;
+                }
+
+                return ic;
+            }
+
+            return "";
         } catch (e) {
-            console.log("[TrayItem] glyph error:", e);
             return "";
         }
-    }
-
-    ThemedText {
-        // $SHELL style aliases ("JetbrainsMono NF") are kitty-only; Qt needs the
-        // real fontconfig family for the glyphs to render.
-        anchors.centerIn: parent
-        visible: itemRoot.trayGlyph !== ""
-        text: itemRoot.trayGlyph
-        font.family: "JetBrainsMono Nerd Font Mono"
-        // NF glyphs sit on a large em box: bump the size so they match the
-        // neighboring SvgIcons.
-        font.pixelSize: Math.round((itemRoot.iconSize + 5) * SettingsService.fontScale)
-        color: itemRoot.isActive ? Theme.accent : (isHovered ? Theme.fg : Theme.muted)
     }
 
     SvgIcon {
         id: iconImage
 
-        visible: itemRoot.trayGlyph === ""
         anchors.centerIn: parent
         iconSize: itemRoot.iconSize
         width: itemRoot.iconSize
@@ -160,44 +127,7 @@ Rectangle {
         }
         iconColor: itemRoot.isActive ? Theme.accent : Theme.fg
         flat: true
-        icon: {
-            if (!itemRoot.trayItem)
-                return "";
-
-            try {
-                // Resolve a desktop-entry icon from the item's id/title
-                // (ZCode_status_icon_1 -> zcode.desktop's icon): the raw SNI
-                // pixmap for some apps is a flat placeholder square.
-                let base = (itemRoot.trayItem.id || itemRoot.trayItem.title || "").toString().replace(/_?status_?icon.*$/i, "").replace(/-tray$/i, "").trim();
-                if (base !== "") {
-                    let entry = DesktopEntries.heuristicLookup(base) || DesktopEntries.heuristicLookup(base.toLowerCase());
-                    if (entry && entry.icon && entry.icon !== "" && Quickshell.hasThemeIcon(entry.icon))
-                        return "image://icon/" + entry.icon;
-
-                }
-
-                let icon = itemRoot.trayItem.icon;
-                if (icon !== undefined && icon !== null && icon.toString() !== "") {
-                    let iconStr = icon.toString();
-                    if (iconStr.indexOf("://") !== -1 || iconStr.startsWith("/"))
-                        return iconStr;
-
-                    // The icon provider paints a pink/black placeholder for
-                    // missing names even with fallback=false: gate instead.
-                    if (Quickshell.hasThemeIcon(iconStr))
-                        return "image://icon/" + iconStr;
-
-                    return "";
-                }
-
-                if (itemRoot.trayItem.iconName !== undefined && itemRoot.trayItem.iconName !== "" && Quickshell.hasThemeIcon(itemRoot.trayItem.iconName))
-                    return "image://icon/" + itemRoot.trayItem.iconName;
-
-                return "";
-            } catch (e) {
-                return "";
-            }
-        }
+        icon: itemRoot.iconSource
 
         Behavior on iconColor {
             ColorAnimation {

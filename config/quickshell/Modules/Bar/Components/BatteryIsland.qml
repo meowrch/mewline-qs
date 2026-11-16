@@ -116,7 +116,9 @@ Rectangle {
                     icon: "bolt"
                     iconSize: 10
                     flat: true
-                    iconColor: root.boltOverFill ? Theme.bg : Theme.fg
+                    // Theme.bg carries the bar's translucency alpha; a black bolt reads
+                    // cleanly on the colored fill at any opacity.
+                    iconColor: root.boltOverFill ? Theme.black : Theme.fg
                 }
 
             }

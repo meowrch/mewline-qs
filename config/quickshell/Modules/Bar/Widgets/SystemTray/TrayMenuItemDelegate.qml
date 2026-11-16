@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.Core
 import qs.Core.Components
+import qs.Core.Services
 
 Rectangle {
     id: itemRoot
@@ -12,6 +13,41 @@ Rectangle {
     required property int index
     property bool isHovered: itemMouseArea.containsMouse
     property bool isPressed: itemMouseArea.pressed
+    // Nerd-font stand-ins for menu icons missing from the (minimal) icon
+    // theme, so tray app menus don't render pink placeholder squares.
+    readonly property string menuGlyph: {
+        let ic = (modelData && modelData.icon) ? modelData.icon.toString() : "";
+        if (ic.indexOf("image://icon/") === 0)
+            ic = ic.substring("image://icon/".length).split("?")[0];
+
+        ic = ic.replace(/-symbolic$/, "");
+        const glyphs = {
+            "bluetooth-disabled": "",
+            "bluetooth": "",
+            "blueman": "",
+            "edit-find": "",
+            "search": "",
+            "document-open-recent": "",
+            "audio-headset": "",
+            "audio-headphones": "",
+            "document-properties": "",
+            "preferences-system": "",
+            "application-x-addon": "",
+            "help-about": "",
+            "application-exit": "",
+            "blueman-send": "",
+            "send": ""
+        };
+        let result = "";
+        for (let key in glyphs) {
+            if (ic.toLowerCase().indexOf(key) !== -1) {
+                result = glyphs[key];
+                break;
+            }
+
+        }
+        return Quickshell.hasThemeIcon(ic) ? "" : result;
+    }
 
     Layout.fillWidth: true
     Layout.preferredHeight: (modelData && modelData.isSeparator) ? 1 : Constants.size3Xl
@@ -41,14 +77,24 @@ Rectangle {
         visible: Boolean(modelData && !modelData.isSeparator)
 
         Item {
-            Layout.preferredWidth: trayIcon.status === Image.Ready ? Constants.sizeLg : 0
+            Layout.preferredWidth: trayIcon.status === Image.Ready || itemRoot.menuGlyph !== "" ? Constants.sizeLg : 0
             Layout.preferredHeight: Constants.sizeLg
             Layout.alignment: Qt.AlignVCenter
-            visible: trayIcon.status === Image.Ready
+            visible: trayIcon.status === Image.Ready || itemRoot.menuGlyph !== ""
+
+            ThemedText {
+                anchors.centerIn: parent
+                visible: trayIcon.status !== Image.Ready && itemRoot.menuGlyph !== ""
+                text: itemRoot.menuGlyph
+                font.family: "JetBrainsMono Nerd Font Mono"
+                font.pixelSize: Math.round(Constants.sizeLg * SettingsService.fontScale)
+                color: itemRoot.isHovered ? Theme.accent : Theme.fg
+            }
 
             SvgIcon {
                 id: trayIcon
 
+                visible: trayIcon.status === Image.Ready
                 anchors.centerIn: parent
                 iconSize: Constants.sizeLg
                 flat: true
@@ -58,6 +104,7 @@ Rectangle {
                         return "";
 
                     try {
+                        console.log("[MenuItem]", JSON.stringify(String(modelData.icon)), "checkState:", modelData.checkState, "btnType:", modelData.buttonType);
                         let ic = modelData.icon;
                         let icStr = ic.toString().trim();
                         if (icStr === "")
