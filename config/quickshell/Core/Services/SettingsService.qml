@@ -195,6 +195,67 @@ Item {
 
     }
 
+    // Wallpaper preferences live on HyprlandService and the UI writes them
+    // there directly, so without this watcher they would never reach the
+    // prefs file (and a stale value would come back after a restart).
+    Connections {
+        function onWpAutoShuffleChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        function onWpShuffleIntervalChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        function onWpEnableTransitionsChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        function onWpTransitionTypeChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        function onWpTransitionPosChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        function onWpTransitionStepChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        function onWpTransitionAngleChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        function onWpResizeModeChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        function onWpCropGravityChanged() {
+            if (settingsLoaded)
+                saveSettings();
+
+        }
+
+        target: HyprlandService
+    }
+
     Timer {
         id: saveTimer
 
