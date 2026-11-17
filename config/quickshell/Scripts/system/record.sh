@@ -26,16 +26,31 @@ DIR="${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings"
 mkdir -p "$DIR"
 
 LOG="/tmp/quickshell-record.log"
+# Authoritative recorder handle: the script writes the recorder PID here on
+# start and removes it on exit. Detection (RecorderService) checks this
+# file instead of matching process command lines, which is immune to
+# false positives from any process that merely mentions the recorder.
+PID_FILE="${XDG_RUNTIME_DIR:-/tmp}/quickshell_recording.pid"
+
+cleanup() {
+  rm -f "$PID_FILE"
+}
+trap cleanup EXIT
 TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
 FILENAME="$DIR/Recording-${TIMESTAMP}.mkv"
 
-# If already running, stop it cleanly. The recorder depends on the
-# session: wf-recorder (Wayland) or ffmpeg x11grab (X11). Matching the
-# x11grab flag keeps an unrelated ffmpeg process safe from the kill.
+# If already running, stop it cleanly. The PID file is authoritative;
+# the pattern match is only a fallback for a lost file. The recorder
+# depends on the session: wf-recorder (Wayland) or ffmpeg x11grab (X11).
+if [ -s "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+  echo "recorder $(cat "$PID_FILE") is running, stopping it..." >>"$LOG"
+  kill -INT "$(cat "$PID_FILE")"
+  exit 0
+fi
 if [ "$SESSION_TYPE" = "x11" ]; then
-  if pgrep -f "ffmpeg.*x11grab" >/dev/null 2>&1; then
+  if pgrep -f "ffmpeg.* -f x11grab" >/dev/null 2>&1; then
     echo "ffmpeg (x11grab) is running, stopping it..." >>"$LOG"
-    pkill -INT -f "ffmpeg.*x11grab"
+    pkill -INT -f "ffmpeg.* -f x11grab"
     exit 0
   fi
 elif pidof wf-recorder >/dev/null 2>&1; then
@@ -100,7 +115,9 @@ if [ "$SESSION_TYPE" = "x11" ]; then
     CMD+=("-f" "pulse" "-i" "$AUDIO_SOURCE")
   fi
   echo "Recording display: ${DISPLAY:-:0} | Region: $REGION | Audio: $AUDIO_SOURCE | Output: $FILENAME" >>"$LOG"
-  "${CMD[@]}" "$FILENAME" >>"$LOG" 2>&1
+  "${CMD[@]}" "$FILENAME" >>"$LOG" 2>&1 &
+  echo "$!" >"$PID_FILE"
+  wait "$!"
   qs ipc call osd showMessage "Recording" "Saved" "record-icon" 2>/dev/null || true
   exit 0
 fi
@@ -125,6 +142,8 @@ if [ -n "$AUDIO_SOURCE" ]; then
   CMD+=("--audio=$AUDIO_SOURCE")
 fi
 
-"${CMD[@]}" >>"$LOG" 2>&1
+"${CMD[@]}" >>"$LOG" 2>&1 &
+echo "$!" >"$PID_FILE"
+wait "$!"
 
 qs ipc call osd showMessage "Recording" "Saved" "record-icon" 2>/dev/null || true

@@ -71,12 +71,12 @@ Singleton {
     Process {
         id: checkProc
 
-        // Session-aware recorder detection: wf-recorder on Wayland,
-        // ffmpeg x11grab on X11 (the flag match leaves other ffmpeg
-        // processes alone). The [f] character class keeps pgrep from
-        // matching the poller's own command line, which contains this
-        // pattern as text — without it "running" sticks true forever.
-        command: ["sh", "-c", "pidof wf-recorder 2>/dev/null || pgrep -f '[f]fmpeg.*x11grab' 2>/dev/null"]
+        // Recorder detection via the PID file record.sh maintains — no
+        // command-line matching, so no false positives from processes that
+        // merely mention the recorder (including the poller itself, which
+        // made "running" stick true forever). wf-recorder's exact-name
+        // pidof and the x11grab pattern stay as fallbacks for a lost file.
+        command: ["sh", "-c", "P=\"${XDG_RUNTIME_DIR:-/tmp}/quickshell_recording.pid\"; if [ -s \"$P\" ] && kill -0 \"$(cat \"$P\")\" 2>/dev/null; then exit 0; fi; rm -f \"$P\"; pidof wf-recorder 2>/dev/null || pgrep -f '[f]fmpeg.* -f x11grab' 2>/dev/null"]
         onExited: (code) => {
             root.running = (code === 0);
         }
