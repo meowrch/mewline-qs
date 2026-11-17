@@ -40,7 +40,7 @@ ddcutil detect
 ```
 
 Some monitors ship with DDC/CI disabled in their OSD menu; enable it there.
-When nothing is detected, Minflair waits 30 seconds before retrying, so give it
+When nothing is detected, Mewline waits 30 seconds before retrying, so give it
 a moment after connecting a display.
 
 ## Avatar (`.face`) not showing on SDDM or the Quickshell dashboard

@@ -19,7 +19,7 @@ class InstallerDryRunTests(unittest.TestCase):
     def run_script(self, script, *args):
         env = os.environ.copy()
         env["HOME"] = str(self.home)
-        env["MINFLAIR_PREFS"] = str(self.prefs)
+        env["MEWLINE_PREFS"] = str(self.prefs)
         return subprocess.run(
             ["bash", str(REPO_ROOT / script), "--dry-run", "--no-input", *args],
             cwd=REPO_ROOT,
@@ -61,13 +61,13 @@ class InstallerDryRunTests(unittest.TestCase):
             self.assertNotIn(f" {package} ", f" {package_line} ")
         self.assertIn(" hyprland ", f" {package_line} ")
         self.assertFalse((self.home / ".config").exists())
-        self.assertFalse((self.home / ".minflair_backup").exists())
+        self.assertFalse((self.home / ".mewline_backup").exists())
         self.assertFalse((self.home / ".dotfiles_backup").exists())
 
     def test_non_tty_output_is_plain_text(self):
         result = self.run_script("install.sh", "--no-packages")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Minflair installer", result.stdout)
+        self.assertIn("Mewline installer", result.stdout)
         self.assertIn("Enabled (", result.stdout)
         self.assertNotIn("\x1b[", result.stdout)
         self.assertNotIn("\x1b[", result.stderr)
@@ -89,7 +89,7 @@ class InstallerDryRunTests(unittest.TestCase):
         self.assertIn("would install paru if it is missing", result.stdout)
         self.assertIn("[dry-run] paru -S", result.stdout)
         self.assertFalse(
-            (self.home / ".config" / "minflair" / "aur-helper").exists()
+            (self.home / ".config" / "mewline" / "aur-helper").exists()
         )
 
     def test_update_requires_an_existing_install(self):
@@ -104,7 +104,7 @@ class InstallerDryRunTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("would copy config/kitty", result.stdout)
         self.assertNotIn("would copy config/nvim", result.stdout)
-        self.assertFalse((self.home / ".minflair_backup").exists())
+        self.assertFalse((self.home / ".mewline_backup").exists())
         self.assertFalse((self.home / ".dotfiles_backup").exists())
 
     def test_update_dry_run_ensures_the_gtk_theme(self):

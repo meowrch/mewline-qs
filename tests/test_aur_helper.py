@@ -31,7 +31,7 @@ class AurHelperShellTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.home = Path(self.tmp.name)
-        self.helper_file = self.home / ".config" / "minflair" / "aur-helper"
+        self.helper_file = self.home / ".config" / "mewline" / "aur-helper"
 
     def tearDown(self):
         self.tmp.cleanup()
@@ -39,8 +39,8 @@ class AurHelperShellTests(unittest.TestCase):
     def run_shell(self, script, env=None):
         full_env = os.environ.copy()
         full_env["HOME"] = str(self.home)
-        full_env.pop("MINFLAIR_AUR_HELPER", None)
-        full_env.pop("MINFLAIR_AUR_HELPER_FILE", None)
+        full_env.pop("MEWLINE_AUR_HELPER", None)
+        full_env.pop("MEWLINE_AUR_HELPER_FILE", None)
         if env:
             full_env.update(env)
         return subprocess.run(
@@ -66,7 +66,7 @@ class AurHelperShellTests(unittest.TestCase):
         self.helper_file.parent.mkdir(parents=True)
         self.helper_file.write_text("yay\n", encoding="utf-8")
         result = self.run_shell(
-            "aur_helper", {"MINFLAIR_AUR_HELPER": "paru"}
+            "aur_helper", {"MEWLINE_AUR_HELPER": "paru"}
         )
         self.assertEqual(result.stdout.strip(), "paru")
 
@@ -91,7 +91,7 @@ class AurHelperPythonTests(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.home = Path(self.tmp.name)
-        self.helper_file = self.home / ".config" / "minflair" / "aur-helper"
+        self.helper_file = self.home / ".config" / "mewline" / "aur-helper"
         self.module = load_module("aur_helper", SCRIPTS / "aur_helper.py")
 
     def tearDown(self):
@@ -99,16 +99,16 @@ class AurHelperPythonTests(unittest.TestCase):
 
     def test_defaults_to_yay(self):
         with mock.patch.dict(os.environ, {"HOME": str(self.home)}, clear=False):
-            os.environ.pop("MINFLAIR_AUR_HELPER", None)
-            os.environ.pop("MINFLAIR_AUR_HELPER_FILE", None)
+            os.environ.pop("MEWLINE_AUR_HELPER", None)
+            os.environ.pop("MEWLINE_AUR_HELPER_FILE", None)
             self.assertEqual(self.module.helper(), "yay")
 
     def test_reads_the_saved_helper(self):
         self.helper_file.parent.mkdir(parents=True)
         self.helper_file.write_text("paru\n", encoding="utf-8")
         with mock.patch.dict(os.environ, {"HOME": str(self.home)}, clear=False):
-            os.environ.pop("MINFLAIR_AUR_HELPER", None)
-            os.environ.pop("MINFLAIR_AUR_HELPER_FILE", None)
+            os.environ.pop("MEWLINE_AUR_HELPER", None)
+            os.environ.pop("MEWLINE_AUR_HELPER_FILE", None)
             self.assertEqual(self.module.helper(), "paru")
 
     def test_environment_override_wins(self):
@@ -116,7 +116,7 @@ class AurHelperPythonTests(unittest.TestCase):
         self.helper_file.write_text("yay\n", encoding="utf-8")
         with mock.patch.dict(
             os.environ,
-            {"HOME": str(self.home), "MINFLAIR_AUR_HELPER": "paru"},
+            {"HOME": str(self.home), "MEWLINE_AUR_HELPER": "paru"},
             clear=False,
         ):
             self.assertEqual(self.module.helper(), "paru")
@@ -125,8 +125,8 @@ class AurHelperPythonTests(unittest.TestCase):
         self.helper_file.parent.mkdir(parents=True)
         self.helper_file.write_text("pacman\n", encoding="utf-8")
         with mock.patch.dict(os.environ, {"HOME": str(self.home)}, clear=False):
-            os.environ.pop("MINFLAIR_AUR_HELPER", None)
-            os.environ.pop("MINFLAIR_AUR_HELPER_FILE", None)
+            os.environ.pop("MEWLINE_AUR_HELPER", None)
+            os.environ.pop("MEWLINE_AUR_HELPER_FILE", None)
             self.assertEqual(self.module.helper(), "yay")
 
 
@@ -140,7 +140,7 @@ class PackageManagerHelperTests(unittest.TestCase):
             return subprocess.CompletedProcess(command, 1, "", "")
 
         with mock.patch.dict(
-            os.environ, {"MINFLAIR_AUR_HELPER": "paru"}, clear=False
+            os.environ, {"MEWLINE_AUR_HELPER": "paru"}, clear=False
         ), mock.patch.object(module.subprocess, "run", side_effect=fake_run):
             module.search_packages("firefox")
 

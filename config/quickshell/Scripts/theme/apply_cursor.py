@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import minflair_components as components
+import mewline_components as components
 
 
 def lua_string(value):

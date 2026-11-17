@@ -6,7 +6,7 @@ import sys
 
 sys.dont_write_bytecode = True
 
-PREV_PROFILE_FILE = "/tmp/minflair_prev_power_profile"
+PREV_PROFILE_FILE = "/tmp/mewline_prev_power_profile"
 
 
 def get_status():

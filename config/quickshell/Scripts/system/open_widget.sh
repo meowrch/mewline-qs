@@ -1,5 +1,5 @@
 #!/bin/sh
-# Minflair — Open (or focus) a widget/application window.
+# Mewline — Open (or focus) a widget/application window.
 #
 # Idempotent: if the window is already open it stays open. Opening an app from
 # the launcher must not toggle it closed. For keybinds use the widget socket:

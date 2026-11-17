@@ -2,15 +2,15 @@
 # Shared AUR helper selection for install.sh, update.sh and the runtime scripts.
 #
 # The helper is stored in a small plain-text file so the installer, the updater
-# and Quickshell read the same value. Set MINFLAIR_AUR_HELPER to override it
+# and Quickshell read the same value. Set MEWLINE_AUR_HELPER to override it
 # without touching the file.
 
-if [[ -n "${MINFLAIR_AUR_SH:-}" ]]; then
+if [[ -n "${MEWLINE_AUR_SH:-}" ]]; then
   return 0
 fi
-MINFLAIR_AUR_SH=1
+MEWLINE_AUR_SH=1
 
-AUR_HELPER_FILE="${MINFLAIR_AUR_HELPER_FILE:-$HOME/.config/minflair/aur-helper}"
+AUR_HELPER_FILE="${MEWLINE_AUR_HELPER_FILE:-$HOME/.config/mewline/aur-helper}"
 AUR_HELPER_DEFAULT="yay"
 
 aur_helper_valid() {
@@ -18,7 +18,7 @@ aur_helper_valid() {
 }
 
 aur_helper() {
-  local helper="${MINFLAIR_AUR_HELPER:-}"
+  local helper="${MEWLINE_AUR_HELPER:-}"
   if [[ -z "$helper" && -f "$AUR_HELPER_FILE" ]]; then
     helper="$(head -n 1 "$AUR_HELPER_FILE" 2>/dev/null | tr -d '[:space:]')"
   fi

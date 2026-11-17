@@ -20,7 +20,7 @@ use crate::ui;
 
 pub(crate) const GTK_THEME_URL: &str = "https://github.com/t4lentles5/material-gnome-theme.git";
 pub(crate) const SDDM_THEME_URL: &str = "https://github.com/t4lentles5/tokyo-night-sddm.git";
-pub(crate) const SDDM_THEME_DIR: &str = "/usr/share/sddm/themes/minflair-sddm";
+pub(crate) const SDDM_THEME_DIR: &str = "/usr/share/sddm/themes/mewline-sddm";
 const SERVICES: [&str; 3] = [
     "NetworkManager.service",
     "bluetooth.service",
@@ -30,11 +30,11 @@ const SERVICES: [&str; 3] = [
 pub fn run(root: &Path, args: InstallArgs) -> Result<u8> {
     // SAFETY: geteuid has no preconditions and cannot fail.
     if unsafe { libc::geteuid() } == 0 {
-        bail!("run minflair install as your normal user, not as root");
+        bail!("run mewline install as your normal user, not as root");
     }
 
     let version = repo::app_version(root).unwrap_or_else(|| "unknown".to_string());
-    ui::header(&format!("Minflair installer {version}"));
+    ui::header(&format!("Mewline installer {version}"));
 
     let manifest = Manifest::load(&root.join(repo::MANIFEST_REL))?;
     validate_manifest(root, &manifest)?;
@@ -179,7 +179,7 @@ pub(crate) fn prepare_prefs(dry_run: bool) -> Result<(PathBuf, Option<TempFile>)
     }
 
     let path = env::temp_dir().join(format!(
-        "minflair-prefs-{}-{}.conf",
+        "mewline-prefs-{}-{}.conf",
         std::process::id(),
         unique_suffix()
     ));
@@ -314,10 +314,10 @@ fn resolve_aur_helper(ctx: &Ctx, args: &InstallArgs) -> Result<String> {
         return Ok(helper.clone());
     }
 
-    if env::var_os("MINFLAIR_AUR_HELPER").is_some() {
+    if env::var_os("MEWLINE_AUR_HELPER").is_some() {
         let helper = aur::current()?;
         ctx.info(&format!(
-            "Using AUR helper from MINFLAIR_AUR_HELPER: {helper}."
+            "Using AUR helper from MEWLINE_AUR_HELPER: {helper}."
         ));
         return Ok(helper);
     }
@@ -393,7 +393,7 @@ fn install_packages(
         ) {
             ctx.warn("Could not install git and base-devel.");
         }
-        match temp_dir("minflair-aur") {
+        match temp_dir("mewline-aur") {
             Ok(temp) => {
                 let destination = temp.path().join(helper);
                 let destination_string = destination.to_string_lossy().to_string();
@@ -705,11 +705,11 @@ fn configure_gtk(ctx: &Ctx, manifest: &Manifest, disabled: &BTreeSet<String>) {
         return;
     }
 
-    let theme_dir = env::var_os("MINFLAIR_GTK_THEME_DIR")
+    let theme_dir = env::var_os("MEWLINE_GTK_THEME_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|| ctx.home.join(".themes/Material-Gnome"));
     let theme_url =
-        env::var("MINFLAIR_GTK_THEME_URL").unwrap_or_else(|_| GTK_THEME_URL.to_string());
+        env::var("MEWLINE_GTK_THEME_URL").unwrap_or_else(|_| GTK_THEME_URL.to_string());
 
     ctx.info("Installing Material-Gnome theme...");
     if gtk_theme_valid(&theme_dir) {
@@ -789,7 +789,7 @@ pub(crate) fn install_gtk_theme(ctx: &Ctx, theme_dir: &Path, theme_url: &str) ->
 
     // The old theme is moved aside instead of being deleted, so it can be
     // restored when the new one cannot be put in place.
-    let backup = theme_dir.with_extension("minflair-old");
+    let backup = theme_dir.with_extension("mewline-old");
     if backup.exists() {
         let _ = fs::remove_dir_all(&backup);
     }
@@ -847,7 +847,7 @@ fn configure_sddm(ctx: &Ctx, manifest: &Manifest, disabled: &BTreeSet<String>) -
                 ]),
             )
         {
-            ctx.ok("SDDM theme (minflair-sddm) installed.");
+            ctx.ok("SDDM theme (mewline-sddm) installed.");
         } else if created {
             ctx.warn("Failed to clone SDDM theme.");
         }
@@ -875,9 +875,9 @@ fn configure_sddm(ctx: &Ctx, manifest: &Manifest, disabled: &BTreeSet<String>) -
                 &strs(["git", "-C", SDDM_THEME_DIR, "pull", "--ff-only"]),
             )
         {
-            ctx.ok("SDDM theme (minflair-sddm) updated.");
+            ctx.ok("SDDM theme (mewline-sddm) updated.");
         } else if remote_set {
-            ctx.ok("SDDM theme (minflair-sddm) already up to date.");
+            ctx.ok("SDDM theme (mewline-sddm) already up to date.");
         }
     } else {
         ctx.run("sudo", &strs(["rm", "-rf", SDDM_THEME_DIR]));
@@ -892,7 +892,7 @@ fn configure_sddm(ctx: &Ctx, manifest: &Manifest, disabled: &BTreeSet<String>) -
                 SDDM_THEME_DIR,
             ]),
         ) {
-            ctx.ok("SDDM theme (minflair-sddm) reinstalled.");
+            ctx.ok("SDDM theme (mewline-sddm) reinstalled.");
         } else {
             ctx.warn("Failed to clone SDDM theme.");
         }
@@ -921,7 +921,7 @@ fn configure_sddm(ctx: &Ctx, manifest: &Manifest, disabled: &BTreeSet<String>) -
     // The file is written to a temporary path and moved into place, so a
     // failure in the middle does not leave the login manager with a
     // truncated configuration.
-    let temporary = "/etc/.sddm.conf.minflair-new";
+    let temporary = "/etc/.sddm.conf.mewline-new";
     let copied = ctx.run(
         "sudo",
         &strs(["cp", repo_config_string.as_str(), temporary]),
@@ -937,7 +937,7 @@ fn configure_sddm(ctx: &Ctx, manifest: &Manifest, disabled: &BTreeSet<String>) -
     }
 
     if moved {
-        ctx.ok("SDDM theme set to minflair-sddm.");
+        ctx.ok("SDDM theme set to mewline-sddm.");
     } else {
         ctx.warn("Could not write /etc/sddm.conf.");
     }
@@ -1402,7 +1402,7 @@ impl Ctx {
             root: root.to_path_buf(),
             home: home.to_path_buf(),
             user: current_user(),
-            backup_dir: home.join(".minflair_backup").join(timestamp()),
+            backup_dir: home.join(".mewline_backup").join(timestamp()),
             dry_run,
             error_log: error_log_path(home, dry_run),
         }
@@ -1515,7 +1515,7 @@ impl Ctx {
         let target = Path::new(path);
         let temporary = match target.file_name() {
             Some(name) => {
-                target.with_file_name(format!(".{}.minflair-new", name.to_string_lossy()))
+                target.with_file_name(format!(".{}.mewline-new", name.to_string_lossy()))
             }
             None => {
                 self.warn(&format!("could not write {path}: invalid path"));
@@ -1673,7 +1673,7 @@ mod tests {
     #[test]
     fn maps_component_paths_to_home_and_backup() {
         let home = Path::new("/home/user");
-        let backup = Path::new("/home/user/.minflair_backup/20260101_000000");
+        let backup = Path::new("/home/user/.mewline_backup/20260101_000000");
 
         assert_eq!(
             destination_for(home, "config/kitty"),
@@ -1686,7 +1686,7 @@ mod tests {
         assert_eq!(
             backup_for(backup, "config/kitty"),
             Some(PathBuf::from(
-                "/home/user/.minflair_backup/20260101_000000/config/kitty"
+                "/home/user/.mewline_backup/20260101_000000/config/kitty"
             ))
         );
         assert_eq!(destination_for(home, "etc/sddm.conf"), None);

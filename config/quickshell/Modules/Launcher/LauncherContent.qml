@@ -88,8 +88,8 @@ Item {
         return Math.min(needed, maxAllowed);
     }
 
-    function isMinflairShortcut(app) {
-        return app && app.exec && app.exec.indexOf("open_minflair_") !== -1;
+    function isMewlineShortcut(app) {
+        return app && app.exec && app.exec.indexOf("open_mewline_") !== -1;
     }
 
     function appEntry(app) {
@@ -108,7 +108,7 @@ Item {
         let needle = query.toLowerCase();
         for (let i = 0; i < root.allApps.length; i++) {
             let app = root.allApps[i];
-            if (isMinflairShortcut(app))
+            if (isMewlineShortcut(app))
                 continue;
 
             if (needle !== "" && app.name.toLowerCase().indexOf(needle) === -1)
@@ -184,7 +184,7 @@ Item {
         if (text === "") {
             out = matchingApps("");
         } else if (text.startsWith(">")) {
-            // Command mode: Minflair applications first, then anything else
+            // Command mode: Mewline applications first, then anything else
             // is offered as a shell command for kitty.
             let term = text.substring(1).trim();
             out = matchingCommands(term);

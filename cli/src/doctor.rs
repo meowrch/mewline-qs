@@ -47,7 +47,7 @@ pub struct Summary {
 
 #[derive(Debug, Serialize)]
 pub struct Report {
-    pub minflair_version: String,
+    pub mewline_version: String,
     pub config_version: Option<String>,
     pub repo: Option<String>,
     pub checks: Vec<Check>,
@@ -136,7 +136,7 @@ fn build_report(args: &DoctorArgs) -> Report {
     };
 
     Report {
-        minflair_version: env!("CARGO_PKG_VERSION").to_string(),
+        mewline_version: env!("CARGO_PKG_VERSION").to_string(),
         config_version,
         repo: repo_result
             .as_ref()
@@ -165,7 +165,7 @@ fn check_version(config_version: &str) -> Check {
             Status::Warn,
             format!(
                 "binary {binary_version}, config {config_version}; \
-                 the binary is out of date, rebuild it with `minflair update --pull`"
+                 the binary is out of date, rebuild it with `mewline update --pull`"
             ),
         )
     }
@@ -178,7 +178,7 @@ fn check_user() -> Check {
         Check::new(
             "user",
             Status::Fail,
-            "running as root; Minflair must run as a normal user",
+            "running as root; Mewline must run as a normal user",
         )
     } else {
         let name = env::var("USER")
@@ -231,7 +231,7 @@ fn check_os() -> Check {
         Check::new(
             "os",
             Status::Warn,
-            format!("{name} (Minflair targets Arch Linux)"),
+            format!("{name} (Mewline targets Arch Linux)"),
         )
     }
 }
@@ -538,7 +538,7 @@ fn check_desktop(disabled: &BTreeSet<String>, checks: &mut Vec<Check>) {
             "sddm component disabled",
         ));
     } else {
-        let theme = Path::new("/usr/share/sddm/themes/minflair-sddm/theme.conf");
+        let theme = Path::new("/usr/share/sddm/themes/mewline-sddm/theme.conf");
         if theme.is_file() {
             checks.push(Check::new(
                 "sddm theme",
@@ -549,7 +549,7 @@ fn check_desktop(disabled: &BTreeSet<String>, checks: &mut Vec<Check>) {
             checks.push(Check::new(
                 "sddm theme",
                 Status::Warn,
-                "minflair-sddm theme not installed",
+                "mewline-sddm theme not installed",
             ));
         }
     }
@@ -647,8 +647,8 @@ fn summarize(items: &[String]) -> String {
 fn print_report(report: &Report) {
     println!(
         "{} {}",
-        ui::bold("Minflair doctor"),
-        report.minflair_version
+        ui::bold("Mewline doctor"),
+        report.mewline_version
     );
     if let Some(repo) = &report.repo {
         println!("{} {}", ui::dim("repo:"), repo);

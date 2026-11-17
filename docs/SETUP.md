@@ -48,7 +48,7 @@ resolution, refresh rate or multi-monitor arrangement, configure:
 The installer preserves a timestamped backup of your previous configuration at:
 
 ```text
-~/.minflair_backup/<timestamp>/
+~/.mewline_backup/<timestamp>/
 ```
 
 Backups created by older versions remain in `~/.dotfiles_backup/<timestamp>/`.

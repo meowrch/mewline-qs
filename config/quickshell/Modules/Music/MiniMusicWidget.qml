@@ -122,20 +122,10 @@ Item {
                             id: badgeLbl
 
                             anchors.centerIn: parent
-                            text: (!SettingsService.musicPlayer || SettingsService.musicPlayer === "" || SettingsService.musicPlayer === "none") ? "Configure Player" : (MprisService.activePlayerName !== "" ? MprisService.activePlayerName : MprisService.getDisplayName(SettingsService.musicPlayer))
+                            text: (!SettingsService.musicPlayer || SettingsService.musicPlayer === "" || SettingsService.musicPlayer === "none") ? "No Player" : (MprisService.activePlayerName !== "" ? MprisService.activePlayerName : MprisService.getDisplayName(SettingsService.musicPlayer))
                             customSize: Constants.sizeXs + 2
                             font.bold: true
                             color: (!SettingsService.musicPlayer || SettingsService.musicPlayer === "" || SettingsService.musicPlayer === "none") ? Theme.bg : Theme.fg
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent
-                            cursorShape: Qt.PointingHandCursor
-                            enabled: (!SettingsService.musicPlayer || SettingsService.musicPlayer === "" || SettingsService.musicPlayer === "none")
-                            onClicked: {
-                                AppState.pendingSettingsTab = 4;
-                                AppState.openWidget("minflair_settings");
-                            }
                         }
 
                     }

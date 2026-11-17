@@ -21,7 +21,6 @@ Rectangle {
     readonly property string displayArtist: trackArtist !== "" ? trackArtist : (hideDebounceTimer.running ? lastTrackArtist : "")
     property bool isHovered: mouseArea.containsMouse
     property bool isPressed: mouseArea.pressed
-    readonly property bool isCenteredBar: SettingsService.barIslandMode
     readonly property real fullWidth: Math.min(300, contentRow.implicitWidth)
 
     onTrackTitleChanged: {

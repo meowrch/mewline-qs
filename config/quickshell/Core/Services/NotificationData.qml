@@ -27,16 +27,7 @@ QtObject {
     property var locks: ({
     })
     readonly property bool isLocked: Object.keys(locks).length > 0
-    readonly property bool isObscured: {
-        let isIslandHostPopup = AppState.isWidgetOpen("dashboard") || AppState.isWidgetOpen("controlCenter") || AppState.isWidgetOpen("music") || AppState.isWidgetOpen("launcher") || AppState.isWidgetOpen("clipboard") || AppState.isWidgetOpen("wallpaper");
-        if (SettingsService.barIslandMode)
-            return isIslandHostPopup || AppState.isIslandOpen;
-
-        if (SettingsService.barConvexMode)
-            return AppState.isWidgetOpen("music") || AppState.isConvexOpen;
-
-        return false;
-    }
+    readonly property bool isObscured: AppState.isWidgetOpen("music") || AppState.isConvexOpen
     property NumberAnimation progressAnim
 
     progressAnim: NumberAnimation {

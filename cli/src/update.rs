@@ -24,11 +24,11 @@ const DUNST_DBUS_SERVICE: &str = "/usr/share/dbus-1/services/org.knopwob.dunst.s
 pub fn run(root: &Path, args: UpdateArgs) -> Result<u8> {
     // SAFETY: geteuid has no preconditions and cannot fail.
     if unsafe { libc::geteuid() } == 0 {
-        bail!("run minflair update as your normal user, not as root");
+        bail!("run mewline update as your normal user, not as root");
     }
 
     let version = repo::app_version(root).unwrap_or_else(|| "unknown".to_string());
-    ui::header(&format!("Minflair updater {version}"));
+    ui::header(&format!("Mewline updater {version}"));
 
     if args.pull {
         pull(root)?;
@@ -169,15 +169,15 @@ pub fn run(root: &Path, args: UpdateArgs) -> Result<u8> {
 fn require_existing_install(root: &Path, home: &Path) -> Result<()> {
     for relative in [repo::PACKAGES_REL, repo::PACKAGES_AUR_REL] {
         if !root.join(relative).is_file() {
-            bail!("{relative} not found. Are you running this from the Minflair repository?");
+            bail!("{relative} not found. Are you running this from the Mewline repository?");
         }
     }
     if !root.join("config").is_dir() {
-        bail!("config/ not found. Are you running this from the Minflair repository?");
+        bail!("config/ not found. Are you running this from the Mewline repository?");
     }
 
     if !home.join(".config/quickshell").is_dir() {
-        bail!("Quickshell config not found in ~/.config. Run minflair install first.");
+        bail!("Quickshell config not found in ~/.config. Run mewline install first.");
     }
     Ok(())
 }
@@ -310,11 +310,11 @@ fn ensure_gtk(ctx: &Ctx, manifest: &Manifest, disabled: &BTreeSet<String>) {
         return;
     }
 
-    let theme_dir = env::var_os("MINFLAIR_GTK_THEME_DIR")
+    let theme_dir = env::var_os("MEWLINE_GTK_THEME_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|| ctx.home.join(".themes/Material-Gnome"));
     let theme_url =
-        env::var("MINFLAIR_GTK_THEME_URL").unwrap_or_else(|_| install::GTK_THEME_URL.to_string());
+        env::var("MEWLINE_GTK_THEME_URL").unwrap_or_else(|_| install::GTK_THEME_URL.to_string());
 
     ctx.info("Installing Material-Gnome theme...");
     if install::gtk_theme_valid(&theme_dir) {
@@ -350,8 +350,8 @@ fn update_sddm(ctx: &Ctx, manifest: &Manifest, disabled: &BTreeSet<String>) -> R
         return Ok(());
     }
 
-    ctx.info("Updating SDDM theme (minflair-sddm)...");
-    let temp = install::temp_dir("minflair-sddm")?;
+    ctx.info("Updating SDDM theme (mewline-sddm)...");
+    let temp = install::temp_dir("mewline-sddm")?;
     let clone_target = temp.path().join("theme");
     let clone_target_string = clone_target.to_string_lossy().to_string();
     if !ctx.run(
@@ -606,23 +606,23 @@ fn rebuild_cli(root: &Path, no_build: bool, dry_run: bool) -> Result<()> {
     }
 
     if dry_run {
-        println!("[dry-run] would rebuild the minflair CLI");
+        println!("[dry-run] would rebuild the mewline CLI");
         return Ok(());
     }
 
     let Some(cargo) = process::which("cargo") else {
-        ui::warn("cargo not found; rebuild the minflair CLI manually.");
+        ui::warn("cargo not found; rebuild the mewline CLI manually.");
         return Ok(());
     };
 
-    ui::info("Rebuilding the minflair CLI...");
+    ui::info("Rebuilding the mewline CLI...");
     let status = Command::new(cargo)
         .args(["build", "--release", "--locked"])
         .current_dir(root)
         .status()
         .context("could not run cargo build")?;
     if !status.success() {
-        ui::warn("Could not rebuild the minflair CLI; continuing with the current binary.");
+        ui::warn("Could not rebuild the mewline CLI; continuing with the current binary.");
         return Ok(());
     }
 
@@ -636,25 +636,25 @@ fn rebuild_cli(root: &Path, no_build: bool, dry_run: bool) -> Result<()> {
             }
         })
         .unwrap_or_else(|| root.join("target"));
-    let built = target_dir.join("release/minflair");
+    let built = target_dir.join("release/mewline");
 
     let Ok(current) = env::current_exe() else {
-        ui::ok("minflair CLI rebuilt.");
+        ui::ok("mewline CLI rebuilt.");
         return Ok(());
     };
     let current = fs::canonicalize(&current).unwrap_or(current);
     if current == built || current.starts_with(root.join("target")) {
-        ui::ok("minflair CLI rebuilt.");
+        ui::ok("mewline CLI rebuilt.");
         return Ok(());
     }
 
     match reinstall_binary(&built, &current) {
         Ok(()) => ui::ok(&format!(
-            "minflair CLI reinstalled at {}.",
+            "mewline CLI reinstalled at {}.",
             current.display()
         )),
         Err(error) => ui::warn(&format!(
-            "Could not reinstall the minflair CLI at {}: {error:#}. Reinstall it manually or run the build as a user with write access.",
+            "Could not reinstall the mewline CLI at {}: {error:#}. Reinstall it manually or run the build as a user with write access.",
             current.display()
         )),
     }
@@ -664,7 +664,7 @@ fn rebuild_cli(root: &Path, no_build: bool, dry_run: bool) -> Result<()> {
 fn reinstall_binary(built: &Path, destination: &Path) -> Result<()> {
     let parent = destination.parent().context("invalid CLI destination")?;
     let temp = parent.join(format!(
-        ".minflair-{}-{}",
+        ".mewline-{}-{}",
         std::process::id(),
         install::unique_suffix()
     ));
@@ -701,7 +701,7 @@ mod tests {
     fn reinstall_binary_replaces_the_destination_with_0755() {
         let directory = tempfile::tempdir().expect("tempdir");
         let built = directory.path().join("built");
-        let destination = directory.path().join("minflair");
+        let destination = directory.path().join("mewline");
         fs::write(&built, b"new binary").expect("write built");
         fs::write(&destination, b"old binary").expect("write destination");
 

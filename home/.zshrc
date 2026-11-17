@@ -93,14 +93,14 @@ setopt COMPLETE_IN_WORD    # Complete from both ends of a word.
 #  ┌─┐┬  ┬ ┬┌─┐┬┌┐┌┌─┐
 #  ├─┘│  │ ││ ┬││││└─┐
 #  ┴  ┴─┘└─┘└─┘┴┘└┘└─┘
-for _minflair_plugin in \
+for _mewline_plugin in \
   /usr/share/zsh/plugins/fzf-tab-git/fzf-tab.zsh \
   /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh \
   /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh \
   /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh; do
-  [[ -r "$_minflair_plugin" ]] && source "$_minflair_plugin"
+  [[ -r "$_mewline_plugin" ]] && source "$_mewline_plugin"
 done
-unset _minflair_plugin
+unset _mewline_plugin
 
 if (( $+widgets[history-substring-search-up] )); then
   bindkey '^[[A' history-substring-search-up
@@ -141,10 +141,10 @@ if command -v fastfetch >/dev/null 2>&1; then
   alias fastfetch='command clear && fastfetch'
 fi
 
-_minflair_update() {
+_mewline_update() {
   sudo pacman -Syu --noconfirm || return
   local helper
-  helper="$(head -n 1 "$HOME/.config/minflair/aur-helper" 2>/dev/null)"
+  helper="$(head -n 1 "$HOME/.config/mewline/aur-helper" 2>/dev/null)"
   if [[ "$helper" != "yay" && "$helper" != "paru" ]]; then
     if command -v paru >/dev/null 2>&1; then
       helper="paru"
@@ -156,7 +156,7 @@ _minflair_update() {
   fi
   command "$helper" -Syu --noconfirm
 }
-alias update='_minflair_update'
+alias update='_mewline_update'
 
 #  ┌─┐┬ ┬┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┬─┐┌┬┐
 #  ├─┤│ │ │ │ │  └─┐ │ ├─┤├┬┘ │ 

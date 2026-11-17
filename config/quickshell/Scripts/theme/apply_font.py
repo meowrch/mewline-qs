@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-import minflair_components as components
+import mewline_components as components
 
 
 def update_gtk(home: Path, full_font: str) -> None:
@@ -65,29 +65,6 @@ def update_qt(home: Path, font_name: str, font_size: str) -> None:
             print(
                 f"Warning: Failed to update {qtct_conf}: {exc}", file=sys.stderr
             )
-
-
-def update_hyprland(font_name: str, font_size: str) -> None:
-    """Update the Hyprland groupbar font."""
-    update_script = Path(__file__).resolve().parent / "update_hypr_prefs.py"
-    if not update_script.is_file():
-        return
-    try:
-        hypr_args = {
-            "group": {
-                "groupbar": {
-                    "font_family": f'"{font_name}"',
-                    "font_size": int(font_size),
-                }
-            }
-        }
-        subprocess.run(
-            [sys.executable, str(update_script), json.dumps(hypr_args)],
-            capture_output=True,
-        )
-        subprocess.run(["hyprctl", "reload"], capture_output=True)
-    except Exception as exc:
-        print(f"Warning: Failed to update Hyprland font: {exc}", file=sys.stderr)
 
 
 def update_kitty(home: Path, font_size: str) -> None:
@@ -196,8 +173,6 @@ def apply_font(font_name, font_size, home=None, is_enabled=None):
             update_gtk(home, f"{font_name} {font_size}")
         if is_enabled("qt"):
             update_qt(home, font_name, font_size)
-        if is_enabled("hyprland"):
-            update_hyprland(font_name, font_size)
         if is_enabled("kitty"):
             update_kitty(home, font_size)
         if is_enabled("sddm"):
@@ -211,7 +186,7 @@ def apply_kitty_font(kitty_font, home=None, is_enabled=None):
 
     The ``font-sync`` component controls the propagation to external
     applications and the ``kitty`` component says whether Kitty is managed
-    by Minflair at all. Both have to be enabled for the font to reach
+    by Mewline at all. Both have to be enabled for the font to reach
     Kitty.
     """
     home = home or Path.home()

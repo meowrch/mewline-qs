@@ -6,31 +6,13 @@ sys.dont_write_bytecode = True
 import json
 import subprocess
 
+# Only the values the shell mirrors for its own rendering. Everything
+# else (blur, gaps, input, ...) belongs to the user's hyprland.lua.
 OPTIONS = [
-    "decoration:blur:enabled",
-    "decoration:rounding",
-    "decoration:active_opacity",
-    "decoration:inactive_opacity",
-    "decoration:blur:size",
-    "decoration:blur:passes",
-    "general:gaps_in",
-    "general:gaps_out",
-    "general:border_size",
     "decoration:shadow:enabled",
     "decoration:shadow:range",
     "decoration:shadow:render_power",
     "animations:enabled",
-    "input:sensitivity",
-    "input:accel_profile",
-    "input:natural_scroll",
-    "input:scroll_factor",
-    "input:left_handed",
-    "input:follow_mouse",
-    "cursor:inactive_timeout",
-    "cursor:no_warps",
-    "input:touchpad:natural_scroll",
-    "input:touchpad:tap-to-click",
-    "input:touchpad:disable_while_typing",
 ]
 
 

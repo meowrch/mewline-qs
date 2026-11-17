@@ -80,16 +80,12 @@ Item {
     }
 
     WidgetLoader {
-        widgetId: "screenshot"
-    }
-
-    WidgetLoader {
         widgetId: "powerMenu"
     }
 
     // Standalone application windows
     WidgetLoader {
-        widgetId: "minflair_settings"
+        widgetId: "mewline_settings"
         exclusive: false
 
         sourceComponent: Component {

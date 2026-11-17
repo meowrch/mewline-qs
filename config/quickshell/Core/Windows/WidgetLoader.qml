@@ -13,13 +13,11 @@ Item {
     property bool exclusive: true
     property bool _isInternalActive: false
     readonly property bool isBarOverlayHandled: AppState.isBarOverlayWidget(widgetId)
-    readonly property bool isIslandHandled: !DisplayProfileService.gameModeActive && SettingsService.barIslandMode && isBarOverlayHandled
     readonly property bool isConvexHandled: !DisplayProfileService.gameModeActive && SettingsService.barConvexMode && isBarOverlayHandled
     readonly property bool isGamingHandled: DisplayProfileService.gameModeActive && isBarOverlayHandled
-    readonly property bool shouldLoadWindow: enabled && !isIslandHandled && !isConvexHandled && !isGamingHandled
+    readonly property bool shouldLoadWindow: enabled && !isConvexHandled && !isGamingHandled
     readonly property bool _isActive: shouldLoadWindow && (exclusive ? AppState.isWidgetOpen(widgetId) : _isInternalActive)
     property bool _isClosing: false
-    property bool _pendingOpen: false
     property alias item: loader.item
 
     on_IsActiveChanged: {
@@ -64,16 +62,8 @@ Item {
             if (root.widgetId === "" || id !== root.widgetId)
                 return ;
 
-            if (root._pendingOpen) {
-                root._pendingOpen = false;
-                return ;
-            }
             if (root._isInternalActive) {
                 root._isInternalActive = false;
-                return ;
-            }
-            if (AppState.islandClosing) {
-                root._pendingOpen = true;
                 return ;
             }
             root._isInternalActive = true;
@@ -86,19 +76,6 @@ Item {
             if (root._isInternalActive)
                 return ;
 
-            if (AppState.islandClosing)
-                // Loading a heavy QML window while the island collapses makes
-                // the close animation stutter. Open it once the animation ends.
-                root._pendingOpen = true;
-            else
-                root._isInternalActive = true;
-        }
-
-        function onIslandClosingChanged() {
-            if (AppState.islandClosing || !root._pendingOpen)
-                return ;
-
-            root._pendingOpen = false;
             root._isInternalActive = true;
         }
 

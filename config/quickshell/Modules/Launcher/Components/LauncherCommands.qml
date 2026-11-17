@@ -1,6 +1,6 @@
 import QtQuick
 
-// Launcher quick commands: applications shipped with Minflair that are opened
+// Launcher quick commands: applications shipped with Mewline that are opened
 // through AppState instead of their .desktop entry. They are rendered as plain
 // text rows (no icon) and matched by name and keywords.
 QtObject {
@@ -8,8 +8,8 @@ QtObject {
 
     readonly property var items: [{
         "name": "Settings",
-        "subtitle": "Minflair",
-        "widgetId": "minflair_settings",
+        "subtitle": "Mewline",
+        "widgetId": "mewline_settings",
         "keywords": ["config", "configuration", "settings", "ajustes", "configuracion", "preferences"]
     }]
 }

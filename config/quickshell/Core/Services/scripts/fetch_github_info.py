@@ -9,7 +9,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-TOKEN_ENV_VAR = "MINFLAIR_GITHUB_TOKEN"
+TOKEN_ENV_VAR = "MEWLINE_GITHUB_TOKEN"
 
 
 def sanitize_token(value):
@@ -34,7 +34,7 @@ def resolve_token(argv):
 
 def fetch_json(url, token=None):
     req = urllib.request.Request(url)
-    req.add_header("User-Agent", "Minflair-Shell")
+    req.add_header("User-Agent", "Mewline-Shell")
     if token:
         req.add_header("Authorization", f"Bearer {token}")
     try:
@@ -48,7 +48,7 @@ def download_avatar(url, dest_path):
     if not url:
         return False
     try:
-        req = urllib.request.Request(url, headers={"User-Agent": "Minflair-Shell"})
+        req = urllib.request.Request(url, headers={"User-Agent": "Mewline-Shell"})
         with urllib.request.urlopen(req, timeout=8) as response:
             data = response.read()
             tmp_path = dest_path + ".tmp"

@@ -12,7 +12,6 @@ Item {
     property QtObject mainBar: null
     property bool isExpanded: mainBar && mainBar.isExpanded !== undefined ? mainBar.isExpanded : false
     property bool isCenterSlot: false
-    property bool islandOnly: false
     property bool animateTransitions: true
     // visibleInSlot logic based on the mainBar contract.
     readonly property bool shouldShow: {
@@ -33,17 +32,6 @@ Item {
         // If it's a center slot, it should show its widget unless constrained
         if (isCenterSlot)
             return true;
-
-        if (islandOnly) {
-            // "islandOnly" means it should only show if we are in an expandable style (Island)
-            if (mainBar && mainBar.activeBarStyle && !BarStyleConfig.isExpandable(mainBar.activeBarStyle))
-                return false;
-
-            return isExpanded;
-        }
-        // If we are in an expandable bar (Island), and not islandOnly, show when expanded
-        if (mainBar && mainBar.activeBarStyle && BarStyleConfig.isExpandable(mainBar.activeBarStyle))
-            return isExpanded;
 
         // Standard convex bar behavior
         return true;

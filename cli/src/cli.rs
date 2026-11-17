@@ -6,9 +6,9 @@ use crate::{components, doctor, install, repo, update};
 
 #[derive(Debug, Parser)]
 #[command(
-    name = "minflair",
+    name = "mewline",
     version,
-    about = "Install, update and diagnose Minflair",
+    about = "Install, update and diagnose Mewline",
     disable_help_subcommand = true
 )]
 pub struct Cli {
@@ -18,9 +18,9 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Install Minflair
+    /// Install Mewline
     Install(InstallArgs),
-    /// Update an existing Minflair installation
+    /// Update an existing Mewline installation
     Update(UpdateArgs),
     /// Check the environment, repository and configuration
     Doctor(DoctorArgs),
@@ -167,21 +167,21 @@ pub struct ComponentChangeArgs {
     #[arg(value_delimiter = ',', value_name = "IDS", required = true)]
     pub ids: Vec<String>,
 
-    /// Run minflair update after saving the selection
+    /// Run mewline update after saving the selection
     #[arg(long)]
     pub apply: bool,
 }
 
 #[derive(Debug, Args)]
 pub struct ComponentEditArgs {
-    /// Run minflair update after saving the selection
+    /// Run mewline update after saving the selection
     #[arg(long)]
     pub apply: bool,
 }
 
 #[derive(Debug, Args)]
 pub struct ComponentResetArgs {
-    /// Run minflair update after saving the selection
+    /// Run mewline update after saving the selection
     #[arg(long)]
     pub apply: bool,
 }

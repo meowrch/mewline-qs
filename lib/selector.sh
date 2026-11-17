@@ -9,10 +9,10 @@
 # components, n disables all optional components, / searches, Enter reviews the
 # selection and q cancels.
 
-if [[ -n "${MINFLAIR_SELECTOR_SH:-}" ]]; then
+if [[ -n "${MEWLINE_SELECTOR_SH:-}" ]]; then
   return 0
 fi
-MINFLAIR_SELECTOR_SH=1
+MEWLINE_SELECTOR_SH=1
 
 selector_category_label() {
   case "$1" in
@@ -31,7 +31,7 @@ selector_available() {
 }
 
 selector_version() {
-  minflair_version
+  mewline_version
 }
 
 selector_run() {
@@ -101,7 +101,7 @@ selector_run() {
     done
 
     printf '\033[H\033[2J'
-    ui_header "Minflair $version - Review selection"
+    ui_header "Mewline $version - Review selection"
     printf '\n'
     printf '  %sOptional components%s  %s%d/%d enabled%s   %s%d skipped%s\n' \
       "$UI_DIM" "$UI_RESET" \
@@ -175,7 +175,7 @@ selector_run() {
     if (( desc_width < 16 )); then desc_width=16; fi
 
     printf '\033[H\033[2J'
-    ui_header "Minflair $version - Select components"
+    ui_header "Mewline $version - Select components"
     printf '\n'
 
     if ((${#filtered[@]} == 0)); then

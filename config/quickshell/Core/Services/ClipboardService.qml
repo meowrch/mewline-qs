@@ -78,7 +78,7 @@ Item {
             return ;
 
         // The id is passed as an argument so it can never be parsed as shell code.
-        copyProc.command = ["sh", "-c", "cliphist decode \"$1\" | wl-copy", "minflair-clipboard", "" + itemId];
+        copyProc.command = ["sh", "-c", "cliphist decode \"$1\" | wl-copy", "mewline-clipboard", "" + itemId];
         copyProc.startDetached();
         if (closeWidgetCallback)
             closeWidgetCallback();
@@ -100,7 +100,7 @@ Item {
         }
         // The raw cliphist line is passed as an argument and written with printf, so
         // quotes, backslashes or a leading dash can no longer break or inject.
-        deleteProc.command = ["sh", "-c", "printf '%s\\n' \"$1\" | cliphist delete", "minflair-clipboard", "" + fullLine];
+        deleteProc.command = ["sh", "-c", "printf '%s\\n' \"$1\" | cliphist delete", "mewline-clipboard", "" + fullLine];
         deleteProc.startDetached();
     }
 

@@ -755,7 +755,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "minflair"
+name = "mewline"
 version = "2.3.0"
 dependencies = [
  "anyhow",

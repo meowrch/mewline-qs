@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest an idea for Minflair
+about: Suggest an idea for Mewline
 title: '[FEAT] '
 labels: enhancement
 assignees: t4lentles5

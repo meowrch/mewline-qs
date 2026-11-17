@@ -18,7 +18,7 @@ use crate::manifest::{category_label, Manifest};
 
 /// Minimum contrast between the selected row and the terminal background.
 const HIGHLIGHT_BACKGROUND_CONTRAST: f64 = 2.0;
-/// Default Minflair theme, used before Quickshell has written its cache.
+/// Default Mewline theme, used before Quickshell has written its cache.
 const DEFAULT_THEME_ACCENT: [u8; 3] = [0xa7, 0x7e, 0xf5];
 const DEFAULT_THEME_BG: [u8; 3] = [0x03, 0x01, 0x07];
 
@@ -71,7 +71,7 @@ enum Action {
 /// black or white text depending on which has the better contrast.
 ///
 /// On a first install Quickshell has not written its cache yet, so the default
-/// Minflair theme is used instead of a generic terminal color.
+/// Mewline theme is used instead of a generic terminal color.
 fn theme_highlight() -> (Color, Color) {
     let (accent, background) = theme_accent().unwrap_or((DEFAULT_THEME_ACCENT, DEFAULT_THEME_BG));
     highlight_colors(accent, background)
@@ -580,7 +580,7 @@ fn draw(frame: &mut Frame, state: &mut SelectorState) {
     ])
     .split(area);
 
-    let title = format!("Minflair {} - Select components", state.version);
+    let title = format!("Mewline {} - Select components", state.version);
     let header = Paragraph::new(Line::from(vec![Span::styled(
         title,
         Style::new().fg(Color::Cyan).add_modifier(Modifier::BOLD),
@@ -954,7 +954,7 @@ fn draw_review(frame: &mut Frame, state: &SelectorState) {
     let popup = centered_rect(area, 92, 88);
     let outer = Block::default()
         .borders(Borders::ALL)
-        .title(format!(" Review selection | Minflair {} ", state.version))
+        .title(format!(" Review selection | Mewline {} ", state.version))
         .title_alignment(Alignment::Center)
         .border_style(Style::new().fg(Color::Cyan));
     let inner = outer.inner(popup);

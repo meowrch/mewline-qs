@@ -13,12 +13,6 @@ QtObject {
             "usesFloatingPopups": true,
             "isPill": false
         },
-        "island": {
-            "hasFrame": false,
-            "hasExpandableHost": true,
-            "usesFloatingPopups": false,
-            "isPill": true
-        },
         "gaming": {
             "hasFrame": false,
             "hasExpandableHost": false,
@@ -35,20 +29,11 @@ QtObject {
         if (style === "gaming")
             return Constants.gamingBarHeight;
 
-        if (style === "island")
-            return Constants.islandBarHeight;
-
         return 40; // convex
     }
 
     function barMarginTop(style) {
-        if (style === "gaming")
-            return 0;
-
-        if (style === "convex")
-            return 0;
-
-        return 8; // island
+        return 0;
     }
 
     function barMarginSide(style) {
@@ -56,11 +41,11 @@ QtObject {
     }
 
     function isPill(style) {
-        return style === "island";
+        return false;
     }
 
     function isExpandable(style) {
-        return style === "island";
+        return false;
     }
 
 }

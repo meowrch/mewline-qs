@@ -16,7 +16,7 @@ use crate::update;
 pub fn run(root: &Path, args: ComponentsArgs) -> Result<u8> {
     // SAFETY: geteuid has no preconditions and cannot fail.
     if unsafe { libc::geteuid() } == 0 {
-        bail!("run minflair components as your normal user, not as root");
+        bail!("run mewline components as your normal user, not as root");
     }
 
     match args.command {
@@ -81,7 +81,7 @@ fn list(root: &Path, args: ComponentListArgs) -> Result<u8> {
 
     if !args.enabled && !args.disabled {
         let version = repo::app_version(root).unwrap_or_else(|| "unknown".to_string());
-        ui::header(&format!("Minflair components ({version})"));
+        ui::header(&format!("Mewline components ({version})"));
     }
 
     let width = rows
@@ -175,9 +175,9 @@ fn change(root: &Path, args: ComponentChangeArgs, enable: bool) -> Result<u8> {
         ));
         if !args.apply {
             if enable {
-                ui::info("Run `minflair update` to deploy the newly enabled components.");
+                ui::info("Run `mewline update` to deploy the newly enabled components.");
             } else {
-                ui::info("Run `minflair update` to apply the saved selection.");
+                ui::info("Run `mewline update` to apply the saved selection.");
             }
         }
         if !enable {
@@ -196,7 +196,7 @@ fn edit(root: &Path, args: ComponentEditArgs) -> Result<u8> {
 
     if !selector::available() {
         bail!(
-            "the interactive selector needs a terminal; use `minflair components enable/disable` instead"
+            "the interactive selector needs a terminal; use `mewline components enable/disable` instead"
         );
     }
 
@@ -217,7 +217,7 @@ fn edit(root: &Path, args: ComponentEditArgs) -> Result<u8> {
     if args.apply {
         apply(root)?;
     } else {
-        ui::info("Run `minflair update` to deploy the saved selection.");
+        ui::info("Run `mewline update` to deploy the saved selection.");
     }
     Ok(0)
 }
@@ -234,7 +234,7 @@ fn reset(root: &Path, args: ComponentResetArgs) -> Result<u8> {
             path.display()
         ));
         if !args.apply {
-            ui::info("Run `minflair update` to deploy the newly enabled components.");
+            ui::info("Run `mewline update` to deploy the newly enabled components.");
         }
     }
 
@@ -249,7 +249,7 @@ fn apply(root: &Path) -> Result<()> {
     let home = repo::home_dir()?;
     if !home.join(".config/quickshell").is_dir() {
         bail!(
-            "Quickshell config not found in ~/.config; run `minflair install` before using --apply"
+            "Quickshell config not found in ~/.config; run `mewline install` before using --apply"
         );
     }
 

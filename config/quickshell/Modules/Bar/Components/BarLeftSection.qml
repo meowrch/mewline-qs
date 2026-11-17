@@ -102,8 +102,8 @@ Rectangle {
 
         }
 
-        MinflairButton {
-            id: minflairBtn
+        MewlineButton {
+            id: mewlineBtn
 
             Layout.alignment: Qt.AlignVCenter
         }

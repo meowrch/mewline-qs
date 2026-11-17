@@ -13,7 +13,7 @@ MANIFEST = REPO_ROOT / "config" / "quickshell" / "components.tsv"
 
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-import minflair_components as components
+import mewline_components as components
 
 
 class ManifestTests(unittest.TestCase):
@@ -148,7 +148,7 @@ class CliTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.prefs = Path(self.tmp.name) / "preferences.conf"
         self.env = mock.patch.dict(
-            os.environ, {"MINFLAIR_PREFS": str(self.prefs)}
+            os.environ, {"MEWLINE_PREFS": str(self.prefs)}
         )
         self.env.start()
 

@@ -7,7 +7,7 @@ pub const MANIFEST_REL: &str = "config/quickshell/components.tsv";
 pub const CONSTANTS_REL: &str = "config/quickshell/Core/Constants.qml";
 pub const PACKAGES_REL: &str = "packages.txt";
 pub const PACKAGES_AUR_REL: &str = "packages-aur.txt";
-pub const REPO_MARKER_REL: &str = "minflair/repo";
+pub const REPO_MARKER_REL: &str = "mewline/repo";
 
 pub fn home_dir() -> Result<PathBuf> {
     env::var_os("HOME")
@@ -48,18 +48,18 @@ fn repo_marker(config: &Path) -> Option<PathBuf> {
 /// executable location.
 fn default_candidates(home: &Path, data: &Path) -> Vec<PathBuf> {
     vec![
-        data.join("minflair"),
-        data.join("minflair/repo"),
-        PathBuf::from("/usr/share/minflair"),
-        PathBuf::from("/usr/local/share/minflair"),
-        home.join(".minflair"),
+        data.join("mewline"),
+        data.join("mewline/repo"),
+        PathBuf::from("/usr/share/mewline"),
+        PathBuf::from("/usr/local/share/mewline"),
+        home.join(".mewline"),
         home.join(".dotfiles"),
     ]
 }
 
-/// Locate the Minflair repository.
+/// Locate the Mewline repository.
 ///
-/// Resolution order: explicit `--repo`, `MINFLAIR_REPO`, the current directory
+/// Resolution order: explicit `--repo`, `MEWLINE_REPO`, the current directory
 /// and its ancestors, the executable location, the path saved by the bootstrap
 /// script, and the usual installation directories.
 pub fn find(explicit: Option<PathBuf>) -> Result<PathBuf> {
@@ -68,7 +68,7 @@ pub fn find(explicit: Option<PathBuf>) -> Result<PathBuf> {
             .with_context(|| format!("repository not found: {}", path.display()))?;
         if !is_repo(&path) {
             bail!(
-                "{} does not look like the Minflair repository (missing {})",
+                "{} does not look like the Mewline repository (missing {})",
                 path.display(),
                 MANIFEST_REL
             );
@@ -77,7 +77,7 @@ pub fn find(explicit: Option<PathBuf>) -> Result<PathBuf> {
     }
 
     let mut candidates: Vec<PathBuf> = Vec::new();
-    if let Some(value) = env::var_os("MINFLAIR_REPO").filter(|value| !value.is_empty()) {
+    if let Some(value) = env::var_os("MEWLINE_REPO").filter(|value| !value.is_empty()) {
         candidates.push(PathBuf::from(value));
     }
     if let Ok(cwd) = env::current_dir() {
@@ -104,7 +104,7 @@ pub fn find(explicit: Option<PathBuf>) -> Result<PathBuf> {
         }
     }
 
-    bail!("could not locate the Minflair repository; pass --repo <path> or set MINFLAIR_REPO")
+    bail!("could not locate the Mewline repository; pass --repo <path> or set MEWLINE_REPO")
 }
 
 /// Read `appVersion` from the Quickshell constants, the version shown by the UI.
@@ -184,11 +184,11 @@ mod tests {
         let directory = tempfile::tempdir().expect("tempdir");
         let marker = directory.path().join(REPO_MARKER_REL);
         fs::create_dir_all(marker.parent().expect("parent")).expect("mkdir");
-        fs::write(&marker, "  /opt/minflair  \n\n").expect("write");
+        fs::write(&marker, "  /opt/mewline  \n\n").expect("write");
 
         assert_eq!(
             repo_marker(directory.path()),
-            Some(PathBuf::from("/opt/minflair"))
+            Some(PathBuf::from("/opt/mewline"))
         );
     }
 
@@ -209,10 +209,10 @@ mod tests {
         let data = Path::new("/home/user/.local/share");
         let candidates = default_candidates(home, data);
 
-        assert_eq!(candidates[0], data.join("minflair"));
-        assert_eq!(candidates[1], data.join("minflair/repo"));
-        assert!(candidates.contains(&PathBuf::from("/usr/share/minflair")));
-        assert!(candidates.contains(&home.join(".minflair")));
+        assert_eq!(candidates[0], data.join("mewline"));
+        assert_eq!(candidates[1], data.join("mewline/repo"));
+        assert!(candidates.contains(&PathBuf::from("/usr/share/mewline")));
+        assert!(candidates.contains(&home.join(".mewline")));
         assert!(candidates.contains(&home.join(".dotfiles")));
     }
 }

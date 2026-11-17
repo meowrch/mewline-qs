@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Component manifest and preference handling for Minflair.
+"""Component manifest and preference handling for Mewline.
 
 The manifest is a TSV file shipped with the shell. Preferences are a small
 plain-text file that lists disabled component ids, one per line. Both the
@@ -20,8 +20,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 DEFAULT_MANIFEST = Path(__file__).resolve().parent.parent / "components.tsv"
-PREFS_ENV = "MINFLAIR_PREFS"
-MANIFEST_ENV = "MINFLAIR_MANIFEST"
+PREFS_ENV = "MEWLINE_PREFS"
+MANIFEST_ENV = "MEWLINE_MANIFEST"
 CORE_CATEGORY = "core"
 MANIFEST_COLUMNS = (
     "id",
@@ -64,7 +64,7 @@ def preferences_path() -> Path:
     override = os.environ.get(PREFS_ENV)
     if override:
         return Path(override).expanduser()
-    return Path.home() / ".config" / "minflair" / "preferences.conf"
+    return Path.home() / ".config" / "mewline" / "preferences.conf"
 
 
 def _split(value: str | None) -> tuple[str, ...]:
@@ -175,7 +175,7 @@ def write_disabled(
 
     prefs_file.parent.mkdir(parents=True, exist_ok=True)
     body = [
-        "# Minflair preferences v1",
+        "# Mewline preferences v1",
         "# One disabled component id per line.",
         "",
     ]
@@ -346,8 +346,8 @@ def _print_values(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="minflair_components.py",
-        description="Inspect and edit Minflair component preferences.",
+        prog="mewline_components.py",
+        description="Inspect and edit Mewline component preferences.",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 

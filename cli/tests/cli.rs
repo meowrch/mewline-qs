@@ -2,12 +2,12 @@ use std::fs;
 use std::process::Command;
 
 fn binary() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_minflair"))
+    Command::new(env!("CARGO_BIN_EXE_mewline"))
 }
 
 #[test]
 fn help_lists_every_command() {
-    let output = binary().arg("--help").output().expect("run minflair");
+    let output = binary().arg("--help").output().expect("run mewline");
     assert!(output.status.success());
 
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -19,7 +19,7 @@ fn help_lists_every_command() {
 
 #[test]
 fn version_is_printed() {
-    let output = binary().arg("--version").output().expect("run minflair");
+    let output = binary().arg("--version").output().expect("run mewline");
     assert!(output.status.success());
 
     let stdout = String::from_utf8_lossy(&output.stdout);
@@ -32,10 +32,10 @@ fn doctor_fails_when_the_repository_is_missing() {
     let output = binary()
         .args(["doctor", "--json", "--repo"])
         .arg(directory.path())
-        .env_remove("MINFLAIR_REPO")
-        .env_remove("MINFLAIR_PREFS")
+        .env_remove("MEWLINE_REPO")
+        .env_remove("MEWLINE_PREFS")
         .output()
-        .expect("run minflair");
+        .expect("run mewline");
 
     assert_eq!(output.status.code(), Some(1));
 
@@ -72,8 +72,8 @@ kitty\tKitty terminal\tterminal\t0\tconfig/kitty\tkitty\tkitty\tkitty\t\tTermina
 
     let home = directory.path().join("home");
     fs::create_dir_all(&home).expect("mkdir home");
-    let prefs = home.join(".config/minflair/preferences.conf");
-    let helper = home.join(".config/minflair/aur-helper");
+    let prefs = home.join(".config/mewline/preferences.conf");
+    let helper = home.join(".config/mewline/aur-helper");
 
     let output = binary()
         .args(["install", "--repo"])
@@ -86,15 +86,15 @@ kitty\tKitty terminal\tterminal\t0\tconfig/kitty\tkitty\tkitty\tkitty\t\tTermina
             "--no-packages",
         ])
         .env("HOME", &home)
-        .env("MINFLAIR_PREFS", &prefs)
-        .env("MINFLAIR_AUR_HELPER_FILE", &helper)
+        .env("MEWLINE_PREFS", &prefs)
+        .env("MEWLINE_AUR_HELPER_FILE", &helper)
         .env("TERM", "dumb")
         .env("NO_COLOR", "1")
         .env("COLUMNS", "100")
-        .env_remove("MINFLAIR_REPO")
-        .env_remove("MINFLAIR_AUR_HELPER")
+        .env_remove("MEWLINE_REPO")
+        .env_remove("MEWLINE_AUR_HELPER")
         .output()
-        .expect("run minflair");
+        .expect("run mewline");
 
     assert!(
         output.status.success(),
@@ -139,8 +139,8 @@ kitty\tKitty terminal\tterminal\t0\tconfig/kitty\tkitty\tkitty\tkitty\t\tTermina
 
     let home = directory.path().join("home");
     fs::create_dir_all(home.join(".config/quickshell")).expect("mkdir home");
-    let prefs = home.join(".config/minflair/preferences.conf");
-    let helper = home.join(".config/minflair/aur-helper");
+    let prefs = home.join(".config/mewline/preferences.conf");
+    let helper = home.join(".config/mewline/aur-helper");
 
     let output = binary()
         .args(["update", "--repo"])
@@ -153,16 +153,16 @@ kitty\tKitty terminal\tterminal\t0\tconfig/kitty\tkitty\tkitty\tkitty\t\tTermina
             "--no-packages",
         ])
         .env("HOME", &home)
-        .env("MINFLAIR_PREFS", &prefs)
-        .env("MINFLAIR_AUR_HELPER_FILE", &helper)
+        .env("MEWLINE_PREFS", &prefs)
+        .env("MEWLINE_AUR_HELPER_FILE", &helper)
         .env("TERM", "dumb")
         .env("NO_COLOR", "1")
         .env("COLUMNS", "100")
-        .env_remove("MINFLAIR_REPO")
-        .env_remove("MINFLAIR_AUR_HELPER")
+        .env_remove("MEWLINE_REPO")
+        .env_remove("MEWLINE_AUR_HELPER")
         .env_remove("HYPRLAND_INSTANCE_SIGNATURE")
         .output()
-        .expect("run minflair");
+        .expect("run mewline");
 
     assert!(
         output.status.success(),
@@ -170,7 +170,7 @@ kitty\tKitty terminal\tterminal\t0\tconfig/kitty\tkitty\tkitty\tkitty\t\tTermina
         String::from_utf8_lossy(&output.stderr)
     );
     let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(stdout.contains("Minflair updater"));
+    assert!(stdout.contains("Mewline updater"));
     assert!(stdout.contains("Dry run complete."));
     assert!(stdout.contains("Skipped (1):"));
     assert!(stdout.contains("Kitty terminal"));
@@ -211,11 +211,11 @@ quickshell\tQuickshell shell\tcore\t1\tconfig/quickshell\tquickshell\t\t\t\tCore
         .env("HOME", &home)
         .env("TERM", "dumb")
         .env("NO_COLOR", "1")
-        .env_remove("MINFLAIR_REPO")
-        .env_remove("MINFLAIR_PREFS")
-        .env_remove("MINFLAIR_AUR_HELPER")
+        .env_remove("MEWLINE_REPO")
+        .env_remove("MEWLINE_PREFS")
+        .env_remove("MEWLINE_AUR_HELPER")
         .output()
-        .expect("run minflair");
+        .expect("run mewline");
 
     assert_eq!(output.status.code(), Some(1));
     let stderr = String::from_utf8_lossy(&output.stderr);
@@ -245,7 +245,7 @@ fn components_manage_the_saved_selection() {
     let directory = component_repository();
     let home = directory.path().join("home");
     fs::create_dir_all(&home).expect("mkdir home");
-    let prefs = home.join(".config/minflair/preferences.conf");
+    let prefs = home.join(".config/mewline/preferences.conf");
 
     let run = |args: &[&str]| {
         let mut command = binary();
@@ -255,11 +255,11 @@ fn components_manage_the_saved_selection() {
             .args(["--repo"])
             .arg(directory.path())
             .env("HOME", &home)
-            .env("MINFLAIR_PREFS", &prefs)
+            .env("MEWLINE_PREFS", &prefs)
             .env("TERM", "dumb")
             .env("NO_COLOR", "1")
-            .env_remove("MINFLAIR_REPO");
-        command.output().expect("run minflair")
+            .env_remove("MEWLINE_REPO");
+        command.output().expect("run mewline")
     };
 
     let output = run(&["list", "--json"]);
@@ -289,7 +289,7 @@ fn components_manage_the_saved_selection() {
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(stderr.contains("ghost"));
     assert!(stderr.contains("obsolete"));
-    assert!(String::from_utf8_lossy(&output.stdout).contains("minflair update"));
+    assert!(String::from_utf8_lossy(&output.stdout).contains("mewline update"));
     let saved = fs::read_to_string(&prefs).expect("preferences");
     assert!(saved.lines().any(|line| line.trim() == "kitty"));
     assert!(saved.lines().any(|line| line.trim() == "nvim"));
@@ -308,13 +308,13 @@ fn components_manage_the_saved_selection() {
 
     let output = run(&["enable", "kitty"]);
     assert!(output.status.success());
-    assert!(String::from_utf8_lossy(&output.stdout).contains("minflair update"));
+    assert!(String::from_utf8_lossy(&output.stdout).contains("mewline update"));
     let saved = fs::read_to_string(&prefs).expect("preferences");
     assert!(!saved.lines().any(|line| line.trim() == "kitty"));
 
     let output = run(&["reset"]);
     assert!(output.status.success());
-    assert!(String::from_utf8_lossy(&output.stdout).contains("minflair update"));
+    assert!(String::from_utf8_lossy(&output.stdout).contains("mewline update"));
     let saved = fs::read_to_string(&prefs).expect("preferences");
     assert!(!saved
         .lines()
@@ -330,22 +330,22 @@ fn components_apply_requires_an_install() {
     let directory = component_repository();
     let home = directory.path().join("home");
     fs::create_dir_all(&home).expect("mkdir home");
-    let prefs = home.join(".config/minflair/preferences.conf");
+    let prefs = home.join(".config/mewline/preferences.conf");
 
     let output = binary()
         .args(["components", "disable", "kitty", "--apply", "--repo"])
         .arg(directory.path())
         .env("HOME", &home)
-        .env("MINFLAIR_PREFS", &prefs)
+        .env("MEWLINE_PREFS", &prefs)
         .env("TERM", "dumb")
         .env("NO_COLOR", "1")
-        .env_remove("MINFLAIR_REPO")
+        .env_remove("MEWLINE_REPO")
         .output()
-        .expect("run minflair");
+        .expect("run mewline");
 
     assert_eq!(output.status.code(), Some(1));
     assert!(String::from_utf8_lossy(&output.stderr).contains("Quickshell config not found"));
-    assert!(!String::from_utf8_lossy(&output.stdout).contains("Run `minflair update`"));
+    assert!(!String::from_utf8_lossy(&output.stdout).contains("Run `mewline update`"));
     assert!(fs::read_to_string(&prefs)
         .expect("preferences")
         .lines()
@@ -373,10 +373,10 @@ hyprland\tHyprland\tcore\t1\tconfig/hypr\thyprland\t\t\t\tHyprland
     let output = binary()
         .args(["doctor", "--json", "--repo"])
         .arg(directory.path())
-        .env("MINFLAIR_PREFS", &prefs)
-        .env_remove("MINFLAIR_REPO")
+        .env("MEWLINE_PREFS", &prefs)
+        .env_remove("MEWLINE_REPO")
         .output()
-        .expect("run minflair");
+        .expect("run mewline");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     assert!(stdout.contains("\"name\": \"manifest\""));
@@ -414,10 +414,10 @@ hyprland\tHyprland\tcore\t1\tconfig/hypr\thyprland\t\t\t\tHyprland
     let output = binary()
         .args(["doctor", "--json", "--repo"])
         .arg(directory.path())
-        .env("MINFLAIR_PREFS", &prefs)
-        .env_remove("MINFLAIR_REPO")
+        .env("MEWLINE_PREFS", &prefs)
+        .env_remove("MEWLINE_REPO")
         .output()
-        .expect("run minflair");
+        .expect("run mewline");
 
     let stdout = String::from_utf8_lossy(&output.stdout);
     let report: serde_json::Value = serde_json::from_str(&stdout).expect("doctor JSON");

@@ -1,8 +1,8 @@
 # Install, update and partial adoption
 
-Minflair installs a set of components. Each component groups configuration
+Mewline installs a set of components. Each component groups configuration
 files, packages, theme appliers and reload commands. You can keep your own
-configuration for some applications while using the rest of Minflair.
+configuration for some applications while using the rest of Mewline.
 
 The component list lives in `config/quickshell/components.tsv`. See
 [COMPONENTS.md](COMPONENTS.md) for the manifest format and the runtime gating
@@ -11,7 +11,7 @@ rules.
 ## Requirements
 
 - Arch Linux or an Arch-based distribution.
-- A normal user account. `minflair install` and `minflair update` refuse to run
+- A normal user account. `mewline install` and `mewline update` refuse to run
   as root.
 - `git`, `base-devel` and `pacman`. The installer bootstraps `yay` when it is
   missing.
@@ -31,12 +31,12 @@ bash -c "$(curl -fsSL https://raw.githubusercontent.com/t4lentles5/minflair/main
 The bootstrap script:
 
 1. installs `git`, `base-devel` and Rust when they are missing;
-2. clones Minflair into `~/.minflair` (or updates an existing clone);
-3. builds the CLI and installs it in `~/.local/bin/minflair`;
-4. saves the repository path in `~/.config/minflair/repo`;
-5. runs `minflair install` with the flags you pass.
+2. clones Mewline into `~/.mewline` (or updates an existing clone);
+3. builds the CLI and installs it in `~/.local/bin/mewline`;
+4. saves the repository path in `~/.config/mewline/repo`;
+5. runs `mewline install` with the flags you pass.
 
-The CLI lands in `~/.local/bin`, which Minflair's zsh configuration adds to
+The CLI lands in `~/.local/bin`, which Mewline's zsh configuration adds to
 `PATH`. If you did not select the zsh component, or you use another shell, add
 that directory manually and reload the shell. For bash:
 
@@ -48,7 +48,7 @@ exec bash
 Then check that the command is available:
 
 ```bash
-minflair --version
+mewline --version
 ```
 
 Keep the terminal attached. Use `bash -c "$(curl ...)"` instead of
@@ -57,42 +57,42 @@ audit the script or pin a version, download it first:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/t4lentles5/minflair/main/bootstrap.sh \
-  -o /tmp/minflair-bootstrap.sh
-MINFLAIR_REF=v2.3.0 bash /tmp/minflair-bootstrap.sh
+  -o /tmp/mewline-bootstrap.sh
+MEWLINE_REF=v2.3.0 bash /tmp/mewline-bootstrap.sh
 ```
 
-Useful overrides: `MINFLAIR_DIR` (clone directory), `MINFLAIR_BIN_DIR` (CLI
-destination), `MINFLAIR_REPO_URL` (remote) and `MINFLAIR_REF` (branch or tag).
+Useful overrides: `MEWLINE_DIR` (clone directory), `MEWLINE_BIN_DIR` (CLI
+destination), `MEWLINE_REPO_URL` (remote) and `MEWLINE_REF` (branch or tag).
 See [ADVANCED.md](ADVANCED.md#bootstrap-environment-variables).
 
 ### From git
 
 ```bash
-git clone https://github.com/t4lentles5/minflair.git ~/.minflair
-cd ~/.minflair
+git clone https://github.com/t4lentles5/minflair.git ~/.mewline
+cd ~/.mewline
 
 # Install the CLI in ~/.cargo/bin (already in PATH with rustup)
 cargo install --path cli --locked
 
-minflair install
+mewline install
 ```
 
 With no options and an interactive terminal, the component selector opens
-before anything is changed. This is the recommended way to install Minflair.
+before anything is changed. This is the recommended way to install Mewline.
 
-`minflair` finds the repository automatically from the path saved by
-`bootstrap.sh`, and when it is in `~/.minflair` (or `~/.dotfiles`). For a clone
-in another location, pass `--repo <path>` or set `MINFLAIR_REPO`.
+`mewline` finds the repository automatically from the path saved by
+`bootstrap.sh`, and when it is in `~/.mewline` (or `~/.dotfiles`). For a clone
+in another location, pass `--repo <path>` or set `MEWLINE_REPO`.
 
 If you prefer not to install the CLI, `./install.sh` remains a compatibility
 entrypoint with the same selector, preferences and flags.
 
 The first interactive install also asks whether to use `yay` or `paru` as the
-AUR helper. The choice is saved in `~/.config/minflair/aur-helper` and is used
+AUR helper. The choice is saved in `~/.config/mewline/aur-helper` and is used
 by the installer, the updater and the Package Manager. To change it later:
 
 ```bash
-minflair install --aur-helper paru
+mewline install --aur-helper paru
 ```
 
 ### Selector controls
@@ -124,22 +124,22 @@ your default shell. If Starship is disabled, zsh falls back to a basic prompt.
 
 ## Change the selection later
 
-With the CLI installed, use `minflair components`:
+With the CLI installed, use `mewline components`:
 
 ```bash
-minflair components edit                 # interactive selector
-minflair components enable kitty         # save the preference
-minflair components disable kitty,nvim   # save the preference
-minflair components reset                # enable every optional component
+mewline components edit                 # interactive selector
+mewline components enable kitty         # save the preference
+mewline components disable kitty,nvim   # save the preference
+mewline components reset                # enable every optional component
 ```
 
-Add `--apply` to save and run `minflair update --no-input` in one step:
+Add `--apply` to save and run `mewline update --no-input` in one step:
 
 ```bash
-minflair components edit --apply
+mewline components edit --apply
 ```
 
-Without `--apply`, run `minflair update` when you want to deploy the new
+Without `--apply`, run `mewline update` when you want to deploy the new
 selection. See [ADVANCED.md](ADVANCED.md#managing-components) for the full
 command reference.
 
@@ -165,10 +165,10 @@ To disable or re-enable a specific component without opening the selector:
 
 ## Preferences
 
-`~/.config/minflair/preferences.conf` is a flat text file:
+`~/.config/mewline/preferences.conf` is a flat text file:
 
 ```text
-# Minflair preferences v1
+# Mewline preferences v1
 # One disabled component id per line.
 
 kitty
@@ -187,7 +187,7 @@ before Python is installed, and it is easy to edit by hand.
 
 A disabled component is not:
 
-- copied by `minflair install` or `minflair update`;
+- copied by `mewline install` or `mewline update`;
 - installed or updated as a package;
 - themed by `apply_theme.py`;
 - updated by `apply_font.py`;
@@ -195,16 +195,16 @@ A disabled component is not:
 - reloaded or signalled after an update.
 
 Disabling a component does **not** delete files that are already installed. It
-only prevents Minflair from touching them again. This makes exclusions safe:
+only prevents Mewline from touching them again. This makes exclusions safe:
 you can try a component, disable it, and your previous files stay where they
 are.
 
 ## Updating
 
-With `minflair` in `PATH`, pull, rebuild and update in one step:
+With `mewline` in `PATH`, pull, rebuild and update in one step:
 
 ```bash
-minflair update --pull
+mewline update --pull
 ```
 
 `--pull` runs `git pull --ff-only` and then rebuilds and reinstalls the CLI
@@ -212,10 +212,10 @@ automatically. Use `--no-build` to skip the rebuild, or omit `--pull` if you
 already pulled:
 
 ```bash
-minflair update
+mewline update
 ```
 
-`minflair update` reads the saved preferences and only copies, installs, themes
+`mewline update` reads the saved preferences and only copies, installs, themes
 and reloads enabled components. It never reintroduces a component that was
 excluded. It only opens the selector with `--select`; a normal update keeps the
 saved selection.
@@ -223,9 +223,9 @@ saved selection.
 To change the selection during an update:
 
 ```bash
-minflair update --select
-minflair update --exclude nvim
-minflair update --include kitty
+mewline update --select
+mewline update --exclude nvim
+mewline update --include kitty
 ```
 
 `./update.sh` remains a compatibility entrypoint with the same flags and the
@@ -234,11 +234,11 @@ same native pipeline. For a dry run or automation, see
 
 ### Restoring a backup
 
-The updater writes backups to `~/.minflair_backup/<timestamp>/`. To restore
+The updater writes backups to `~/.mewline_backup/<timestamp>/`. To restore
 the files it replaced:
 
 ```bash
-backup=~/.minflair_backup/<timestamp>
+backup=~/.mewline_backup/<timestamp>
 [[ -d "$backup" ]] || backup=~/.dotfiles_backup/<timestamp>
 cp -a "$backup/config/." ~/.config/
 cp -a "$backup/home/." ~/
@@ -250,33 +250,33 @@ in `~/.dotfiles_backup/<timestamp>/` and are not deleted.
 To preview the SDDM theme without logging out:
 
 ```bash
-sddm-greeter --test-mode --theme /usr/share/sddm/themes/minflair-sddm
+sddm-greeter --test-mode --theme /usr/share/sddm/themes/mewline-sddm
 ```
 
 ## Compatibility with an existing setup
 
 - Files that conflict with an enabled component are backed up to
-  `~/.minflair_backup/<timestamp>/` before being replaced.
+  `~/.mewline_backup/<timestamp>/` before being replaced.
 - Files that belong to disabled components are never read, copied or backed
-  up by Minflair.
-- Backups are written under `~/.minflair_backup/<timestamp>/`. Backups from
+  up by Mewline.
+- Backups are written under `~/.mewline_backup/<timestamp>/`. Backups from
   older versions stay in `~/.dotfiles_backup/<timestamp>/` and are not deleted.
-- `minflair update` preserves `~/.config/zsh/zhistory` when the `zsh`
+- `mewline update` preserves `~/.config/zsh/zhistory` when the `zsh`
   component is enabled.
 
 ## Troubleshooting
 
 **The selector does not appear.** It needs an interactive terminal. Run
-`minflair install --select` from a terminal. If the terminal is not
+`mewline install --select` from a terminal. If the terminal is not
 interactive, use `--exclude`/`--include` or see [ADVANCED.md](ADVANCED.md).
 
 **A component I disabled is still themed.** Check that the preference file
-contains the component id and re-run `minflair update`. Files already written
+contains the component id and re-run `mewline update`. Files already written
 by an older version are not deleted, but they are not updated again.
 
 **A package I disabled was still installed.** It may be a dependency of an
-enabled component. Minflair only removes packages from its own explicit lists;
+enabled component. Mewline only removes packages from its own explicit lists;
 `pacman` still resolves dependencies.
 
-**I want everything back.** Remove `~/.config/minflair/preferences.conf` and run
-`minflair update`.
+**I want everything back.** Remove `~/.config/mewline/preferences.conf` and run
+`mewline update`.

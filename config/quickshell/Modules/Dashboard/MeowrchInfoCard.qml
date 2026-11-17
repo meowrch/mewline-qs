@@ -196,7 +196,7 @@ Card {
 
             }
 
-            // Shell settings shortcut: opens the minflair settings window.
+            // Shell settings shortcut: opens the mewline settings window.
             SvgIconButton {
                 id: settingsBtn
 
@@ -207,7 +207,7 @@ Card {
 
                 onClicked: {
                     AppState.closeAllWidgets();
-                    AppState.toggleWidget("minflair_settings");
+                    AppState.toggleWidget("mewline_settings");
                 }
             }
 

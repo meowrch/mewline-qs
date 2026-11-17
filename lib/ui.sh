@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Shared terminal UI helpers for the Minflair installer and updater.
+# Shared terminal UI helpers for the Mewline installer and updater.
 #
 # This file is sourced. It must not change the caller's shell options. It uses
 # only bash builtins and coreutils, so it works on a fresh Arch installation
 # before Python or any TUI package is available.
 
-if [[ -n "${MINFLAIR_UI_SH:-}" ]]; then
+if [[ -n "${MEWLINE_UI_SH:-}" ]]; then
   return 0
 fi
-MINFLAIR_UI_SH=1
+MEWLINE_UI_SH=1
 
 UI_TTY=0
 UI_COLOR=0

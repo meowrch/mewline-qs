@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Minflair brightness helper.
+# Mewline brightness helper.
 #
 # Uses brightnessctl for internal panels (sysfs backlight) and falls back to
 # ddcutil for external monitors over DDC/CI when no internal panel is found.
@@ -11,10 +11,10 @@
 #   brightness.sh backend        Print "brightnessctl", "ddcutil" or "none"
 #
 # Optional:
-#   MINFLAIR_BRIGHTNESS_BACKEND=brightnessctl|ddcutil  Force a backend.
+#   MEWLINE_BRIGHTNESS_BACKEND=brightnessctl|ddcutil  Force a backend.
 #
 # The detected backend, the DDC/CI bus list and the last DDC/CI value are
-# cached in $XDG_RUNTIME_DIR/minflair so polling stays cheap and does not
+# cached in $XDG_RUNTIME_DIR/mewline so polling stays cheap and does not
 # hammer the I2C bus.
 
 set -u
@@ -24,8 +24,8 @@ MAX_BRIGHTNESS=100
 DDC_VALUE_TTL=2
 NONE_TTL=30
 
-runtime_dir="${XDG_RUNTIME_DIR:-/tmp/minflair-$(id -u)}"
-cache_dir="$runtime_dir/minflair"
+runtime_dir="${XDG_RUNTIME_DIR:-/tmp/mewline-$(id -u)}"
+cache_dir="$runtime_dir/mewline"
 backend_file="$cache_dir/brightness_backend"
 value_file="$cache_dir/brightness_value"
 none_file="$cache_dir/brightness_none"
@@ -33,7 +33,7 @@ lock_file="$cache_dir/brightness.lock"
 
 mkdir -p "$cache_dir" 2>/dev/null || true
 
-forced_backend="${MINFLAIR_BRIGHTNESS_BACKEND:-}"
+forced_backend="${MEWLINE_BRIGHTNESS_BACKEND:-}"
 
 have() {
   command -v "$1" >/dev/null 2>&1

@@ -1,6 +1,6 @@
-# Contributing to Minflair
+# Contributing to Mewline
 
-First off, thank you for considering contributing to Minflair! It's people like you that make the Linux community such a great place.
+First off, thank you for considering contributing to Mewline! It's people like you that make the Linux community such a great place.
 
 ## How Can I Contribute?
 
@@ -20,4 +20,4 @@ Enhancement suggestions are also tracked as GitHub issues. Please use the **Feat
 - **QML**: Keep components modular. If you are creating a generic UI element (like a button or a slider), place it in `config/quickshell/Core/Components`. Keep backend logic in `Core/Services`.
 - **Scripts/Lua**: Keep code clean, well-commented, and use the existing conventions.
 
-Thank you for helping make Minflair better!
+Thank you for helping make Mewline better!

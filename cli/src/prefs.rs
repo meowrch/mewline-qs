@@ -7,14 +7,14 @@ use std::path::{Path, PathBuf};
 use crate::manifest::Manifest;
 use crate::repo;
 
-pub const PREFS_ENV: &str = "MINFLAIR_PREFS";
+pub const PREFS_ENV: &str = "MEWLINE_PREFS";
 
 pub fn default_path() -> Result<PathBuf> {
     if let Some(value) = env::var_os(PREFS_ENV).filter(|value| !value.is_empty()) {
         return Ok(PathBuf::from(value));
     }
     Ok(repo::config_dir()?
-        .join("minflair")
+        .join("mewline")
         .join("preferences.conf"))
 }
 
@@ -62,7 +62,7 @@ pub fn save(path: &Path, disabled: &BTreeSet<String>, manifest: &Manifest) -> Re
         .with_context(|| format!("invalid preferences path: {}", path.display()))?;
     fs::create_dir_all(parent).with_context(|| format!("could not create {}", parent.display()))?;
 
-    let mut body = String::from("# Minflair preferences v1\n");
+    let mut body = String::from("# Mewline preferences v1\n");
     body.push_str("# One disabled component id per line.\n\n");
     for id in disabled {
         body.push_str(id);
@@ -124,14 +124,14 @@ kitty\tKitty terminal\tterminal\t0\tconfig/kitty\tkitty\tkitty\tkitty\t\tTermina
     #[test]
     fn saves_and_reloads_preferences() {
         let directory = tempfile::tempdir().expect("tempdir");
-        let path = directory.path().join("minflair/preferences.conf");
+        let path = directory.path().join("mewline/preferences.conf");
         let disabled: BTreeSet<String> = ["kitty".to_string()].into_iter().collect();
 
         save(&path, &disabled, &manifest()).expect("save");
         assert_eq!(load(&path).expect("load"), disabled);
 
         let content = fs::read_to_string(&path).expect("read");
-        assert!(content.starts_with("# Minflair preferences v1\n"));
+        assert!(content.starts_with("# Mewline preferences v1\n"));
         assert!(content.ends_with("\nkitty\n"));
     }
 

@@ -4,20 +4,20 @@
 # This file is sourced. It must not change the caller's shell options.
 # The caller is expected to define REPO_DIR before sourcing it.
 
-if [[ -n "${MINFLAIR_COMPONENTS_SH:-}" ]]; then
+if [[ -n "${MEWLINE_COMPONENTS_SH:-}" ]]; then
   return 0
 fi
-MINFLAIR_COMPONENTS_SH=1
+MEWLINE_COMPONENTS_SH=1
 
-MANIFEST="${MINFLAIR_MANIFEST:-$REPO_DIR/config/quickshell/components.tsv}"
-PREFS_FILE="${MINFLAIR_PREFS:-$HOME/.config/minflair/preferences.conf}"
+MANIFEST="${MEWLINE_MANIFEST:-$REPO_DIR/config/quickshell/components.tsv}"
+PREFS_FILE="${MEWLINE_PREFS:-$HOME/.config/mewline/preferences.conf}"
 DRY_RUN="${DRY_RUN:-0}"
-GTK_THEME_URL="${MINFLAIR_GTK_THEME_URL:-https://github.com/t4lentles5/material-gnome-theme.git}"
-GTK_THEME_DIR="${MINFLAIR_GTK_THEME_DIR:-$HOME/.themes/Material-Gnome}"
+GTK_THEME_URL="${MEWLINE_GTK_THEME_URL:-https://github.com/t4lentles5/material-gnome-theme.git}"
+GTK_THEME_DIR="${MEWLINE_GTK_THEME_DIR:-$HOME/.themes/Material-Gnome}"
 
 # Read the version from the Quickshell constants so the installer, the updater
 # and the selector always show the same value.
-minflair_version() {
+mewline_version() {
   local constants="$REPO_DIR/config/quickshell/Core/Constants.qml"
   if [[ -f "$constants" ]]; then
     sed -n 's/.*appVersion: "\([^"]*\)".*/\1/p' "$constants" | head -n 1
@@ -53,7 +53,7 @@ gtk_theme_valid() {
 # /etc/sddm.conf points SDDM at a theme directory. Writing it after a failed
 # clone leaves the login screen pointing at files that do not exist.
 sddm_theme_ready() {
-  local theme_dir="${1:-${SDDM_THEME_DIR:-/usr/share/sddm/themes/minflair-sddm}}"
+  local theme_dir="${1:-${SDDM_THEME_DIR:-/usr/share/sddm/themes/mewline-sddm}}"
   [[ -f "$theme_dir/theme.conf" ]]
 }
 
@@ -167,7 +167,7 @@ prefs_write() {
   mkdir -p "$(dirname "$PREFS_FILE")"
   tmp="$(mktemp "${PREFS_FILE}.tmp.XXXXXX")"
   {
-    printf '# Minflair preferences v1\n'
+    printf '# Mewline preferences v1\n'
     printf '# One disabled component id per line.\n\n'
     if ((${#ids[@]})); then
       printf '%s\n' "${ids[@]}" | LC_ALL=C sort -u

@@ -15,7 +15,7 @@ sys.path.insert(0, str(THEME_DIR))
 import apply_cursor
 import apply_font
 import apply_theme
-import minflair_components as components
+import mewline_components as components
 
 
 def recorder(calls, name):
@@ -290,7 +290,7 @@ class SddmCacheGatingTests(unittest.TestCase):
         ):
             text = (REPO_ROOT / relative).read_text(encoding="utf-8")
             self.assertIn(
-                'grep -qxF sddm \\"$HOME/.config/minflair/preferences.conf\\"',
+                'grep -qxF sddm \\"$HOME/.config/mewline/preferences.conf\\"',
                 text,
                 f"{relative} does not check the sddm preference",
             )

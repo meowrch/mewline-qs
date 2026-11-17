@@ -168,30 +168,6 @@ AppContainer {
             }
 
             Divider {
-            }
-
-            SettingSegmented {
-                label: "Transition Frame Rate"
-                model: [{
-                    "text": "30",
-                    "value": 30
-                }, {
-                    "text": "60",
-                    "value": 60
-                }, {
-                    "text": "120",
-                    "value": 120
-                }, {
-                    "text": "144",
-                    "value": 144
-                }]
-                currentValue: HyprlandService.wpTransitionFps
-                onActivated: (val) => {
-                    HyprlandService.wpTransitionFps = val;
-                }
-            }
-
-            Divider {
                 visible: HyprlandService.wpTransitionType === "wipe" || HyprlandService.wpTransitionType === "wave"
             }
 

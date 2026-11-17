@@ -1,4 +1,4 @@
-# Minflair component manifest
+# Mewline component manifest
 # Columns: id, label, category, core, paths, packages, theme, font, reload, description
 # Lists are comma-separated. Paths are relative to the repository root.
 id	label	category	core	paths	packages	theme	font	reload	description

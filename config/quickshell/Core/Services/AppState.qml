@@ -10,16 +10,10 @@ Item {
 
     property string activeWidget: ""
     property var activeWidgetsList: []
-    readonly property bool isFocusWidgetOpen: isWidgetOpen("launcher") || isWidgetOpen("clipboard") || isWidgetOpen("wallpaper") || isWidgetOpen("powerMenu") || isWidgetOpen("screenshot")
+    readonly property bool isFocusWidgetOpen: isWidgetOpen("launcher") || isWidgetOpen("clipboard") || isWidgetOpen("wallpaper") || isWidgetOpen("powerMenu")
     property int pendingSettingsTab: -1
     property var launcherApps: []
     property bool socketsCleaned: true
-    property real islandWidth: 180
-    property real islandHeight: Constants.islandBarHeight
-    property alias barIslandWidth: appState.islandWidth
-    property alias barIslandHeight: appState.islandHeight
-    property bool isIslandOpen: false
-    property bool islandClosing: false
     property bool isConvexOpen: false
     property real barConvexWidth: 220
     property real barConvexHeight: Constants.size4Xl
@@ -29,8 +23,8 @@ Item {
     property bool hasActiveNotification: false
     property real activeNotificationWidth: 0
     property real activeNotificationHeight: 0
-    readonly property var focusWidgets: ["launcher", "clipboard", "wallpaper", "screenshot", "powerMenu"]
-    readonly property var standaloneWindows: ["minflair_settings"]
+    readonly property var focusWidgets: ["launcher", "clipboard", "wallpaper", "powerMenu"]
+    readonly property var standaloneWindows: ["mewline_settings"]
     readonly property int activeTrayIndex: {
         if (!activeWidget || !activeWidget.startsWith("systemTray_"))
             return -1;
@@ -218,10 +212,6 @@ Item {
     function getSlot(widgetId, barStyle) {
         if (isFocusWidget(widgetId))
             return "focus";
-
-        let s = barStyle || SettingsService.barStyle;
-        if (s === "island")
-            return "center";
 
         // convex
         if (widgetId === "dashboard")

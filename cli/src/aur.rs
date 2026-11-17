@@ -13,18 +13,18 @@ pub fn valid(name: &str) -> bool {
 }
 
 pub fn path() -> Result<PathBuf> {
-    if let Some(value) = env::var_os("MINFLAIR_AUR_HELPER_FILE").filter(|value| !value.is_empty()) {
+    if let Some(value) = env::var_os("MEWLINE_AUR_HELPER_FILE").filter(|value| !value.is_empty()) {
         return Ok(PathBuf::from(value));
     }
-    Ok(repo::config_dir()?.join("minflair").join("aur-helper"))
+    Ok(repo::config_dir()?.join("mewline").join("aur-helper"))
 }
 
 /// Read the configured helper, matching `lib/aur.sh`.
 ///
-/// `MINFLAIR_AUR_HELPER` wins over the saved file. An invalid value falls back
+/// `MEWLINE_AUR_HELPER` wins over the saved file. An invalid value falls back
 /// to the default instead of being returned.
 pub fn current() -> Result<String> {
-    if let Some(value) = env::var_os("MINFLAIR_AUR_HELPER") {
+    if let Some(value) = env::var_os("MEWLINE_AUR_HELPER") {
         let value = value.to_string_lossy().trim().to_string();
         return Ok(if valid(&value) {
             value

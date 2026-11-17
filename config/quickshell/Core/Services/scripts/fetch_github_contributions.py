@@ -11,7 +11,7 @@ import urllib.request
 CACHE_DIR = os.path.expanduser("~/.cache/quickshell")
 CACHE_TTL = 3600  # 1 hour in seconds
 
-TOKEN_ENV_VAR = "MINFLAIR_GITHUB_TOKEN"
+TOKEN_ENV_VAR = "MEWLINE_GITHUB_TOKEN"
 
 
 def sanitize_token(value):

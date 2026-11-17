@@ -3,7 +3,7 @@
 set -e
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_DIR="$HOME/.minflair_backup/$(date +%Y%m%d_%H%M%S)"
+BACKUP_DIR="$HOME/.mewline_backup/$(date +%Y%m%d_%H%M%S)"
 DRY_RUN=0
 NO_INPUT=0
 NO_PACKAGES=0
@@ -15,7 +15,7 @@ ONLY_IDS=()
 
 # ── shared UI helpers ────────────────────────────────────────────────────────
 [ -f "$REPO_DIR/lib/ui.sh" ] ||
-  { printf '[ERROR] lib/ui.sh not found. Are you running this from the Minflair repository?\n' >&2; exit 1; }
+  { printf '[ERROR] lib/ui.sh not found. Are you running this from the Mewline repository?\n' >&2; exit 1; }
 # shellcheck source=lib/ui.sh
 source "$REPO_DIR/lib/ui.sh"
 ui_init
@@ -41,8 +41,8 @@ usage() {
   cat <<'EOF'
 Usage: ./install.sh [options]
 
-Install Minflair. With no options and an interactive terminal, the component
-selector opens first. Preferences are saved in ~/.config/minflair/preferences.conf
+Install Mewline. With no options and an interactive terminal, the component
+selector opens first. Preferences are saved in ~/.config/mewline/preferences.conf
 and are respected by install.sh, update.sh and the runtime theme scripts.
 
 Selection:
@@ -69,12 +69,12 @@ EOF
 
 # ── shared component helpers ─────────────────────────────────────────────────
 [ -f "$REPO_DIR/lib/components.sh" ] ||
-  error "lib/components.sh not found. Are you running this from the Minflair repository?"
+  error "lib/components.sh not found. Are you running this from the Mewline repository?"
 # shellcheck source=lib/components.sh
 source "$REPO_DIR/lib/components.sh"
 # shellcheck source=lib/aur.sh
 [ -f "$REPO_DIR/lib/aur.sh" ] ||
-  error "lib/aur.sh not found. Are you running this from the Minflair repository?"
+  error "lib/aur.sh not found. Are you running this from the Mewline repository?"
 source "$REPO_DIR/lib/aur.sh"
 # shellcheck source=lib/selector.sh
 source "$REPO_DIR/lib/selector.sh"
@@ -147,7 +147,7 @@ if [ "$(id -u)" -eq 0 ]; then
   error "Run install.sh as your normal user, not as root."
 fi
 
-ui_header "Minflair installer $(minflair_version)"
+ui_header "Mewline installer $(mewline_version)"
 
 # In dry-run mode preferences are written to a temporary copy so the simulated
 # selection is accurate and the real file is never touched.
@@ -259,9 +259,9 @@ if [[ -n "$AUR_HELPER" ]]; then
     aur_helper_set "$AUR_HELPER" || error "Could not save the AUR helper."
     log "AUR helper set to $AUR_HELPER."
   fi
-elif [[ -n "${MINFLAIR_AUR_HELPER:-}" ]]; then
+elif [[ -n "${MEWLINE_AUR_HELPER:-}" ]]; then
   AUR_HELPER="$(aur_helper)"
-  log "Using AUR helper from MINFLAIR_AUR_HELPER: $AUR_HELPER."
+  log "Using AUR helper from MEWLINE_AUR_HELPER: $AUR_HELPER."
 elif [[ -f "$AUR_HELPER_FILE" ]]; then
   AUR_HELPER="$(aur_helper)"
   log "Using saved AUR helper: $AUR_HELPER."
@@ -467,7 +467,7 @@ else
 fi
 
 # ── 6. SDDM theme ─────────────────────────────────────────────────────────────
-SDDM_THEME_DIR="/usr/share/sddm/themes/minflair-sddm"
+SDDM_THEME_DIR="/usr/share/sddm/themes/mewline-sddm"
 
 if ! component_enabled sddm; then
   log "Skipping SDDM theme (sddm component disabled)."
@@ -479,18 +479,18 @@ else
   if [ ! -d "$SDDM_THEME_DIR" ]; then
     sudo mkdir -p /usr/share/sddm/themes
     sudo git clone --depth 1 https://github.com/t4lentles5/tokyo-night-sddm.git "$SDDM_THEME_DIR" &&
-      ok "SDDM theme (minflair-sddm) installed." ||
+      ok "SDDM theme (mewline-sddm) installed." ||
       warn "Failed to clone SDDM theme."
   else
     if [ -d "$SDDM_THEME_DIR/.git" ]; then
       sudo git -C "$SDDM_THEME_DIR" remote set-url origin https://github.com/t4lentles5/tokyo-night-sddm.git 2>/dev/null || true
       sudo git -C "$SDDM_THEME_DIR" pull --ff-only 2>/dev/null &&
-        ok "SDDM theme (minflair-sddm) updated." ||
-        ok "SDDM theme (minflair-sddm) already up to date."
+        ok "SDDM theme (mewline-sddm) updated." ||
+        ok "SDDM theme (mewline-sddm) already up to date."
     else
       sudo rm -rf "$SDDM_THEME_DIR"
       sudo git clone --depth 1 https://github.com/t4lentles5/tokyo-night-sddm.git "$SDDM_THEME_DIR" &&
-        ok "SDDM theme (minflair-sddm) reinstalled." ||
+        ok "SDDM theme (mewline-sddm) reinstalled." ||
         warn "Failed to clone SDDM theme."
     fi
   fi
@@ -503,7 +503,7 @@ else
       ok "Existing /etc/sddm.conf backed up."
     fi
     sudo cp "$REPO_DIR/etc/sddm.conf" /etc/sddm.conf
-    ok "SDDM theme set to minflair-sddm."
+    ok "SDDM theme set to mewline-sddm."
   else
     warn "etc/sddm.conf not found in repo, skipping SDDM config."
   fi

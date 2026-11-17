@@ -15,7 +15,7 @@ Item {
     property bool loaded: false
 
     // Read the preferences again, so a change made with
-    // `minflair components` is picked up.
+    // `mewline components` is picked up.
     function refresh() {
         loadProc.running = false;
         loadProc.running = true;
@@ -28,7 +28,7 @@ Item {
     Process {
         id: loadProc
 
-        command: ["sh", "-c", "cat \"$HOME/.config/minflair/preferences.conf\" 2>/dev/null"]
+        command: ["sh", "-c", "cat \"$HOME/.config/mewline/preferences.conf\" 2>/dev/null"]
         stdout: SplitParser {
             onRead: (data) => {
                 let ids = [];

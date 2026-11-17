@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Resolve the AUR helper selected during installation.
 
-The installer writes ``~/.config/minflair/aur-helper`` with either ``yay`` or
+The installer writes ``~/.config/mewline/aur-helper`` with either ``yay`` or
 ``paru``. Quickshell reads the same file so the package manager uses the helper
-the user chose. ``MINFLAIR_AUR_HELPER`` and ``MINFLAIR_AUR_HELPER_FILE`` can
+the user chose. ``MEWLINE_AUR_HELPER`` and ``MEWLINE_AUR_HELPER_FILE`` can
 override the value, which keeps tests and automation self-contained.
 """
 
@@ -17,15 +17,15 @@ sys.dont_write_bytecode = True
 
 DEFAULT = "yay"
 VALID = ("yay", "paru")
-ENV = "MINFLAIR_AUR_HELPER"
-FILE_ENV = "MINFLAIR_AUR_HELPER_FILE"
+ENV = "MEWLINE_AUR_HELPER"
+FILE_ENV = "MEWLINE_AUR_HELPER_FILE"
 
 
 def config_path() -> Path:
     override = os.environ.get(FILE_ENV)
     if override:
         return Path(override).expanduser()
-    return Path.home() / ".config" / "minflair" / "aur-helper"
+    return Path.home() / ".config" / "mewline" / "aur-helper"
 
 
 def normalize(value: str | None) -> str:

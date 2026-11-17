@@ -3,8 +3,8 @@
 set -e
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_DIR="$HOME/.minflair_backup/$(date +%Y%m%d_%H%M%S)"
-SDDM_THEME_DIR="/usr/share/sddm/themes/minflair-sddm"
+BACKUP_DIR="$HOME/.mewline_backup/$(date +%Y%m%d_%H%M%S)"
+SDDM_THEME_DIR="/usr/share/sddm/themes/mewline-sddm"
 DRY_RUN=0
 NO_INPUT=0
 NO_PACKAGES=0
@@ -16,7 +16,7 @@ ONLY_IDS=()
 
 # ── shared UI helpers ────────────────────────────────────────────────────────
 [ -f "$REPO_DIR/lib/ui.sh" ] ||
-  { printf '[ERROR] lib/ui.sh not found. Are you running this from the Minflair repository?\n' >&2; exit 1; }
+  { printf '[ERROR] lib/ui.sh not found. Are you running this from the Mewline repository?\n' >&2; exit 1; }
 # shellcheck source=lib/ui.sh
 source "$REPO_DIR/lib/ui.sh"
 ui_init
@@ -42,7 +42,7 @@ usage() {
   cat <<'EOF'
 Usage: ./update.sh [options]
 
-Update Minflair. The saved component preferences are respected: disabled
+Update Mewline. The saved component preferences are respected: disabled
 components are not copied, installed, themed or reloaded. Existing files from
 disabled components are left untouched.
 
@@ -70,12 +70,12 @@ EOF
 
 # ── shared component helpers ─────────────────────────────────────────────────
 [ -f "$REPO_DIR/lib/components.sh" ] ||
-  error "lib/components.sh not found. Are you running this from the Minflair repository?"
+  error "lib/components.sh not found. Are you running this from the Mewline repository?"
 # shellcheck source=lib/components.sh
 source "$REPO_DIR/lib/components.sh"
 # shellcheck source=lib/aur.sh
 [ -f "$REPO_DIR/lib/aur.sh" ] ||
-  error "lib/aur.sh not found. Are you running this from the Minflair repository?"
+  error "lib/aur.sh not found. Are you running this from the Mewline repository?"
 source "$REPO_DIR/lib/aur.sh"
 # shellcheck source=lib/selector.sh
 source "$REPO_DIR/lib/selector.sh"
@@ -148,11 +148,11 @@ if [ "$(id -u)" -eq 0 ]; then
   error "Run update.sh as your normal user, not as root."
 fi
 
-ui_header "Minflair updater $(minflair_version)"
+ui_header "Mewline updater $(mewline_version)"
 
 cd "$REPO_DIR"
 
-[ -f "$REPO_DIR/packages.txt" ] || error "packages.txt not found. Are you running this from the Minflair repository?"
+[ -f "$REPO_DIR/packages.txt" ] || error "packages.txt not found. Are you running this from the Mewline repository?"
 [ -f "$REPO_DIR/packages-aur.txt" ] || error "packages-aur.txt not found."
 [ -d "$REPO_DIR/config" ] || error "config/ not found."
 [ -d "$HOME/.config/quickshell" ] || error "Quickshell config not found in ~/.config. Run install.sh first."
@@ -429,7 +429,7 @@ elif ! command -v sddm >/dev/null 2>&1; then
 elif ((DRY_RUN)); then
   printf '[dry-run] would update the SDDM theme in %s\n' "$SDDM_THEME_DIR"
 else
-  log "Updating SDDM theme (minflair-sddm)..."
+  log "Updating SDDM theme (mewline-sddm)..."
   TMP_DIR="$(mktemp -d)"
 
   git clone --depth 1 https://github.com/t4lentles5/tokyo-night-sddm.git "$TMP_DIR/theme" ||

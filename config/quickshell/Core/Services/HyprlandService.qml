@@ -9,8 +9,14 @@ pragma Singleton
 Item {
     id: hyprlandService
 
+    // Read-mostly mirror of the compositor state the shell itself renders
+    // against. The shell never writes Hyprland config: animations, shadows
+    // etc. belong to the user's hyprland.lua / workflow presets.
     property bool enableAnimations: true
     property real animationSpeedFactor: 1
+    property int hyprShadowRange: 8
+    property int hyprShadowRenderPower: 3
+    property bool hyprShadow: true
     property string keyboardLayout: "us"
     // The full XKB layout list of the main keyboard ("us,ru") — read from
     // hyprctl devices on every activelayout event.
@@ -25,34 +31,12 @@ Item {
     property bool wpEnableTransitions: true
     property string wpTransitionType: "grow"
     property string wpTransitionPos: "center"
-    property int wpTransitionStep: 120
-    property int wpTransitionFps: 60
+    // Fast by default: 180 matches the "Fast" step of the wallpaper
+    // transition selector.
+    property int wpTransitionStep: 180
     property int wpTransitionAngle: 30
     property string wpResizeMode: "crop"
     property string wpCropGravity: "center"
-    property bool hyprBlur: false
-    property int hyprRounding: Constants.size3Xl
-    property int hyprActiveOpacity: 100
-    property int hyprInactiveOpacity: 100
-    property int hyprBlurSize: 6
-    property int hyprBlurPasses: 4
-    property int hyprGapsIn: 4
-    property int hyprGapsOut: 8
-    property int hyprBorderSize: 0
-    property bool hyprShadow: true
-    property int hyprShadowRange: 8
-    property int hyprShadowRenderPower: 3
-    property real mouseSensitivity: 0
-    property string mouseAccelProfile: "flat"
-    property bool mouseNaturalScroll: false
-    property real mouseScrollFactor: 1
-    property bool mouseLeftHanded: false
-    property int mouseFollowMouse: 1
-    property int cursorInactiveTimeout: 5
-    property bool cursorNoWarps: false
-    property bool touchpadNaturalScroll: true
-    property bool touchpadTapToClick: true
-    property bool touchpadDisableWhileTyping: true
     property bool hyprPrefsLoaded: false
     property bool isSyncing: false
     property bool isTrueFullscreen: false
@@ -70,13 +54,6 @@ Item {
         checkFullscreenProc.running = true;
     }
 
-    function applyHyprlandSettings() {
-        if (!hyprPrefsLoaded || isSyncing || DisplayProfileService.gameModeActive)
-            return ;
-
-        applySettingsTimer.restart();
-    }
-
     function setPowerSaverMode(enabled) {
         // Intentionally empty: power profiles activate meowrch workflow
         // presets (workflows/{default,powersaver,gaming}.lua) from
@@ -84,39 +61,9 @@ Item {
         // decoration/animation config itself.
     }
 
-    function startupAnimations() {
-    }
-
     function triggerStartupTimer() {
         // Intentionally does nothing: the startup layout/animation push was
         // removed because Hyprland input config belongs to hyprland.lua.
-    }
-
-    function applyMouseSettings() {
-        if (!hyprPrefsLoaded || isSyncing)
-            return ;
-
-        applyMouseSettingsTimer.restart();
-    }
-
-    onEnableAnimationsChanged: {
-        if (SettingsService.settingsLoaded && hyprPrefsLoaded && !isSyncing && !DisplayProfileService.gameModeActive) {
-            animationsProc.running = false;
-            animationsProc.command = ["hyprctl", "eval", "hl.config({ animations = { enabled = " + (enableAnimations ? "true" : "false") + " } })"];
-            animationsProc.running = true;
-        }
-    }
-
-    Process {
-        id: mouseApplyProc
-    }
-
-    Process {
-        id: changeLayoutProc
-    }
-
-    Process {
-        id: runtimeConfigProc
     }
 
     Process {
@@ -267,33 +214,9 @@ Item {
                     try {
                         let prefs = JSON.parse(data.trim());
                         hyprlandService.isSyncing = true;
-                        if (prefs["decoration:blur:enabled"] !== undefined)
-                            hyprBlur = prefs["decoration:blur:enabled"];
-
-                        if (prefs["decoration:rounding"] !== undefined)
-                            hyprRounding = prefs["decoration:rounding"];
-
-                        if (prefs["decoration:active_opacity"] !== undefined)
-                            hyprActiveOpacity = Math.round(prefs["decoration:active_opacity"] * 100);
-
-                        if (prefs["decoration:inactive_opacity"] !== undefined)
-                            hyprInactiveOpacity = Math.round(prefs["decoration:inactive_opacity"] * 100);
-
-                        if (prefs["decoration:blur:size"] !== undefined)
-                            hyprBlurSize = prefs["decoration:blur:size"];
-
-                        if (prefs["decoration:blur:passes"] !== undefined)
-                            hyprBlurPasses = prefs["decoration:blur:passes"];
-
-                        if (prefs["general:gaps_in"] !== undefined)
-                            hyprGapsIn = prefs["general:gaps_in"];
-
-                        if (prefs["general:gaps_out"] !== undefined)
-                            hyprGapsOut = prefs["general:gaps_out"];
-
-                        if (prefs["general:border_size"] !== undefined)
-                            hyprBorderSize = prefs["general:border_size"];
-
+                        // Only the values the shell mirrors for its own
+                        // rendering are synced; everything else stays in the
+                        // user's hyprland.lua.
                         if (prefs["decoration:shadow:enabled"] !== undefined)
                             hyprShadow = prefs["decoration:shadow:enabled"];
 
@@ -305,39 +228,6 @@ Item {
 
                         if (prefs["animations:enabled"] !== undefined)
                             enableAnimations = prefs["animations:enabled"];
-
-                        if (prefs["input:sensitivity"] !== undefined)
-                            mouseSensitivity = prefs["input:sensitivity"];
-
-                        if (prefs["input:accel_profile"] !== undefined && prefs["input:accel_profile"] !== "[[EMPTY]]")
-                            mouseAccelProfile = prefs["input:accel_profile"];
-
-                        if (prefs["input:natural_scroll"] !== undefined)
-                            mouseNaturalScroll = prefs["input:natural_scroll"];
-
-                        if (prefs["input:scroll_factor"] !== undefined)
-                            mouseScrollFactor = prefs["input:scroll_factor"];
-
-                        if (prefs["input:left_handed"] !== undefined)
-                            mouseLeftHanded = prefs["input:left_handed"];
-
-                        if (prefs["input:follow_mouse"] !== undefined)
-                            mouseFollowMouse = prefs["input:follow_mouse"];
-
-                        if (prefs["cursor:inactive_timeout"] !== undefined)
-                            cursorInactiveTimeout = Math.round(prefs["cursor:inactive_timeout"]);
-
-                        if (prefs["cursor:no_warps"] !== undefined)
-                            cursorNoWarps = prefs["cursor:no_warps"];
-
-                        if (prefs["input:touchpad:natural_scroll"] !== undefined)
-                            touchpadNaturalScroll = prefs["input:touchpad:natural_scroll"];
-
-                        if (prefs["input:touchpad:tap-to-click"] !== undefined)
-                            touchpadTapToClick = prefs["input:touchpad:tap-to-click"];
-
-                        if (prefs["input:touchpad:disable_while_typing"] !== undefined)
-                            touchpadDisableWhileTyping = prefs["input:touchpad:disable_while_typing"];
 
                     } catch (e) {
                         console.error("Error parsing hypr prefs: " + e);

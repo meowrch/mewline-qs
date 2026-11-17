@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Create a report to help us improve Minflair
+about: Create a report to help us improve Mewline
 title: '[BUG] '
 labels: bug
 assignees: t4lentles5

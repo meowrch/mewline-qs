@@ -23,19 +23,14 @@ Item {
     // The terminal font is a setting of its own, because a terminal needs a
     // monospace font while the system font does not have to be one.
     property string kittyFontFamily: "JetbrainsMono NF"
-    property real hyprScale: 1
     property bool clock24h: true
     property bool clockSeconds: false
     property bool clockShowDate: true
     property string cursorTheme: "Bibata-Modern-Classic"
     property int cursorSize: Constants.size2Xl
+    // The bar style is fixed to Convex: no selector, no Island mode.
     property string barStyle: "convex"
-    property bool barIslandMode: barStyle === "island"
-    property bool barConvexMode: barStyle === "convex"
-    property string islandRightMode: "auto"
-    property bool islandShowWorkspaces: false
-    property bool islandShowTray: false
-    property bool islandSinglePill: false
+    property bool barConvexMode: true
     readonly property int barWidgetHeight: 28
     property int numberOfWorkspaces: 10
     // Folder scanned by the wallpaper selector / shuffle. Changed from the
@@ -157,11 +152,6 @@ Item {
             saveSettings();
 
     }
-    onHyprScaleChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
     onClock24hChanged: {
         if (settingsLoaded)
             saveSettings();
@@ -190,26 +180,6 @@ Item {
         }
     }
     onBarStyleChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onIslandRightModeChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onIslandShowWorkspacesChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onIslandShowTrayChanged: {
-        if (settingsLoaded)
-            saveSettings();
-
-    }
-    onIslandSinglePillChanged: {
         if (settingsLoaded)
             saveSettings();
 
@@ -253,7 +223,6 @@ Item {
                 "wpTransitionType": HyprlandService.wpTransitionType,
                 "wpTransitionPos": HyprlandService.wpTransitionPos,
                 "wpTransitionStep": HyprlandService.wpTransitionStep,
-                "wpTransitionFps": HyprlandService.wpTransitionFps,
                 "wpTransitionAngle": HyprlandService.wpTransitionAngle,
                 "wpResizeMode": HyprlandService.wpResizeMode,
                 "wpCropGravity": HyprlandService.wpCropGravity,
@@ -263,17 +232,12 @@ Item {
                 "fontFamily": settingsService.fontFamily,
                 "fontScale": settingsService.fontScale,
                 "kittyFontFamily": settingsService.kittyFontFamily,
-                "hyprScale": settingsService.hyprScale,
                 "clock24h": settingsService.clock24h,
                 "clockSeconds": settingsService.clockSeconds,
                 "clockShowDate": settingsService.clockShowDate,
                 "cursorTheme": settingsService.cursorTheme,
                 "cursorSize": settingsService.cursorSize,
                 "barStyle": settingsService.barStyle,
-                "islandRightMode": settingsService.islandRightMode,
-                "islandShowWorkspaces": settingsService.islandShowWorkspaces,
-                "islandShowTray": settingsService.islandShowTray,
-                "islandSinglePill": settingsService.islandSinglePill,
                 "numberOfWorkspaces": settingsService.numberOfWorkspaces
             };
             // SDDM only reads fontFamily from its preferences file, so credentials
@@ -290,7 +254,7 @@ Item {
 EOF
 mv -f ~/.cache/quickshell/settings_prefs.json.tmp ~/.cache/quickshell/settings_prefs.json
 chmod 600 ~/.cache/quickshell/settings_prefs.json
-if ! grep -qxF sddm \"$HOME/.config/minflair/preferences.conf\" 2>/dev/null; then
+if ! grep -qxF sddm \"$HOME/.config/mewline/preferences.conf\" 2>/dev/null; then
   umask 022 && mkdir -p /var/tmp/sddm-theme
   cat << 'EOF' > /var/tmp/sddm-theme/settings_prefs.json.tmp
 " + JSON.stringify(sddmData) + "
@@ -378,9 +342,6 @@ fi"];
                         if (prefs.wpTransitionStep !== undefined)
                             HyprlandService.wpTransitionStep = prefs.wpTransitionStep;
 
-                        if (prefs.wpTransitionFps !== undefined)
-                            HyprlandService.wpTransitionFps = prefs.wpTransitionFps;
-
                         if (prefs.wpTransitionAngle !== undefined)
                             HyprlandService.wpTransitionAngle = prefs.wpTransitionAngle;
 
@@ -408,9 +369,6 @@ fi"];
                         if (prefs.kittyFontFamily !== undefined)
                             settingsService.kittyFontFamily = prefs.kittyFontFamily;
 
-                        if (prefs.hyprScale !== undefined)
-                            settingsService.hyprScale = prefs.hyprScale;
-
                         if (prefs.clock24h !== undefined)
                             settingsService.clock24h = prefs.clock24h;
 
@@ -429,24 +387,8 @@ fi"];
                         // Cursor and fonts are only pushed to the system when
                         // the user changes them in the settings UI, never at
                         // startup: this shell must not rewrite system config.
-                        if (prefs.barStyle !== undefined) {
-                            if (prefs.barStyle === "island")
-                                settingsService.barStyle = "island";
-                            else
-                                settingsService.barStyle = "convex";
-                        }
-                        if (prefs.islandRightMode !== undefined)
-                            settingsService.islandRightMode = prefs.islandRightMode;
-
-                        if (prefs.islandShowWorkspaces !== undefined)
-                            settingsService.islandShowWorkspaces = prefs.islandShowWorkspaces;
-
-                        if (prefs.islandShowTray !== undefined)
-                            settingsService.islandShowTray = prefs.islandShowTray;
-
-                        if (prefs.islandSinglePill !== undefined)
-                            settingsService.islandSinglePill = prefs.islandSinglePill;
-
+                        // barStyle is fixed to Convex, so a saved value is
+                        // ignored on purpose.
                         if (prefs.numberOfWorkspaces !== undefined)
                             settingsService.numberOfWorkspaces = prefs.numberOfWorkspaces;
 

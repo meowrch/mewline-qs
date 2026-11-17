@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Hyprland
 import Quickshell.Io
 import qs.Core
 import qs.Core.Services
@@ -15,7 +16,6 @@ QtObject {
     property string transitionType: HyprlandService.wpTransitionType
     property int transitionStep: HyprlandService.wpTransitionStep
     property string transitionPos: HyprlandService.wpTransitionPos
-    property int transitionFps: HyprlandService.wpTransitionFps
     property int transitionAngle: HyprlandService.wpTransitionAngle
     property string resizeMode: HyprlandService.wpResizeMode
     property string cropGravity: HyprlandService.wpCropGravity
@@ -27,6 +27,20 @@ QtObject {
     property Process wallpaperLoader
     property Process randomWallpaperProc
     property Timer shuffleTimer
+
+    // Wallpaper transitions run at the highest refresh rate among the
+    // connected monitors, so the animation is as smooth as the hardware
+    // allows without a manual fps setting.
+    function maxRefreshRate() {
+        let max = 0;
+        let monitors = (Hyprland.monitors && Hyprland.monitors.values) ? Hyprland.monitors.values : [];
+        for (let i = 0; i < monitors.length; i++) {
+            let r = (monitors[i].lastIpcObject && monitors[i].lastIpcObject.refreshRate) || 0;
+            if (r > max)
+                max = r;
+        }
+        return max > 0 ? Math.round(max) : 60;
+    }
 
     function applyWallpaperWithSync(wallpaperName, rawPath) {
         currentWallpaper = wallpaperName;
@@ -82,7 +96,7 @@ QtObject {
             cmd.push("--crop-gravity", gravity);
 
         if (enableTransitions && SystemInfoService.powerProfile !== "power-saver") {
-            cmd.push("--transition-type", transitionType, "--transition-pos", transitionPos, "--transition-step", String(transitionStep), "--transition-fps", String(transitionFps));
+            cmd.push("--transition-type", transitionType, "--transition-pos", transitionPos, "--transition-step", String(transitionStep), "--transition-fps", String(maxRefreshRate()));
             if (transitionType === "wipe" || transitionType === "wave")
                 cmd.push("--transition-angle", String(transitionAngle));
 

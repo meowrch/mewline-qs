@@ -43,10 +43,10 @@ hl.window_rule({
 })
 
 hl.window_rule({ match = { title = "^Select a File|Choose wallpaper|Open Folder|Library|File Upload$" }, float = true })
-hl.window_rule({ match = { title = "^Minflair Settings$" }, float = true, size = "1200 750", center = true })
-hl.window_rule({ match = { title = "^Minflair Keybinds Cheat Sheet$" }, float = true, size = "1100 700", center = true })
-hl.window_rule({ match = { title = "^Minflair Package Manager" }, float = true, size = "1300 800", center = true })
-hl.window_rule({ match = { title = "^Minflair Pomodoro" }, float = true, size = "1100 700", center = true })
+hl.window_rule({ match = { title = "^Mewline Settings$" }, float = true, size = "1200 750", center = true })
+hl.window_rule({ match = { title = "^Mewline Keybinds Cheat Sheet$" }, float = true, size = "1100 700", center = true })
+hl.window_rule({ match = { title = "^Mewline Package Manager" }, float = true, size = "1300 800", center = true })
+hl.window_rule({ match = { title = "^Mewline Pomodoro" }, float = true, size = "1100 700", center = true })
 
 hl.layer_rule({
 	match = { namespace = "quickshell" },

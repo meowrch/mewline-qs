@@ -19,7 +19,7 @@ def read_app_version() -> str:
 
 
 def read_crate_version() -> str:
-    """Read the version of the minflair CLI crate."""
+    """Read the version of the mewline CLI crate."""
     content = CARGO_TOML.read_text(encoding="utf-8")
     match = re.search(r'^version\s*=\s*"([^"]+)"', content, re.MULTILINE)
     if not match:
@@ -28,13 +28,13 @@ def read_crate_version() -> str:
 
 
 def read_lock_version() -> str:
-    """Read the version the lockfile records for the minflair crate."""
+    """Read the version the lockfile records for the mewline crate."""
     content = CARGO_LOCK.read_text(encoding="utf-8")
     match = re.search(
-        r'\[\[package\]\]\nname = "minflair"\nversion = "([^"]+)"', content
+        r'\[\[package\]\]\nname = "mewline"\nversion = "([^"]+)"', content
     )
     if not match:
-        raise AssertionError("no minflair package found in Cargo.lock")
+        raise AssertionError("no mewline package found in Cargo.lock")
     return match.group(1)
 
 
@@ -42,7 +42,7 @@ class VersionSyncTests(unittest.TestCase):
     """The shell and the CLI must always report the same version.
 
     They live in two separate files and are bumped by hand, so it is easy
-    to update one and forget the other. When they drift, minflair --version
+    to update one and forget the other. When they drift, mewline --version
     and the installer header show different numbers for the same release.
     """
 

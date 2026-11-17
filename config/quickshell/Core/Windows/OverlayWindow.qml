@@ -1,4 +1,3 @@
-import "OverlayStyles"
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -7,10 +6,9 @@ import Quickshell.Widgets
 import qs.Core
 import qs.Core.Components
 import qs.Core.Services
+import qs.Modules.Bar.Styles.Convex
 
 PanelWindow {
-    // Handover is handled internally by the style, it will signal when done
-
     id: root
 
     property var notificationService: null
@@ -39,15 +37,13 @@ PanelWindow {
     property real openProgress: root.isOpen ? 1 : 0
     property real bounceProgress: root.isOpen ? 1 : 0
     property bool windowFocusable: true
-    // Determine the active style mode cleanly
-    readonly property string activeStyle: {
-        if (SettingsService.barIslandMode && !positionAtBottom)
-            return "island";
-
-        return "floating";
-    }
-    readonly property bool isIsland: activeStyle === "island"
-    readonly property bool isFloating: activeStyle === "floating"
+    // Bottom sheets (positionAtBottom widgets) render as a ConvexDesktop-style
+    // drawer on the bottom edge; anything else floats as a rounded panel.
+    readonly property bool isBottomSheet: positionAtBottom
+    // Same corner radius ConvexBottomHost uses for full (non-compact)
+    // drawers. The drawer shape inlays its straight sides by this radius,
+    // so content windows must compensate for it in their preferred width.
+    readonly property real drawerRadius: Constants.sizeLg * 2
 
     signal widgetOpened()
     signal widgetClosed()
@@ -55,11 +51,8 @@ PanelWindow {
 
     function finishClosing() {
         closeDelayTimer.stop();
-        if (styleLoader.item && styleLoader.item.isHandover !== undefined && styleLoader.item.isHandover) {
-        } else {
-            root._windowVisible = false;
-            root.fullyClosed();
-        }
+        root._windowVisible = false;
+        root.fullyClosed();
     }
 
     function close() {
@@ -70,7 +63,7 @@ PanelWindow {
     color: "transparent"
     focusable: root.isOpen && root.windowFocusable
     exclusionMode: ExclusionMode.Ignore
-    visible: _windowVisible || forceVisible || (styleLoader.item && styleLoader.item.isHandover)
+    visible: _windowVisible || forceVisible
     onIsOpenChanged: {
         if (widgetId === "")
             return ;
@@ -126,7 +119,7 @@ PanelWindow {
     Timer {
         id: closeDelayTimer
 
-        interval: Constants.durationFactor > 0 ? (root.isIsland ? Constants.animSlow : Constants.animExpressive) : 10
+        interval: Constants.durationFactor > 0 ? Constants.animExpressive : 10
         repeat: false
         onTriggered: {
             if (exclusive && AppState.isWidgetOpen(widgetId))
@@ -151,29 +144,12 @@ PanelWindow {
         }
     }
 
-    Loader {
-        id: styleLoader
-
-        anchors.fill: parent
-        // A single style component handles both island (bar-attached) and
-        // floating (bottom sheet) placement through widget.positionAtBottom.
-        // The old "floatingComponent" branch referenced an undefined Component
-        // and crashed every bottom popup in convex mode.
-        sourceComponent: islandComponent
-        onStatusChanged: {
-            if (status === Loader.Ready && root.isOpen)
-                initialFocusTimer.restart();
-
-        }
-    }
-
-    // The inner holder automatically anchors inside the active style's content slot
+    // The content holder anchors inside the visible container below
     Item {
         id: innerContentHolder
 
-        parent: styleLoader.item ? styleLoader.item.contentSlot : root
+        parent: contentLayoutContainer
         anchors.fill: parent
-        visible: styleLoader.item !== null
         // Forward keys to the focused item
         Keys.forwardTo: (root.windowFocusable && root.initialFocusItem) ? [root.initialFocusItem] : []
         Keys.enabled: root.isOpen && root.windowFocusable
@@ -184,66 +160,120 @@ PanelWindow {
         }
     }
 
-    Component {
-        id: islandComponent
+    Item {
+        id: mainContainer
 
-        IslandOverlayStyle {
-            widget: root
+        readonly property real currentWidth: isBottomSheet ? Math.round(root.smoothPreferredWidth) : Math.round(root.smoothPreferredWidth)
+        // Bottom sheets grow from the bottom edge with the shared progress
+        // curve, like ConvexBottomHost's contentContainer
+        // (currentHeight = height * openProgress).
+        readonly property real currentHeight: isBottomSheet ? Math.max(root.smoothPreferredHeight * root.bounceProgress, 0.01) : Math.round(root.smoothPreferredHeight)
+
+        width: currentWidth
+        height: currentHeight
+        anchors.horizontalCenter: parent.horizontalCenter
+        // The bottom edge stays pinned to the screen border while the height
+        // grows upward; floating panels hang from the top.
+        y: isBottomSheet ? Math.round(parent.height - currentHeight) : 8
+        clip: isBottomSheet
+        opacity: (root._windowVisible || root.forceVisible) ? 1 : 0
+
+        // Bottom sheets draw the exact same drawer background as the
+        // wallpaper selector's ConvexBottomHost: rounded top corners, flat
+        // flare toward the screen bottom, no border, no shadow, no capsule.
+        ConvexDrawerShape {
+            anchors.fill: parent
+            visible: root.isBottomSheet
+            color: root.backgroundColor
+            cornerRadius: root.drawerRadius
+            edge: Qt.BottomEdge
+            enableShadow: false
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            visible: !root.isBottomSheet
+            color: root.backgroundColor
+            radius: root.smoothWindowRadius
+            border.width: 1
+            border.color: Theme.border
+        }
+
+        // Prevent clicks on the container from reaching the dismiss area
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.AllButtons
+        }
+
+        Item {
+            id: contentLayoutContainer
+
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.bottom: parent.bottom
+            anchors.top: parent.top
+            anchors.leftMargin: root.contentPadding + (root.isBottomSheet ? root.drawerRadius : 0)
+            anchors.rightMargin: root.contentPadding + (root.isBottomSheet ? root.drawerRadius : 0)
+            anchors.topMargin: root.contentPadding
+            anchors.bottomMargin: root.contentPadding
+            // Bottom sheets keep the content at its final size pinned to the
+            // drawer bottom (ConvexBottomHost pins its loader above the same
+            // margin) and the growing container reveals it upward.
+            height: root.isBottomSheet ? Math.max(0, root.smoothPreferredHeight - root.contentPadding * 2) : (parent.height - root.contentPadding * 2)
+            clip: true
+            transformOrigin: root.isBottomSheet ? Item.Bottom : Item.Top
+            opacity: !root.isOpen ? Math.min(1, Math.max(0, (root.bounceProgress - 0.4) / 0.6)) : Math.min(1, Math.max(0, (root.bounceProgress - 0.2) / 0.8))
+            scale: !root.isOpen ? (0.94 + 0.06 * Math.min(1, Math.max(0, (root.bounceProgress - 0.3) / 0.7))) : (0.94 + 0.06 * Math.min(1, Math.max(0, (root.bounceProgress - 0.15) / 0.85)))
         }
 
     }
 
     mask: Region {
         Region {
-            x: (root.isOpen && root.windowFocusable) ? 0 : ((root._windowVisible || (styleLoader.item && styleLoader.item.isHandover)) ? (styleLoader.item ? styleLoader.item.container.x : 0) : 0)
-            y: (root.isOpen && root.windowFocusable) ? 0 : ((root._windowVisible || (styleLoader.item && styleLoader.item.isHandover)) ? (styleLoader.item ? styleLoader.item.container.y : 0) : 0)
-            width: (root.isOpen && root.windowFocusable) ? root.width : ((root._windowVisible || (styleLoader.item && styleLoader.item.isHandover)) ? (styleLoader.item ? styleLoader.item.container.width : 0) : 0)
-            height: (root.isOpen && root.windowFocusable) ? root.height : ((root._windowVisible || (styleLoader.item && styleLoader.item.isHandover)) ? (styleLoader.item ? styleLoader.item.container.height : 0) : 0)
+            x: root.isOpen ? 0 : mainContainer.x
+            y: root.isOpen ? 0 : mainContainer.y
+            width: root.isOpen ? root.width : mainContainer.width
+            height: root.isOpen ? root.height : mainContainer.height
         }
 
     }
 
     Behavior on smoothPreferredWidth {
-        enabled: HyprlandService.enableAnimations && (root.isIsland || (root.isOpen && root.bounceProgress >= 0.95))
+        enabled: HyprlandService.enableAnimations && root.isOpen
 
         NumberAnimation {
             duration: Constants.animNormal
-            easing.type: root.isOpen ? Easing.OutQuint : Easing.OutCubic
-            onRunningChanged: {
-                if (!running && !root.isOpen && root.isIsland)
-                    root.finishClosing();
-
-            }
+            easing.type: Easing.OutQuint
         }
 
     }
 
     Behavior on smoothPreferredHeight {
-        enabled: HyprlandService.enableAnimations && (root.isIsland || (root.isOpen && root.bounceProgress >= 0.95))
+        enabled: HyprlandService.enableAnimations && root.isOpen
 
         NumberAnimation {
             duration: Constants.animNormal
-            easing.type: root.isOpen ? Easing.OutQuint : Easing.OutCubic
+            easing.type: Easing.OutQuint
         }
 
     }
 
     Behavior on smoothWindowRadius {
-        enabled: HyprlandService.enableAnimations && (root.isIsland || (root.isOpen && root.bounceProgress >= 0.95))
+        enabled: HyprlandService.enableAnimations && root.isOpen
 
         NumberAnimation {
             duration: Constants.animNormal
-            easing.type: root.isOpen ? Easing.OutQuint : Easing.OutCubic
+            easing.type: Easing.OutQuint
         }
 
     }
 
     Behavior on smoothContentPadding {
-        enabled: HyprlandService.enableAnimations && (root.isIsland || (root.isOpen && root.bounceProgress >= 0.95))
+        enabled: HyprlandService.enableAnimations && root.isOpen
 
         NumberAnimation {
             duration: Constants.animNormal
-            easing.type: root.isOpen ? Easing.OutQuint : Easing.OutCubic
+            easing.type: Easing.OutQuint
         }
 
     }
@@ -263,10 +293,10 @@ PanelWindow {
 
         NumberAnimation {
             // Bottom sheets use the ConvexBottomHost drawer physics:
-            // expressive OutQuint on open, normal OutCubic on close. Island
-            // and plain floating popups keep their own curves.
-            duration: root.positionAtBottom ? (root.isOpen ? Constants.animExpressive : Constants.animNormal) : (root.isOpen ? ((root.isIsland && AppState.hasActiveNotification) ? Constants.animSlow : (root.isIsland ? Constants.animExpressive : Constants.animNormal)) : Constants.animNormal)
-            easing.type: root.positionAtBottom ? (root.isOpen ? Easing.OutQuint : Easing.OutCubic) : (root.isIsland ? (root.isOpen ? Easing.OutQuint : Easing.OutCubic) : (root.isOpen ? Easing.OutCubic : Easing.InCubic))
+            // expressive OutQuint on open, normal OutCubic on close. Plain
+            // floating popups keep their own curves.
+            duration: root.positionAtBottom ? (root.isOpen ? Constants.animExpressive : Constants.animNormal) : (root.isOpen ? Constants.animNormal : Constants.animNormal)
+            easing.type: root.positionAtBottom ? (root.isOpen ? Easing.OutQuint : Easing.OutCubic) : (root.isOpen ? Easing.OutCubic : Easing.InCubic)
         }
 
     }

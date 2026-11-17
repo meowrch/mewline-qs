@@ -132,8 +132,6 @@ hl.bind("CTRL + ALT + X", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_
 hl.bind(mainMod .. " + V", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_clipboard"))
 -- # Toggle Wallpaper Selector
 hl.bind("CTRL + ALT + W", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_wallpaper"))
--- # Toggle Screenshot
-hl.bind(mainMod .. " + SHIFT + S", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_screenshot"))
 -- # Toggle Dashboard
 hl.bind("CTRL + ALT + D", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_dashboard"))
 -- # Toggle Music
@@ -148,11 +146,11 @@ hl.bind("CTRL + ALT + C", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_
 -- ## Quickshell Apps
 
 -- # Toggle Settings
-hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_minflair_settings"))
+hl.bind(mainMod .. " + S", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_mewline_settings"))
 -- # Toggle Package Manager
 hl.bind("CTRL + ALT + P", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_packagemanager"))
 -- # Toggle Keybinds Cheat Sheet
-hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_minflair_keybinds"))
+hl.bind(mainMod .. " + K", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_mewline_keybinds"))
 -- # Toggle Pomodoro
 hl.bind("CTRL + ALT + T", hl.dsp.exec_cmd("socat - UNIX-CONNECT:/tmp/quickshell_pomodoro"))
 

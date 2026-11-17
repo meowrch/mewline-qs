@@ -1,6 +1,5 @@
 import QtQuick
 import "Styles/Convex"
-import "Styles/Island"
 import qs.Core
 import qs.Core.Services
 
@@ -9,23 +8,13 @@ Item {
 
     required property var notificationService
     property var mainPanelWidget: null
-    property string activeBarStyle: SettingsService.barStyle
+    property string activeBarStyle: "convex"
     // When false the active style is not instantiated, letting a host window
     // stay mapped without building a bar it will not display.
     property bool styleEnabled: true
-    readonly property bool isCurrentIsland: activeBarStyle === "island"
     readonly property bool isCurrentConvex: activeBarStyle === "convex"
     // Use unified interface exposed by IBarStyle implementation
-    readonly property QtObject currentStyleItem: {
-        switch (mainBar.activeBarStyle) {
-        case "island":
-            return islandLoader.item;
-        case "convex":
-            return convexLoader.item;
-        default:
-            return islandLoader.item ? islandLoader.item : convexLoader.item;
-        }
-    }
+    readonly property QtObject currentStyleItem: convexLoader.item
     readonly property real leftWidth: currentStyleItem ? (currentStyleItem.leftWidth || 0) : 0
     readonly property real rightWidth: currentStyleItem ? (currentStyleItem.rightWidth || 0) : 0
     readonly property real centerX: currentStyleItem ? (currentStyleItem.centerX || 0) : 0
@@ -47,17 +36,7 @@ Item {
 
     }
 
-    implicitWidth: currentStyleItem && currentStyleItem.implicitWidth > 0 ? currentStyleItem.implicitWidth : (BarStyleConfig.isPill(activeBarStyle) ? 180 : 0)
-
-    Loader {
-        id: islandLoader
-
-        anchors.fill: parent
-        active: mainBar.isCurrentIsland && mainBar.styleEnabled
-        visible: active
-        sourceComponent: islandComp
-        enabled: visible
-    }
+    implicitWidth: currentStyleItem && currentStyleItem.implicitWidth > 0 ? currentStyleItem.implicitWidth : 0
 
     Loader {
         id: convexLoader
@@ -67,16 +46,6 @@ Item {
         visible: active
         sourceComponent: convexComp
         enabled: visible
-    }
-
-    Component {
-        id: islandComp
-
-        IslandBar {
-            notificationService: mainBar.notificationService
-            mainPanelWidget: mainBar.mainPanelWidget
-        }
-
     }
 
     Component {

@@ -27,9 +27,9 @@ class BashComponentTests(unittest.TestCase):
         self.prefs.write_text(prefs, encoding="utf-8")
         env = os.environ.copy()
         env["HOME"] = str(self.home)
-        env["MINFLAIR_PREFS"] = str(self.prefs)
+        env["MEWLINE_PREFS"] = str(self.prefs)
         if manifest is not None:
-            env["MINFLAIR_MANIFEST"] = str(manifest)
+            env["MEWLINE_MANIFEST"] = str(manifest)
         script = (
             f'REPO_DIR="{REPO_ROOT}"\n'
             "source lib/components.sh\n"
@@ -176,8 +176,8 @@ class BashComponentTests(unittest.TestCase):
         self.assertIn("Kitty terminal", result.stdout)
         self.assertIn("Skipped components keep their existing files.", result.stdout)
 
-    def test_minflair_version_matches_the_manifest(self):
-        result = self.run_bash("minflair_version")
+    def test_mewline_version_matches_the_manifest(self):
+        result = self.run_bash("mewline_version")
         self.assertEqual(result.returncode, 0, result.stderr)
         # The version is checked against the crate in test_version_sync.py,
         # so it does not have to be updated here on every release.

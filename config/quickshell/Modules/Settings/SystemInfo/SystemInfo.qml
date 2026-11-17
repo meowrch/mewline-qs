@@ -1,5 +1,7 @@
 import QtQuick
+import QtQuick.Effects
 import QtQuick.Layouts
+import Quickshell
 import qs.Core
 import qs.Core.Components
 import qs.Core.Services
@@ -33,8 +35,33 @@ AppContainer {
         RowLayout {
             spacing: Constants.sizeLg
 
-            AnimatedMinflair {
-                iconSize: Constants.size5Xl
+            // The mewline cat silhouette from the bar's left side, tinted
+            // with the palette accent (same recipe as MewlineButton).
+            Item {
+                id: catLogo
+
+                readonly property int scaledSize: Math.round(Constants.size5Xl * SettingsService.fontScale)
+
+                width: scaledSize + Constants.sizeXs
+                height: scaledSize
+                Layout.alignment: Qt.AlignVCenter
+
+                Image {
+                    anchors.centerIn: parent
+                    width: parent.width
+                    height: parent.height
+                    source: "file://" + Quickshell.shellDir + "/assets/meowrch/cat-silhouette.png"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
+                    asynchronous: true
+                    visible: status === Image.Ready
+                    layer.enabled: true
+                    layer.effect: MultiEffect {
+                        colorization: 1
+                        colorizationColor: Theme.accent
+                    }
+                }
+
             }
 
             ColumnLayout {
@@ -65,7 +92,7 @@ AppContainer {
         icon: "info"
 
         InfoRow {
-            label: "Minflair"
+            label: "Mewline"
             value: "v" + Constants.appVersion
         }
 

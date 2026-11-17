@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """DISABLED in mewline-qs.
 
-pawlette owns all theming now, so the minflair applier chain (hypr colors,
+pawlette owns all theming now, so the mewline applier chain (hypr colors,
 kitty, gtk, qt, btop, ...) must never run. This stub logs every invocation
 with its parent process so a forgotten caller shows up in the audit log
 instead of silently rewriting the user's config.

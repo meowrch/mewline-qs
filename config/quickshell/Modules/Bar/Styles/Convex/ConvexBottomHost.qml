@@ -10,7 +10,6 @@ import qs.Modules.Bar.Styles.Convex
 import qs.Modules.Clipboard
 import qs.Modules.Launcher
 import qs.Modules.PowerMenu
-import qs.Modules.ScreenCapture
 import qs.Modules.WallpaperSelector
 
 Item {
@@ -31,19 +30,16 @@ Item {
         if (AppState.isWidgetOpen("powerMenu"))
             return "powerMenu";
 
-        if (AppState.isWidgetOpen("screenshot"))
-            return "screenshot";
-
         return "";
     }
     property string displayedWidgetId: ""
     readonly property bool isOpen: activeWidgetId !== ""
     property bool isClosing: false
     property bool _visible: false
-    readonly property bool isCompactWidget: displayedWidgetId === "powerMenu" || displayedWidgetId === "screenshot"
+    readonly property bool isCompactWidget: displayedWidgetId === "powerMenu"
     property int cornerRadius: isCompactWidget ? Constants.sizeMd : Constants.sizeLg * 2
     // Power menu buttons sit flush against the edge without padding, so it
-    // gets its own breathing room; screenshot keeps the flush compact look.
+    // gets its own breathing room.
     property int contentPadding: displayedWidgetId === "powerMenu" ? Constants.sizeMd : (isCompactWidget ? 0 : Constants.sizeLg)
     property color backgroundColor: Theme.bg
     property real contentWidth: loader.item ? (loader.item.implicitWidth > 0 ? loader.item.implicitWidth : loader.item.width) : 0
@@ -66,8 +62,6 @@ Item {
             return wallpaperComp;
         case "powerMenu":
             return powerMenuComp;
-        case "screenshot":
-            return screenshotComp;
         default:
             return null;
         }
@@ -90,14 +84,14 @@ Item {
     // That is why the clipboard and wallpaper menus were keyboard-dead on
     // first open even though the QML focus chain was fine. Re-asserting the
     // layer keyboard focus here (after the window's own bindings settle) makes
-    // the drawer window hold the keyboard on the first frame, the same way
-    // island menus work. Exclusive only affects keyboard routing for other
-    // surfaces while the drawer is open; click-outside-to-close still works
-    // because the dismiss MouseArea and the focus grab live on the same
-    // fullscreen window, and clicks on other monitors are dismissed too.
-    // isOpen mirrors the global AppState in every bar style, but only in
-    // convex mode is THIS drawer the visible host — never steal the keyboard
-    // for island/gaming sheets hosted elsewhere.
+    // the drawer window hold the keyboard on the first frame. Exclusive only
+    // affects keyboard routing for other surfaces while the drawer is open;
+    // click-outside-to-close still works because the dismiss MouseArea and
+    // the focus grab live on the same fullscreen window, and clicks on other
+    // monitors are dismissed too.
+    // isOpen mirrors the global AppState, but only in convex mode is THIS
+    // drawer the visible host — never steal the keyboard for gaming sheets
+    // hosted elsewhere.
     readonly property bool isVisibleDrawerHost: SettingsService.barConvexMode && !DisplayProfileService.gameModeActive
     function updateHostKeyboardFocus() {
         const win = root.QsWindow.window;
@@ -135,9 +129,6 @@ Item {
 
         if (typeof loader.item.resetPowerMenu === "function")
             loader.item.resetPowerMenu();
-
-        if (typeof loader.item.resetScreenCapture === "function")
-            loader.item.resetScreenCapture();
 
         AppState.barMenuFocusItem = (loader.item && loader.item.initialFocusItem) ? loader.item.initialFocusItem : null;
         Qt.callLater(() => {
@@ -330,16 +321,7 @@ Item {
 
     }
 
-    Component {
-        id: screenshotComp
-
-        ScreenCaptureContent {
-            widget: widgetProxy
-        }
-
-    }
-
-    // Island-matched opening/closing physics
+    // Drawer opening/closing physics
     Behavior on openProgress {
         enabled: HyprlandService.enableAnimations
 
@@ -358,7 +340,7 @@ Item {
 
     }
 
-    // Island-matched morphing durations
+    // Drawer morphing durations
     Behavior on smoothHeight {
         enabled: HyprlandService.enableAnimations && root.isOpen
 

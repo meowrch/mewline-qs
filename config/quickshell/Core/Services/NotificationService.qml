@@ -128,10 +128,6 @@ Item {
         }
     }
 
-    function pruneForIslandMode() {
-        pruneActiveNotifications();
-    }
-
     function notify(summary, body, icon = "", appName = "System", urgency = NotificationUrgency.Normal) {
         let timestamp = new Date().getTime();
         let nd = notificationDataComponent.createObject(root, {
@@ -433,14 +429,6 @@ Item {
         }
 
         target: DisplayProfileService
-    }
-
-    Connections {
-        function onBarIslandModeChanged() {
-            root.pruneActiveNotifications();
-        }
-
-        target: SettingsService
     }
 
     Connections {

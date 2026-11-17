@@ -1,6 +1,6 @@
 # Components and partial adoption
 
-Minflair is split into components. A component groups everything needed to
+Mewline is split into components. A component groups everything needed to
 integrate one application or one system behaviour:
 
 - the configuration paths copied from the repository;
@@ -38,10 +38,10 @@ are comments.
 
 ## Preferences
 
-Preferences live at `~/.config/minflair/preferences.conf`:
+Preferences live at `~/.config/mewline/preferences.conf`:
 
 ```text
-# Minflair preferences v1
+# Mewline preferences v1
 # One disabled component id per line.
 
 kitty
@@ -67,7 +67,7 @@ A disabled component is never:
 - reloaded or signalled (for example `killall -USR1 kitty`).
 
 Disabling a component does **not** delete files that are already installed.
-It only prevents Minflair from touching them again. This is deliberate: an
+It only prevents Mewline from touching them again. This is deliberate: an
 exclusion must never destroy a user's configuration. Enabling a component does
 not deploy its files either; the next `install` or `update` does that.
 
@@ -116,7 +116,7 @@ always updated, because it is part of the shell and not an external app.
 The terminal font is a setting of its own and needs both the `font-sync`
 and the `kitty` component to be enabled: the first one allows the
 propagation to external applications and the second one says whether
-Kitty is managed by Minflair at all. The appearance panel says so when
+Kitty is managed by Mewline at all. The appearance panel says so when
 the font will not be applied.
 
 `apply_cursor.py` returns early when the `cursor` component is disabled.
@@ -127,29 +127,29 @@ QML services that save the wallpaper and settings.
 
 ## Changing components with the CLI
 
-Once the `minflair` CLI is installed, use `minflair components` instead of
+Once the `mewline` CLI is installed, use `mewline components` instead of
 editing the file by hand:
 
 ```bash
-minflair components list
-minflair components list --enabled
-minflair components list --disabled
-minflair components list --json
-minflair components enable kitty
-minflair components disable kitty,nvim
-minflair components edit           # interactive selector
-minflair components reset          # enable every optional component
-minflair components enable kitty --apply
+mewline components list
+mewline components list --enabled
+mewline components list --disabled
+mewline components list --json
+mewline components enable kitty
+mewline components disable kitty,nvim
+mewline components edit           # interactive selector
+mewline components reset          # enable every optional component
+mewline components enable kitty --apply
 ```
 
-The command edits `~/.config/minflair/preferences.conf` only. It never copies,
+The command edits `~/.config/mewline/preferences.conf` only. It never copies,
 installs or deletes files. `enable` and `disable` change only the ids you pass,
 core ids cannot be disabled and unknown ids are rejected. `reset` clears the
 disabled list.
 
-`--apply` runs `minflair update --no-input` after saving, so it requires an
+`--apply` runs `mewline update --no-input` after saving, so it requires an
 existing installation (`~/.config/quickshell`). Without `--apply`, the new
-selection is applied by the next `minflair install` or `minflair update`.
+selection is applied by the next `mewline install` or `mewline update`.
 
 ## Python helper
 
@@ -157,13 +157,13 @@ The repository also ships a Python helper, used by the runtime scripts and
 available when the CLI is not installed:
 
 ```bash
-python3 config/quickshell/Scripts/minflair_components.py list
-python3 config/quickshell/Scripts/minflair_components.py enabled kitty
-python3 config/quickshell/Scripts/minflair_components.py paths --enabled
-python3 config/quickshell/Scripts/minflair_components.py packages --disabled
-python3 config/quickshell/Scripts/minflair_components.py validate --repo-root .
-python3 config/quickshell/Scripts/minflair_components.py disable kitty nvim
-python3 config/quickshell/Scripts/minflair_components.py enable kitty
+python3 config/quickshell/Scripts/mewline_components.py list
+python3 config/quickshell/Scripts/mewline_components.py enabled kitty
+python3 config/quickshell/Scripts/mewline_components.py paths --enabled
+python3 config/quickshell/Scripts/mewline_components.py packages --disabled
+python3 config/quickshell/Scripts/mewline_components.py validate --repo-root .
+python3 config/quickshell/Scripts/mewline_components.py disable kitty nvim
+python3 config/quickshell/Scripts/mewline_components.py enable kitty
 ```
 
 `enabled` exits with `0` when the component is enabled and `1` when it is

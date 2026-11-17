@@ -16,7 +16,6 @@ import qs.Modules.Launcher
 import qs.Modules.Music
 import qs.Modules.NotificationCenter
 import qs.Modules.PowerMenu
-import qs.Modules.ScreenCapture
 import qs.Modules.SystemUsage as SystemUsageModule
 import qs.Modules.WallpaperSelector
 
@@ -40,10 +39,9 @@ PanelWindow {
     readonly property bool isClipboard: root.isActive && AppState.isWidgetOpen("clipboard")
     readonly property bool isWallpaper: root.isActive && AppState.isWidgetOpen("wallpaper")
     readonly property bool isPowerMenu: root.isActive && AppState.isWidgetOpen("powerMenu")
-    readonly property bool isScreenshot: root.isActive && AppState.isWidgetOpen("screenshot")
     readonly property bool isTray: root.isActive && (AppState.activeWidget || "").startsWith("systemTray_")
-    readonly property bool hasAnyOpen: isControlCenter || isNotificationsCenter || isDashboard || isMusic || isCalendar || isSystemUsage || isLauncher || isClipboard || isWallpaper || isPowerMenu || isScreenshot || isTray
-    readonly property bool needsFocus: isLauncher || isClipboard || isWallpaper || isPowerMenu || isScreenshot
+    readonly property bool hasAnyOpen: isControlCenter || isNotificationsCenter || isDashboard || isMusic || isCalendar || isSystemUsage || isLauncher || isClipboard || isWallpaper || isPowerMenu || isTray
+    readonly property bool needsFocus: isLauncher || isClipboard || isWallpaper || isPowerMenu
     readonly property int activeTrayIndex: {
         let targetId = AppState.activeWidget && AppState.activeWidget.startsWith("systemTray_") ? AppState.activeWidget : "";
         if (targetId && targetId.startsWith("systemTray_")) {
@@ -159,14 +157,6 @@ PanelWindow {
                 powerMenuContent.resetPowerMenu();
 
             scheduleContentFocus(powerMenuContent ? powerMenuContent.initialFocusItem : null);
-        }
-    }
-    onIsScreenshotChanged: {
-        if (isScreenshot) {
-            if (screenshotContent && typeof screenshotContent.resetScreenCapture === "function")
-                screenshotContent.resetScreenCapture();
-
-            scheduleContentFocus(screenshotContent ? screenshotContent.initialFocusItem : null);
         }
     }
     onVisibleChanged: {
@@ -575,33 +565,6 @@ PanelWindow {
 
         PowerMenuContent {
             id: powerMenuContent
-
-            anchors.centerIn: parent
-            widget: widgetProxy
-        }
-
-    }
-
-    Rectangle {
-        id: screenshotContainer
-
-        visible: root.isScreenshot
-        enabled: visible
-        anchors.centerIn: parent
-        width: screenshotContent.implicitWidth
-        height: screenshotContent.implicitHeight
-        color: Theme.bg
-        radius: 0
-        border.width: 1
-        border.color: Theme.border
-
-        MouseArea {
-            anchors.fill: parent
-            acceptedButtons: Qt.AllButtons
-        }
-
-        ScreenCaptureContent {
-            id: screenshotContent
 
             anchors.centerIn: parent
             widget: widgetProxy

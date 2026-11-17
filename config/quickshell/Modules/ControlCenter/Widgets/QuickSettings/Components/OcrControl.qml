@@ -8,7 +8,7 @@ QuickSettingsTile {
 
     // Action tile (not a toggle): pick a screen region, extract its text,
     // copy it to the clipboard and raise a notification. The heavy lifting
-    // lives in Scripts/system/ocr.sh, run detached like screenshot.sh.
+    // lives in Scripts/system/ocr.sh and runs detached.
     isActive: false
     icon: "ocr"
     label: "OCR"

@@ -156,7 +156,7 @@ impl Manifest {
     /// Check path mappings and theme appliers.
     ///
     /// Preference ids are validated separately by [`crate::prefs::validate`].
-    /// The messages mirror `config/quickshell/Scripts/minflair_components.py`
+    /// The messages mirror `config/quickshell/Scripts/mewline_components.py`
     /// so both validators report the same problems.
     pub fn validate(&self, repo_root: &Path) -> Vec<String> {
         let mut warnings = Vec::new();
@@ -321,7 +321,7 @@ mod tests {
     use super::*;
 
     const SAMPLE: &str = "\
-# Minflair component manifest
+# Mewline component manifest
 id\tlabel\tcategory\tcore\tpaths\tpackages\ttheme\tfont\treload\tdescription
 quickshell\tQuickshell shell\tcore\t1\tconfig/quickshell\tquickshell\t\t\t\tCore shell
 kitty\tKitty terminal\tterminal\t0\tconfig/kitty\tkitty\tkitty\tkitty\tkillall -USR1 kitty\tTerminal and colors
