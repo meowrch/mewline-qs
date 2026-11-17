@@ -50,7 +50,17 @@ Item {
                         return "";
 
                     let k = r * 0.552285;
-                    let outer = `M 0 0 L ${W} 0 L ${W} ${H} L 0 ${H} Z `;
+                    let outer;
+                    if (CompositorService.isX11) {
+                        // The bezel fill starts below the bar (topMargin), so
+                        // the window corners picom rounds are not where the
+                        // visible fill corners are. Round the two bottom
+                        // outer corners right in the path — on Wayland the
+                        // compositor rounding does this clipping instead.
+                        outer = `M 0 0 L ${W} 0 L ${W} ${H - r} C ${W} ${H - r + k}, ${W - r + k} ${H}, ${W - r} ${H} L ${r} ${H} C ${r - k} ${H}, 0 ${H - r + k}, 0 ${H - r} Z`;
+                    } else {
+                        outer = `M 0 0 L ${W} 0 L ${W} ${H} L 0 ${H} Z `;
+                    }
                     let inner = `M ${inX} ${inY + r} ` + `L ${inX} ${inY + inH - r} ` + `C ${inX} ${inY + inH - r + k}, ${inX + r - k} ${inY + inH}, ${inX + r} ${inY + inH} ` + `L ${inX + inW - r} ${inY + inH} ` + `C ${inX + inW - r + k} ${inY + inH}, ${inX + inW} ${inY + inH - r + k}, ${inX + inW} ${inY + inH - r} ` + `L ${inX + inW} ${inY + r} ` + `C ${inX + inW} ${inY + r - k}, ${inX + inW - r + k} ${inY}, ${inX + inW - r} ${inY} ` + `L ${inX + r} ${inY} ` + `C ${inX + r - k} ${inY}, ${inX} ${inY + r - k}, ${inX} ${inY + r} Z`;
                     return outer + inner;
                 }

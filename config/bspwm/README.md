@@ -15,7 +15,9 @@ and merge the picom rules.
   your sxhkdrc or pass both files to sxhkd.
 - `picom-mewline.conf` — picom rules for the shell windows (no double
   shadows, no picom fade, 32px frame radius). Merge into picom.conf or
-  `include-file` it.
+  `include-file` it. The shell frame radius matches the Hyprland build's
+  `decoration:rounding` (32) — set the global `corner-radius` to the same
+  value so application windows round identically too.
 
 ## Window identity and keyboard (X11)
 
