@@ -73,8 +73,10 @@ Singleton {
 
         // Session-aware recorder detection: wf-recorder on Wayland,
         // ffmpeg x11grab on X11 (the flag match leaves other ffmpeg
-        // processes alone).
-        command: ["sh", "-c", "pidof wf-recorder 2>/dev/null || pgrep -f 'ffmpeg.*x11grab' 2>/dev/null"]
+        // processes alone). The [f] character class keeps pgrep from
+        // matching the poller's own command line, which contains this
+        // pattern as text — without it "running" sticks true forever.
+        command: ["sh", "-c", "pidof wf-recorder 2>/dev/null || pgrep -f '[f]fmpeg.*x11grab' 2>/dev/null"]
         onExited: (code) => {
             root.running = (code === 0);
         }
