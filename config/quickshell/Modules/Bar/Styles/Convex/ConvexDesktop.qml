@@ -76,10 +76,10 @@ PanelWindow {
         interval: 50
         repeat: false
         onTriggered: {
-            const win = root.QsWindow.window;
-            if (win)
-                win.requestActivate();
-
+            // requestActivate alone cannot reach an unmanaged dock window
+            // (nobody answers the ICCCM activation request on bspwm) — the
+            // direct SetInputFocus through the tagged name does.
+            CompositorService.activateWindowByTitle("mewline-drawers");
         }
     }
 

@@ -1,34 +1,26 @@
 # mewline-qs keybinds for bspwm/sxhkd.
-# Mirrors config/hypr/keybinds.lua: toggles go through the widget sockets
-# (socat) or the shell IPC, exactly like on Hyprland.
+# Mirrors the fabric-cli island binds of the meowrch sxhkdrc, retargeted at
+# the quickshell shell: toggles go through the widget sockets
+# (/tmp/quickshell_<widgetId>), which are compositor- and path-independent.
+# The Escape key is handled by the shell windows themselves — no global
+# Escape grab that would eat Esc inside applications.
 
-QSIPC="qs -p ${MEWLINE_QS_DIR:-$HOME/.config/quickshell} ipc call widgets"
-
-# Application launcher / clipboard / wallpaper selector / power menu
-super + a
-	$QSIPC toggle launcher
-super + v
-	$QSIPC toggle clipboard
-ctrl + alt + w
-	$QSIPC toggle wallpaper
-ctrl + alt + x
-	$QSIPC toggle powerMenu
-
-# Bar popups: dashboard, control center, notifications, music, calendar,
-# system usage, settings, theme selector
-ctrl + alt + d
-	$QSIPC toggle dashboard
-ctrl + alt + o
-	$QSIPC toggle mewline_settings
+super + alt + p
+	socat - UNIX-CONNECT:/tmp/quickshell_powerMenu
+super + alt + d
+	socat - UNIX-CONNECT:/tmp/quickshell_calendar
+super + alt + b
+	socat - UNIX-CONNECT:/tmp/quickshell_controlCenter
+super + alt + a
+	socat - UNIX-CONNECT:/tmp/quickshell_launcher
+super + alt + w
+	socat - UNIX-CONNECT:/tmp/quickshell_wallpaper
+super + alt + less
+	$HOME/.local/bin/rofi-menus/rofimoji.sh
+super + alt + v
+	socat - UNIX-CONNECT:/tmp/quickshell_clipboard
+super + alt + n
+	socat - UNIX-CONNECT:/tmp/quickshell_controlCenter
 super + alt + t
-	$QSIPC toggle pawlette
-ctrl + alt + m
-	$QSIPC toggle music
-ctrl + alt + c
-	$QSIPC toggle calendar
-ctrl + alt + u
-	$QSIPC toggle systemUsage
-
-# Direct socket toggles (equivalent to the socat binds in keybinds.lua)
-super + s
-	socat - UNIX-CONNECT:/tmp/quickshell_mewline_settings
+	socat - UNIX-CONNECT:/tmp/quickshell_pawlette
+# Workspaces overview: no shell widget yet — bind left empty on purpose.

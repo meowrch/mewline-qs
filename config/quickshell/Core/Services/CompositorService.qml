@@ -244,9 +244,31 @@ Item {
         Quickshell.execDetached(["sh", "-c", "id=$(cat \"$XDG_RUNTIME_DIR/quickshell_focus_backup\" 2>/dev/null); [ -n \"$id\" ] && bspc node \"$id\" --focus 2>/dev/null; rm -f \"$XDG_RUNTIME_DIR/quickshell_focus_backup\""]);
     }
 
-    // X11 focus notes: PanelWindow has no per-window title on X11 (all
-    // windows share the WM_CLASS "quickshell", addressed by bspwm rules),
-    // so keyboard handover relies on QQuickWindow.requestActivate() plus
-    // the focus capture/restore around popups.
+    // X11 keyboard handover. Shell windows are dock-type and unmanaged:
+    // bspwm never answers the ICCCM _NET_ACTIVE_WINDOW request Qt sends on
+    // requestActivate(), so the compositor-abstraction helpers hand the
+    // keyboard over with a direct xdotool SetInputFocus instead. The
+    // static surfaces are tagged with unique names by the bspwm autostart
+    // module (PanelWindow exposes no per-window title), dynamically opened
+    // sheets are always the newest shell window.
+
+    // Focus a shell window by its tagged name ("mewline-drawers", ...).
+    function activateWindowByTitle(title) {
+        if (!root.isX11)
+            return ;
+
+        Quickshell.execDetached(["sh", "-c", "id=$(xdotool search --onlyvisible --name \"$1\" 2>/dev/null | tail -1); [ -n \"$id\" ] && xdotool windowfocus --sync \"$id\" 2>/dev/null", "qs-focus", title]);
+    }
+
+    // Focus the newest shell window — used for dynamically created sheets
+    // (theme selector), which cannot be tagged at startup. Their WM_NAME is
+    // empty, so enumeration filters on _NET_WM_NAME via xprop instead of
+    // xdotool search.
+    function activateNewestShellWindow() {
+        if (!root.isX11)
+            return ;
+
+        Quickshell.execDetached(["sh", "-c", "id=$(for w in $(xdotool search --name '' 2>/dev/null); do nm=$(xprop -id \"$w\" _NET_WM_NAME 2>/dev/null); case \"$nm\" in *'\"quickshell\"'*) echo \"$w\";; esac; done | tail -1); [ -n \"$id\" ] && xdotool windowfocus --sync \"$id\" 2>/dev/null"]);
+    }
 
 }

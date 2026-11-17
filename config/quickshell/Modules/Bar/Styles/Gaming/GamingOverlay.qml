@@ -157,10 +157,7 @@ PanelWindow {
         interval: 50
         repeat: false
         onTriggered: {
-            const win = root.QsWindow.window;
-            if (win)
-                win.requestActivate();
-
+            CompositorService.activateWindowByTitle("mewline-gaming");
         }
     }
     visible: SettingsService.settingsLoaded

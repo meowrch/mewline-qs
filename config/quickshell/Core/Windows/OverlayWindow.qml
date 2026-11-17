@@ -150,10 +150,9 @@ PanelWindow {
         interval: 50
         repeat: false
         onTriggered: {
-            const win = root.QsWindow.window;
-            if (win)
-                win.requestActivate();
-
+            // Sheets are created on demand and cannot be pre-tagged: the
+            // newest shell window is always the sheet being opened.
+            CompositorService.activateNewestShellWindow();
         }
     }
 
