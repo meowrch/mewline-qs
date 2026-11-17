@@ -17,7 +17,11 @@ and merge the picom rules.
   shadows, no picom fade, 32px frame radius). Merge into picom.conf or
   `include-file` it. The shell frame radius matches the Hyprland build's
   `decoration:rounding` (32) — set the global `corner-radius` to the same
-  value so application windows round identically too.
+  value so application windows round identically too. Also set
+  `detect-rounded-corners = false`: the shell windows carry an X input
+  shape (the click-through mask), which makes picom skip its corner
+  radius — the rounding then appeared only after a shape change (e.g.
+  opening a shell menu) instead of always.
 
 ## Window identity and keyboard (X11)
 
