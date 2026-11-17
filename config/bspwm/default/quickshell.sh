@@ -43,12 +43,33 @@ if ! pgrep -x quickshell >/dev/null 2>&1; then
   quickshell -p "$QS_DIR" >/dev/null 2>&1 &
 fi
 
-# Wait for the three fullscreen surfaces to map, then tag them.
-n=0
-while [ $n -lt 40 ]; do
-  if tag_shell_windows; then
-    break
-  fi
-  sleep 0.5
-  n=$((n + 1))
-done
+# All shell windows that carry a shell name (tagged fullscreen surfaces +
+# every dynamic surface still using the default name).
+shell_window_ids() {
+  for id in $(xdotool search --name '' 2>/dev/null); do
+    nm=$(xprop -id "$id" _NET_WM_NAME 2>/dev/null)
+    case "$nm" in
+      *'"quickshell"'* | *'"mewline-'*) ;;
+      *) continue ;;
+    esac
+    echo "$id"
+  done
+}
+
+# Unmanaged dock windows have no WM to keep them above: every raise of a
+# managed window (e.g. a floating app getting focus) sinks the shell. The
+# desktop re-raises all shell windows after every bspwm event — the same
+# approach aevum uses.
+( bspc subscribe desktop_focus node_focus node_add node_remove node_transfer node_state 2>/dev/null | while read -r _; do
+    for id in $(shell_window_ids); do
+      xdotool windowraise "$id" 2>/dev/null
+    done
+  done ) &
+
+# Self-healing tags: a shell restart or QML live-reload recreates the
+# windows untagged, which breaks both keyboard handover and the picom
+# rounding rules. Re-run the (idempotent) tagging periodically.
+( while :; do
+    tag_shell_windows || true
+    sleep 3
+  done ) &

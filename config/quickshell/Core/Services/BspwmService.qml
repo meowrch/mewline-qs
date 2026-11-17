@@ -96,7 +96,20 @@ Item {
 
             const tag = part[0];
             const val = part.substring(1);
-            if (tag === "M" || tag === "m") {
+            if (tag === "W") {
+                // Real report lines start with W<M|m><monitor-name>: the
+                // outer W wraps the monitor state (a live line looks like
+                // `WMeDP:O1:f2:...:LT:TT:G`). mewline's parser handles the
+                // same quirk.
+                if (val.length > 1) {
+                    cur = {
+                        "name": val.substring(1),
+                        "focused": val.charAt(0) === "M",
+                        "desktops": []
+                    };
+                    monitorsArr.push(cur);
+                }
+            } else if (tag === "M" || tag === "m") {
                 cur = {
                     "name": val,
                     "focused": tag === "M",
@@ -123,10 +136,11 @@ Item {
                 if (focused)
                     focusedWs = val;
 
-            } else if (tag === "T") {
-                focusedFullscreen = val.charAt(0) === "F";
             }
-            // L (layout) and G (node flags) are not needed by the shell.
+            // L (layout), T (focused node state — its letters do not map to
+            // what the man page claims, empirically `TF` arrives for a
+            // focused tiled window) and G (node flags) are not used: the
+            // fullscreen state comes from the debounced query below.
         }
         let flat = [];
         for (let m = 0; m < monitorsArr.length; m++)
@@ -135,7 +149,7 @@ Item {
 
         root.workspaces = flat;
         root.focusedDesktop = focusedWs;
-        root.focusedFullscreen = focusedFullscreen;
+        fullscreenCheckDebounce.restart();
     }
 
     Process {
@@ -198,14 +212,6 @@ Item {
                         occupied[n] = true;
                 });
                 const focusedName = sections[2].trim();
-                let fs = false;
-                try {
-                    const node = JSON.parse(sections[3] || "null");
-                    if (node && node.client && node.client.state === "fullscreen")
-                        fs = true;
-
-                } catch (e) {
-                }
                 const out = [];
                 for (let i = 0; i < names.length; i++) {
                     out.push({
@@ -218,8 +224,35 @@ Item {
                 if (out.length > 0) {
                     root.workspaces = out;
                     root.focusedDesktop = focusedName;
-                    root.focusedFullscreen = fs;
                 }
+                fullscreenCheckDebounce.restart();
+            }
+        }
+
+    }
+
+    // Fullscreen state of the focused desktop: the report T tag turned out
+    // unreliable, so this is a direct query, debounced per report burst.
+    Timer {
+        id: fullscreenCheckDebounce
+
+        interval: 150
+        repeat: false
+        onTriggered: {
+            fullscreenCheckProc.running = false;
+            fullscreenCheckProc.running = true;
+        }
+    }
+
+    Process {
+        id: fullscreenCheckProc
+
+        command: ["sh", "-c", "bspc query -N -d focused -n .fullscreen 2>/dev/null"]
+        stdout: StdioCollector {
+            id: fullscreenCheckOutput
+
+            onStreamFinished: {
+                root.focusedFullscreen = (fullscreenCheckOutput.text || "").trim() !== "";
             }
         }
 
