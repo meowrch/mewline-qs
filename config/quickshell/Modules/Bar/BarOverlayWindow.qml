@@ -24,24 +24,30 @@ PanelWindow {
     // is open this window holds the keyboard and routes keys through the
     // proxy below. Closing is always one step away: Escape bind +
     // click-outside.
-    readonly property bool menuKeyboardGrab: !root.isGameMode && AppState.barMenuOpen && !convexDrawerHandledByDesktop
+    // Wayland-only mechanics: on X11 the attached menus live in the
+    // ConvexDesktop window (which handles its own focus) and Escape comes
+    // from the sxhkd bind calling the barscape IPC target.
+    readonly property bool menuKeyboardGrab: CompositorService.isWayland && !root.isGameMode && AppState.barMenuOpen && !convexDrawerHandledByDesktop
     readonly property bool needsFocus: menuKeyboardGrab
 
-    WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    // WlrLayershell.keyboardFocus is the single source of truth for the
-    // keyboard grab. PanelWindow.focusable would race it with an OnDemand
-    // mode, which never receives keys until the layer is clicked — that is
-    // why keybind-opened menus were dead.
-    // Convex attached menus (control center, dashboards): OnDemand +
-    // HyprlandFocusGrab — the Caelestia/DMS consensus. Exclusive + grab
-    // captures the pointer too (noctalia) and kills every click inside the
-    // window. Convex drawer menus are NOT claimed here: ConvexBottomHost
-    // flips their host window (ConvexDesktop) to Exclusive while a drawer
-    // menu is open.
-    WlrLayershell.keyboardFocus: needsFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
+    exclusionMode: ExclusionMode.Ignore
     color: "transparent"
     focusable: false
+    // OnDemand keyboard through the layer shell while a menu is open — set
+    // imperatively (the attached object does not exist on X11).
+    onNeedsFocusChanged: Qt.callLater(root.updateWaylandKeyboardFocus)
+
+    function updateWaylandKeyboardFocus() {
+        const win = root.QsWindow.window;
+        if (!win)
+            return ;
+
+        const layershell = win.WlrLayershell;
+        if (!layershell)
+            return ;
+
+        layershell.keyboardFocus = root.needsFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None;
+    }
 
     // Keyboard proxy for bar menus. While a menu is open the window holds
     // the keyboard grab; this catcher keeps focus and routes keys:
@@ -73,6 +79,9 @@ PanelWindow {
 
     Connections {
         function onBarMenuOpenChanged() {
+            if (!CompositorService.isWayland)
+                return ;
+
             if (AppState.barMenuOpen)
                 escapeBindProc.command = ["hyprctl", "eval", "hl.bind(\"ESCAPE\", hl.dsp.exec_cmd(\"qs -p " + Quickshell.shellDir + " ipc call barscape esc\"))"];
 
@@ -93,13 +102,17 @@ PanelWindow {
         right: true
     }
 
-    HyprlandFocusGrab {
-        id: surfaceFocusGrab
+    // HyprlandFocusGrab is Wayland-only.
+    Loader {
+        active: CompositorService.isWayland
 
-        // needsFocus (not PanelWindow.focusable) drives the grab: this is
-        // what actually hands the keyboard to the bar while a menu is open.
-        active: needsFocus
-        windows: [root]
+        sourceComponent: HyprlandFocusGrab {
+            // needsFocus (not PanelWindow.focusable) drives the grab: this is
+            // what actually hands the keyboard to the bar while a menu is open.
+            active: needsFocus
+            windows: [root]
+        }
+
     }
 
     mask: Region {

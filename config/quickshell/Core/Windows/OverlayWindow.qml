@@ -59,12 +59,27 @@ PanelWindow {
         isOpen = false;
     }
 
+    // Distinct title so the X11 session can address this window (focus
+    // activation + bspwm window rules).
     surfaceFormat.opaque: false
     color: "transparent"
     focusable: root.isOpen && root.windowFocusable
     exclusionMode: ExclusionMode.Ignore
     visible: _windowVisible || forceVisible
     onIsOpenChanged: {
+        // X11: dock windows never get keyboard from a fresh mapping alone —
+        // capture the focused node, then hand the keyboard over explicitly.
+        if (CompositorService.isX11 && root.windowFocusable) {
+            if (root.isOpen) {
+                CompositorService.captureFocus();
+                x11ActivateTimer.restart();
+            } else {
+                CompositorService.restoreFocus();
+            }
+        }
+        if (widgetId === "")
+            return ;
+
         if (widgetId === "")
             return ;
 
@@ -126,6 +141,19 @@ PanelWindow {
                 AppState.closeWidget(widgetId);
 
             root.finishClosing();
+        }
+    }
+
+    Timer {
+        id: x11ActivateTimer
+
+        interval: 50
+        repeat: false
+        onTriggered: {
+            const win = root.QsWindow.window;
+            if (win)
+                win.requestActivate();
+
         }
     }
 

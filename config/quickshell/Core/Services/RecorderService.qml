@@ -71,7 +71,10 @@ Singleton {
     Process {
         id: checkProc
 
-        command: ["pidof", "wf-recorder"]
+        // Session-aware recorder detection: wf-recorder on Wayland,
+        // ffmpeg x11grab on X11 (the flag match leaves other ffmpeg
+        // processes alone).
+        command: ["sh", "-c", "pidof wf-recorder 2>/dev/null || pgrep -f 'ffmpeg.*x11grab' 2>/dev/null"]
         onExited: (code) => {
             root.running = (code === 0);
         }

@@ -22,10 +22,6 @@ Item {
     // hyprctl devices on every activelayout event.
     property string layoutList: ""
     readonly property var layoutCodes: layoutList !== "" ? layoutList.split(",") : []
-    // Caps Lock state for the bar layout indicator (case-flipped labels).
-    // Sysfs LED polling: there is no Hyprland event for caps toggles.
-    property bool capsLockOn: false
-    property string capsLedPath: ""
     property bool wpAutoShuffle: false
     property int wpShuffleInterval: 10
     property bool wpEnableTransitions: true
@@ -238,45 +234,10 @@ Item {
 
     }
 
-    // Caps Lock tracking: resolve the keyboard's capslock LED once, then
-    // poll its brightness — sysfs does not emit inotify events, so a cheap
-    // FileView reload stands in for a change signal.
-    Process {
-        id: capsLedProbe
-
-        command: ["sh", "-c", "for f in /sys/class/leds/*::capslock/brightness; do echo \"$f\"; break; done"]
-        stdout: SplitParser {
-            onRead: (data) => {
-                if (data && data.trim() !== "")
-                    hyprlandService.capsLedPath = data.trim();
-
-            }
-        }
-
-    }
-
-    FileView {
-        id: capsLedFile
-
-        path: hyprlandService.capsLedPath
-        onLoaded: hyprlandService.capsLockOn = text().trim() === "1"
-    }
-
-    Timer {
-        id: capsPollTimer
-
-        interval: 700
-        running: hyprlandService.capsLedPath !== ""
-        repeat: true
-        triggeredOnStart: true
-        onTriggered: capsLedFile.reload()
-    }
-
     Component.onCompleted: {
-        // Seed the layout list / caps state once at startup — the
-        // activelayout event only fires on switches, not on shell reloads.
+        // Seed the layout list once at startup — the activelayout event only
+        // fires on switches, not on shell reloads.
         activeLayoutProc.running = true;
-        capsLedProbe.running = true;
     }
 
 }

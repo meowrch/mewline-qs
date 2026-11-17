@@ -1,0 +1,252 @@
+import QtQuick
+import Quickshell
+import Quickshell.Hyprland
+import Quickshell.Io
+pragma Singleton
+
+// Compositor abstraction layer. The shell must run on both Hyprland
+// (Wayland) and bspwm (X11): everything compositor-facing goes through
+// this singleton instead of touching Hyprland/WlrLayershell directly.
+//
+// Session detection is synchronous (env only): a Wayland session with
+// Hyprland is the default build target; anything else is treated as the
+// bspwm/X11 build. The backends are HyprlandService (Wayland) and
+// BspwmService (X11) — this file only normalizes their state and routes
+// commands.
+
+Item {
+    id: root
+
+    // ------------------------------------------------------------------
+    // Session detection
+    // ------------------------------------------------------------------
+    readonly property string sessionType: (Quickshell.env("XDG_SESSION_TYPE") || "").toLowerCase()
+    readonly property bool isWayland: sessionType === "wayland" || (sessionType === "" && Quickshell.env("WAYLAND_DISPLAY") !== "")
+    readonly property bool isX11: !isWayland
+    // Backend identifier ("hyprland" / "bspwm") — matches the per-WM keys
+    // used by the config files.
+    readonly property string wm: isWayland ? "hyprland" : "bspwm"
+
+    // ------------------------------------------------------------------
+    // Uniform state — declared in the "Normalized state" section below as
+    // readonly bindings over the active backend. Only the mutable X11
+    // poll target and the caps LED state live here.
+    // ------------------------------------------------------------------
+
+    // Caps lock state (bar layout indicator, case-flipped clock label).
+    // Sysfs LED polling works on both Wayland and X11 — it is kernel level.
+    property bool capsLockOn: false
+    property string capsLedPath: ""
+
+    // ------------------------------------------------------------------
+    // Wayland/Hyprland state mirrors (bindings, no manual refresh needed)
+    // ------------------------------------------------------------------
+    readonly property var hyprWorkspaces: {
+        if (!isWayland)
+            return [];
+
+        const list = (Hyprland.workspaces && Hyprland.workspaces.values) ? Hyprland.workspaces.values : [];
+        const tops = (Hyprland.toplevels && Hyprland.toplevels.values) ? Hyprland.toplevels.values : [];
+        const focusedId = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : -1;
+        const out = [];
+        for (let i = 0; i < list.length; i++) {
+            const ws = list[i];
+            if (!ws || ws.id <= 0)
+                continue;
+
+            let hasWins = false;
+            if (ws.toplevels && ws.toplevels.values && ws.toplevels.values.length > 0)
+                hasWins = true;
+
+            if (!hasWins)
+                hasWins = tops.some((top) => {
+                    return top && top.workspace && top.workspace.id === ws.id;
+                });
+
+            out.push({
+                "name": String(ws.id),
+                "focused": focusedId === ws.id,
+                "occupied": hasWins,
+                "urgent": false
+            });
+        }
+        out.sort((a, b) => {
+            return parseInt(a.name) - parseInt(b.name);
+        });
+        return out;
+    }
+
+    readonly property var hyprLayoutCodes: HyprlandService.layoutList !== "" ? HyprlandService.layoutList.split(",") : []
+
+    readonly property int hyprMaxRefresh: {
+        let max = 0;
+        const monitors = (Hyprland.monitors && Hyprland.monitors.values) ? Hyprland.monitors.values : [];
+        for (let i = 0; i < monitors.length; i++) {
+            const r = (monitors[i].lastIpcObject && monitors[i].lastIpcObject.refreshRate) || 0;
+            if (r > max)
+                max = r;
+        }
+        return max > 0 ? Math.round(max) : 60;
+    }
+
+    // ------------------------------------------------------------------
+    // Normalized state per backend
+    // ------------------------------------------------------------------
+    readonly property var workspaces: isWayland ? hyprWorkspaces : (BspwmService.workspaces || [])
+
+    // Numeric id of the focused workspace (parseInt of the desktop name on
+    // bspwm, the Hyprland workspace id on Wayland).
+    readonly property int focusedWorkspaceId: isWayland ? (Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1) : ((parseInt(BspwmService.focusedDesktop) || 0) || 1)
+
+    readonly property bool hasFullscreen: isWayland ? ((Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.hasFullscreen) ? HyprlandService.isTrueFullscreen : false) : BspwmService.focusedFullscreen
+
+    readonly property string keyboardLayout: isWayland ? HyprlandService.keyboardLayout : BspwmService.keyboardLayout
+
+    readonly property var layoutCodes: isWayland ? hyprLayoutCodes : BspwmService.layoutCodes
+
+    // Highest refresh rate among the connected monitors — the wallpaper
+    // transition target. On X11 it comes from a xrandr poll (current mode
+    // of every output is starred).
+    readonly property int maxMonitorRefresh: isWayland ? hyprMaxRefresh : x11MaxRefresh
+
+    property int x11MaxRefresh: 60
+    readonly property string x11RefreshCmd: "xrandr --query 2>/dev/null | grep '\\*' | grep -oE '[0-9]+(\\.[0-9]+)?\\*' | tr -d '*' | sort -nr | head -1"
+
+    Process {
+        id: x11RefreshProc
+
+        command: ["sh", "-c", root.x11RefreshCmd]
+        stdout: SplitParser {
+            onRead: (data) => {
+                const rate = parseFloat((data || "").trim());
+                if (!isNaN(rate) && rate > 0)
+                    root.x11MaxRefresh = Math.round(rate);
+            }
+        }
+
+    }
+
+    Timer {
+        id: x11RefreshTimer
+
+        interval: 30000
+        running: root.isX11
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: {
+            x11RefreshProc.running = false;
+            x11RefreshProc.running = true;
+        }
+    }
+
+    // Caps Lock LED probe + poll (shared by both backends).
+    Process {
+        id: capsLedProbe
+
+        command: ["sh", "-c", "for f in /sys/class/leds/*::capslock/brightness; do echo \"$f\"; break; done"]
+        stdout: SplitParser {
+            onRead: (data) => {
+                if (data && data.trim() !== "")
+                    root.capsLedPath = data.trim();
+
+            }
+        }
+
+    }
+
+    FileView {
+        id: capsLedFile
+
+        path: root.capsLedPath
+        onLoaded: root.capsLockOn = text().trim() === "1"
+    }
+
+    Timer {
+        id: capsPollTimer
+
+        interval: 700
+        running: root.capsLedPath !== ""
+        repeat: true
+        triggeredOnStart: true
+        onTriggered: capsLedFile.reload()
+    }
+
+    // Wayland workspace refresh loop — same pattern the bar widget used to
+    // run inline: Hyprland model bindings only re-evaluate when the model
+    // is explicitly refreshed.
+    Timer {
+        id: refreshDebounce
+
+        interval: 100
+        repeat: false
+        onTriggered: {
+            if (root.isWayland)
+                Hyprland.refreshWorkspaces();
+
+        }
+    }
+
+    Connections {
+        function onRawEvent(event) {
+            if (!root.isWayland || !event || !event.name)
+                return ;
+
+            const ev = event.name;
+            if (ev === "openwindow" || ev === "closewindow" || ev === "movewindowv2" || ev === "createworkspacev2" || ev === "destroyworkspacev2" || ev === "workspace" || ev === "workspacev2" || ev === "focusedmon" || ev === "fullscreen")
+                refreshDebounce.restart();
+
+        }
+
+        target: Hyprland
+    }
+
+    Component.onCompleted: {
+        capsLedProbe.running = true;
+        // Seed the workspaces / focused state once at startup.
+        refreshDebounce.restart();
+    }
+
+    // ------------------------------------------------------------------
+    // Commands
+    // ------------------------------------------------------------------
+
+    function switchWorkspace(id) {
+        if (root.isWayland)
+            Hyprland.dispatch('hl.dsp.focus({workspace=' + id + '})');
+        else
+            BspwmService.command(["desktop", "-f", String(id)]);
+    }
+
+    // Launch an application command string through the compositor the way
+    // the session keybinds do (keeps env/scratchpad behavior consistent).
+    function launchCommand(cmd) {
+        if (root.isWayland) {
+            const request = Hyprland.usingLua ? "hl.dsp.exec_cmd(" + JSON.stringify(cmd) + ")" : "exec " + cmd;
+            Hyprland.dispatch(request);
+        } else {
+            Quickshell.execDetached(["sh", "-c", cmd]);
+        }
+    }
+
+    // X11 only: remember the currently focused bspwm node before a shell
+    // window grabs the keyboard, restore it when the popup closes.
+    function captureFocus() {
+        if (!root.isX11)
+            return ;
+
+        Quickshell.execDetached(["sh", "-c", "id=$(bspc query -N -n focused 2>/dev/null); [ -n \"$id\" ] && printf '%s' \"$id\" > \"$XDG_RUNTIME_DIR/quickshell_focus_backup\""]);
+    }
+
+    function restoreFocus() {
+        if (!root.isX11)
+            return ;
+
+        Quickshell.execDetached(["sh", "-c", "id=$(cat \"$XDG_RUNTIME_DIR/quickshell_focus_backup\" 2>/dev/null); [ -n \"$id\" ] && bspc node \"$id\" --focus 2>/dev/null; rm -f \"$XDG_RUNTIME_DIR/quickshell_focus_backup\""]);
+    }
+
+    // X11 focus notes: PanelWindow has no per-window title on X11 (all
+    // windows share the WM_CLASS "quickshell", addressed by bspwm rules),
+    // so keyboard handover relies on QQuickWindow.requestActivate() plus
+    // the focus capture/restore around popups.
+
+}

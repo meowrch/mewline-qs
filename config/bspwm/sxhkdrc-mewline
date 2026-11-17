@@ -1,0 +1,34 @@
+# mewline-qs keybinds for bspwm/sxhkd.
+# Mirrors config/hypr/keybinds.lua: toggles go through the widget sockets
+# (socat) or the shell IPC, exactly like on Hyprland.
+
+QSIPC="qs -p ${MEWLINE_QS_DIR:-$HOME/.config/quickshell} ipc call widgets"
+
+# Application launcher / clipboard / wallpaper selector / power menu
+super + a
+	$QSIPC toggle launcher
+super + v
+	$QSIPC toggle clipboard
+ctrl + alt + w
+	$QSIPC toggle wallpaper
+ctrl + alt + x
+	$QSIPC toggle powerMenu
+
+# Bar popups: dashboard, control center, notifications, music, calendar,
+# system usage, settings, theme selector
+ctrl + alt + d
+	$QSIPC toggle dashboard
+ctrl + alt + o
+	$QSIPC toggle mewline_settings
+super + alt + t
+	$QSIPC toggle pawlette
+ctrl + alt + m
+	$QSIPC toggle music
+ctrl + alt + c
+	$QSIPC toggle calendar
+ctrl + alt + u
+	$QSIPC toggle systemUsage
+
+# Direct socket toggles (equivalent to the socat binds in keybinds.lua)
+super + s
+	socat - UNIX-CONNECT:/tmp/quickshell_mewline_settings

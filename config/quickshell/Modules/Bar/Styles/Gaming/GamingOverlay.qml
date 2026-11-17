@@ -121,11 +121,48 @@ PanelWindow {
         focusTimer.restart();
     }
 
-    WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.keyboardFocus: needsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    exclusionMode: ExclusionMode.Ignore
     focusable: needsFocus
     color: "transparent"
+    // Wayland: Exclusive through the layer shell (re-asserted after the
+    // focusable write lands). X11: explicit activation + focus restore.
+    onNeedsFocusChanged: {
+        if (CompositorService.isX11) {
+            if (root.needsFocus) {
+                CompositorService.captureFocus();
+                activateTimer.restart();
+            } else {
+                CompositorService.restoreFocus();
+            }
+        } else {
+            Qt.callLater(root.updateWaylandKeyboardFocus);
+        }
+    }
+
+    function updateWaylandKeyboardFocus() {
+        const win = root.QsWindow.window;
+        if (!win)
+            return ;
+
+        const layershell = win.WlrLayershell;
+        if (!layershell)
+            return ;
+
+        layershell.keyboardFocus = root.needsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None;
+    }
+
+    Timer {
+        id: activateTimer
+
+        interval: 50
+        repeat: false
+        onTriggered: {
+            const win = root.QsWindow.window;
+            if (win)
+                win.requestActivate();
+
+        }
+    }
     visible: SettingsService.settingsLoaded
     onIsLauncherChanged: {
         if (isLauncher) {

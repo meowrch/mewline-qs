@@ -24,19 +24,65 @@ PanelWindow {
     property int barHeight: BarStyleConfig.barHeight("convex")
     property real animatedBarHeight: barHeight
     property int bezelSize: Constants.sizeXs
-    property bool hasFullscreen: (Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.hasFullscreen) ? HyprlandService.isTrueFullscreen : false
+    property bool hasFullscreen: CompositorService.hasFullscreen
     property real fsTransitionProg: hasFullscreen ? 0 : 1
-    readonly property bool needsFocus: root.isConvexMode && AppState.isFocusWidgetOpen && convexPanels.hasAnyDrawerOpen
+    // Wayland: only the drawer menus (focus widgets) claim the keyboard
+    // here — attached menus are handled by the BarOverlayWindow proxy.
+    // X11: this window hosts ALL convex menus, so any open menu makes it
+    // the keyboard owner (dock windows never receive keys from a keybind
+    // without an explicit activation).
+    readonly property bool waylandNeedsFocus: root.isConvexMode && AppState.isFocusWidgetOpen && convexPanels.hasAnyDrawerOpen
+    readonly property bool needsFocus: CompositorService.isX11 ? (root.isConvexMode && !DisplayProfileService.gameModeActive && AppState.barMenuOpen) : root.waylandNeedsFocus
 
     function triggerStyleSwitch() {
         root.activeBarStyle = SettingsService.barStyle;
     }
 
-    WlrLayershell.layer: WlrLayer.Top
-    WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.keyboardFocus: needsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+    exclusionMode: ExclusionMode.Ignore
     focusable: needsFocus
     color: "transparent"
+    // The keyboard claim of the drawer host: Exclusive through the layer
+    // shell on Wayland (re-asserted after the focusable write lands, see
+    // ConvexBottomHost), an explicit X11 activation (xdotool SetInputFocus)
+    // on bspwm, plus capture/restore of the previously focused node.
+    onNeedsFocusChanged: {
+        if (CompositorService.isX11) {
+            if (root.needsFocus) {
+                CompositorService.captureFocus();
+                activateTimer.restart();
+            } else {
+                CompositorService.restoreFocus();
+            }
+        } else {
+            Qt.callLater(root.updateWaylandKeyboardFocus);
+        }
+    }
+
+    function updateWaylandKeyboardFocus() {
+        const win = root.QsWindow.window;
+        if (!win)
+            return ;
+
+        const layershell = win.WlrLayershell;
+        if (!layershell)
+            return ;
+
+        layershell.keyboardFocus = root.needsFocus ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None;
+    }
+
+    Timer {
+        id: activateTimer
+
+        interval: 50
+        repeat: false
+        onTriggered: {
+            const win = root.QsWindow.window;
+            if (win)
+                win.requestActivate();
+
+        }
+    }
+
     Component.onCompleted: {
         activeBarStyle = SettingsService.barStyle;
         Qt.callLater(() => {
@@ -80,14 +126,21 @@ PanelWindow {
         }
     }
 
-    HyprlandFocusGrab {
-        id: surfaceFocusGrab
+    // HyprlandFocusGrab is Wayland-only; on X11 the window holds the
+    // keyboard through the explicit activation above.
+    Loader {
+        active: CompositorService.isWayland
 
-        active: root.focusable
-        windows: [root]
-        onCleared: {
-            slurpCheckProcess.running = true;
+        sourceComponent: HyprlandFocusGrab {
+            id: surfaceFocusGrab
+
+            active: root.focusable
+            windows: [root]
+            onCleared: {
+                slurpCheckProcess.running = true;
+            }
         }
+
     }
 
     anchors {

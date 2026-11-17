@@ -1,6 +1,5 @@
 import QtQuick
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 import qs.Core
 import qs.Core.Services
@@ -28,19 +27,10 @@ QtObject {
     property Process randomWallpaperProc
     property Timer shuffleTimer
 
-    // Wallpaper transitions run at the highest refresh rate among the
-    // connected monitors, so the animation is as smooth as the hardware
-    // allows without a manual fps setting.
-    function maxRefreshRate() {
-        let max = 0;
-        let monitors = (Hyprland.monitors && Hyprland.monitors.values) ? Hyprland.monitors.values : [];
-        for (let i = 0; i < monitors.length; i++) {
-            let r = (monitors[i].lastIpcObject && monitors[i].lastIpcObject.refreshRate) || 0;
-            if (r > max)
-                max = r;
-        }
-        return max > 0 ? Math.round(max) : 60;
-    }
+    // The transition frame rate follows the highest monitor refresh rate
+    // (CompositorService: Hyprland monitors on Wayland, an xrandr poll on
+    // X11). X11 wallpapers go through feh, which has no transitions — the
+    // fps/transition arguments are only used on the awww path.
 
     function applyWallpaperWithSync(wallpaperName, rawPath) {
         currentWallpaper = wallpaperName;
@@ -75,6 +65,14 @@ QtObject {
 
     function applyWallpaperInstant(rawPath) {
         wallpaperApplyProc.running = false;
+        // X11 (feh) has no transitions: the image is applied as-is.
+        if (CompositorService.isX11) {
+            wallpaperApplyProc.command = ["feh", "--no-fehbg", "--bg-fill", rawPath];
+            wallpaperApplyProc.startDetached();
+            updateCurrentWallLink(rawPath);
+            return ;
+        }
+
         let rMode = HyprlandService.wpResizeMode || "crop";
         let gravity = HyprlandService.wpCropGravity || "center";
         let cmd = ["awww", "img", rawPath, "--resize", rMode];
@@ -89,6 +87,14 @@ QtObject {
 
     function applyWallpaper(rawPath) {
         wallpaperApplyProc.running = false;
+        // X11 (feh) has no transitions: the image is applied as-is.
+        if (CompositorService.isX11) {
+            wallpaperApplyProc.command = ["feh", "--no-fehbg", "--bg-fill", rawPath];
+            wallpaperApplyProc.startDetached();
+            updateCurrentWallLink(rawPath);
+            return ;
+        }
+
         let rMode = HyprlandService.wpResizeMode || "crop";
         let gravity = HyprlandService.wpCropGravity || "center";
         let cmd = ["awww", "img", rawPath, "--resize", rMode];
@@ -96,7 +102,7 @@ QtObject {
             cmd.push("--crop-gravity", gravity);
 
         if (enableTransitions && SystemInfoService.powerProfile !== "power-saver") {
-            cmd.push("--transition-type", transitionType, "--transition-pos", transitionPos, "--transition-step", String(transitionStep), "--transition-fps", String(maxRefreshRate()));
+            cmd.push("--transition-type", transitionType, "--transition-pos", transitionPos, "--transition-step", String(transitionStep), "--transition-fps", String(CompositorService.maxMonitorRefresh));
             if (transitionType === "wipe" || transitionType === "wave")
                 cmd.push("--transition-angle", String(transitionAngle));
 

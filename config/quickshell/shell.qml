@@ -80,10 +80,11 @@ ShellRoot {
         readonly property int barMarginTop: BarStyleConfig.barMarginTop(SettingsService.barStyle)
         readonly property int barMarginSide: BarStyleConfig.barMarginSide(SettingsService.barStyle)
 
-        WlrLayershell.layer: WlrLayer.Top
+        // Metrics-only surface. exclusionMode/exclusiveZone are
+        // ProxyWindowBase properties and work on Wayland and X11 alike.
         // Game Mode has its own bar and exclusive zone. This metrics-only
         // surface must not reserve space on top of the gaming bar.
-        WlrLayershell.exclusionMode: root.isGaming ? ExclusionMode.Ignore : ExclusionMode.Auto
+        exclusionMode: root.isGaming ? ExclusionMode.Ignore : ExclusionMode.Auto
         color: "transparent"
         focusable: false
         implicitHeight: !SettingsService.settingsLoaded ? 0 : (barMarginTop + barHeight)
@@ -103,8 +104,7 @@ ShellRoot {
     PanelWindow {
         id: gamingBarSurface
 
-        WlrLayershell.layer: WlrLayer.Top
-        WlrLayershell.exclusiveZone: root.isGaming ? Constants.gamingBarHeight : 0
+        exclusiveZone: root.isGaming ? Constants.gamingBarHeight : 0
         color: root.isGaming ? Theme.bg : "transparent"
         focusable: false
         implicitHeight: Constants.gamingBarHeight

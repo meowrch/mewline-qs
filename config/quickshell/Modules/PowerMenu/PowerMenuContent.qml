@@ -16,6 +16,8 @@ Item {
     // user's lock flow.
     readonly property string sessionType: Quickshell.env("XDG_SESSION_TYPE")
     readonly property string lockCommand: sessionType === "x11" ? "betterlockscreen -l dim" : "hyprlock"
+    // Logout: end the session through the running compositor.
+    readonly property string logoutCommand: sessionType === "x11" ? "bspc quit || loginctl terminate-user \"\"" : "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then uwsm stop; else hyprctl dispatch 'hl.dsp.exit()' || loginctl terminate-user \"\"; fi"
     property var menuModel: [{
         "id": "lock",
         "label": "Lock",
@@ -32,7 +34,7 @@ Item {
         "id": "logout",
         "label": "Logout",
         "icon": "logout",
-        "command": ["sh", "-c", "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then uwsm stop; else hyprctl dispatch 'hl.dsp.exit()' || loginctl terminate-user \"\"; fi"],
+        "command": ["sh", "-c", root.logoutCommand],
         "confirm": true
     }, {
         "id": "reboot",

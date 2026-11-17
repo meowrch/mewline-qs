@@ -8,7 +8,8 @@ import qs.Core.Services
 QuickSettingsTile {
     id: root
 
-    // hyprsunset is optional; probe for it at startup and again every time
+    // hyprsunset (Wayland) / redshift (X11) are optional; probe at startup
+    // and again every time
     // the quick settings open, so installing the binary is picked up without
     // restarting the shell.
     property bool hyprsunsetAvailable: false
@@ -40,7 +41,7 @@ QuickSettingsTile {
     Process {
         id: availabilityProbe
 
-        command: ["sh", "-c", "command -v hyprsunset"]
+        command: ["sh", "-c", "command -v hyprsunset || command -v redshift"]
 
         stdout: SplitParser {
             onRead: (data) => {

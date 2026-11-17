@@ -23,15 +23,21 @@ Item {
         return "Max Perf & Scanout";
     }
 
+    // Night light: hyprsunset on Wayland, redshift one-shot mode on X11.
     function applyNightLight(state) {
         if (state) {
-            nightLightProc.command = ["hyprsunset", "-t", displayProfileService.nightLightTemperature.toString()];
+            if (CompositorService.isX11)
+                nightLightProc.command = ["redshift", "-P", "-O", displayProfileService.nightLightTemperature.toString() + "K"];
+            else
+                nightLightProc.command = ["hyprsunset", "-t", displayProfileService.nightLightTemperature.toString()];
             nightLightProc.running = false;
             nightLightProc.running = true;
         } else {
             nightLightProc.running = false;
-            pkillSunsetProc.running = false;
-            pkillSunsetProc.running = true;
+            if (CompositorService.isX11)
+                resetRedshiftProc.running = true;
+            else
+                pkillSunsetProc.running = true;
         }
     }
 
@@ -47,6 +53,11 @@ Item {
         gameModePwrProc.running = false;
         gameModePwrProc.running = true;
         displayProfileService.caffeineActive = enable;
+        // The compositor-side tuning is a Hyprland workflow; there is
+        // nothing compositor-side to flip on bspwm (picom rules are static).
+        if (!CompositorService.isWayland)
+            return ;
+
         if (enable) {
             let evalLua = "hl.config({ animations = { enabled = false }, decoration = { rounding = 0, blur = { enabled = false }, shadow = { enabled = false } }, render = { direct_scanout = 1 }, misc = { vrr = 1 } })";
             hyprGameProc.command = ["hyprctl", "eval", evalLua];
@@ -159,6 +170,12 @@ Item {
         id: pkillSunsetProc
 
         command: ["pkill", "hyprsunset"]
+    }
+
+    Process {
+        id: resetRedshiftProc
+
+        command: ["redshift", "-x"]
     }
 
     Process {

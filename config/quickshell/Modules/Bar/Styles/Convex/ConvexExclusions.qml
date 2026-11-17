@@ -23,10 +23,12 @@ Item {
         anchors.bottom: true
         anchors.left: true
         anchors.right: true
-        WlrLayershell.layer: WlrLayer.Bottom
+        // aboveWindows: false == the wayland bottom layer; exclusiveZone is
+        // a ProxyWindowBase property (struts on X11).
+        aboveWindows: false
         color: "transparent"
         focusable: false
-        WlrLayershell.exclusiveZone: root.isExclusionActive ? root.bezelSize : 0
+        exclusiveZone: root.isExclusionActive ? root.bezelSize : 0
         implicitHeight: root.bezelSize
 
         mask: Region {
@@ -40,10 +42,10 @@ Item {
         anchors.top: true
         anchors.bottom: true
         anchors.left: true
-        WlrLayershell.layer: WlrLayer.Bottom
+        aboveWindows: false
         color: "transparent"
         focusable: false
-        WlrLayershell.exclusiveZone: root.isExclusionActive ? root.bezelSize : 0
+        exclusiveZone: root.isExclusionActive ? root.bezelSize : 0
         implicitWidth: root.bezelSize
 
         mask: Region {
@@ -57,10 +59,10 @@ Item {
         anchors.top: true
         anchors.bottom: true
         anchors.right: true
-        WlrLayershell.layer: WlrLayer.Bottom
+        aboveWindows: false
         color: "transparent"
         focusable: false
-        WlrLayershell.exclusiveZone: root.isExclusionActive ? root.bezelSize : 0
+        exclusiveZone: root.isExclusionActive ? root.bezelSize : 0
         implicitWidth: root.bezelSize
 
         mask: Region {

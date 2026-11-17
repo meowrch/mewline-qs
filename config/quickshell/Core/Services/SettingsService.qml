@@ -277,7 +277,7 @@ Item {
                 "caffeineActive": DisplayProfileService.caffeineActive,
                 "gameModeActive": DisplayProfileService.gameModeActive,
                 "nightLightTemperature": DisplayProfileService.nightLightTemperature,
-                "keyboardLayout": HyprlandService.keyboardLayout,
+                "keyboardLayout": CompositorService.keyboardLayout,
                 "wpAutoShuffle": HyprlandService.wpAutoShuffle,
                 "wpShuffleInterval": HyprlandService.wpShuffleInterval,
                 "wpEnableTransitions": HyprlandService.wpEnableTransitions,
@@ -379,9 +379,9 @@ fi"];
                         if (prefs.nightLightTemperature !== undefined)
                             DisplayProfileService.nightLightTemperature = prefs.nightLightTemperature;
 
-                        if (prefs.keyboardLayout !== undefined)
-                            HyprlandService.keyboardLayout = prefs.keyboardLayout;
-
+                        // keyboardLayout is not restored: the compositor
+                        // backend reports the real active layout within a
+                        // second of startup.
                         if (prefs.enabledKbLayouts !== undefined)
                             settingsService.enabledKbLayouts = prefs.enabledKbLayouts;
 

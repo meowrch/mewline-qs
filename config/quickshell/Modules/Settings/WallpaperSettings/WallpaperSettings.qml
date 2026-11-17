@@ -42,10 +42,13 @@ AppContainer {
 
     }
 
+    // Scaling/cropping and the awww transitions are Wayland-only: feh has
+    // neither a resize mode nor animated transitions.
     AppGroup {
         title: "Screen Framing & Cropping"
         icon: "picture-spark"
         showDividers: false
+        visible: CompositorService.isWayland
 
         WallpaperCropPreview {
             Layout.fillWidth: true
@@ -75,6 +78,7 @@ AppContainer {
     AppGroup {
         title: "Automation & Transitions"
         icon: "sparkles"
+        visible: CompositorService.isWayland
 
         SettingToggle {
             label: "Auto-shuffle Wallpapers"

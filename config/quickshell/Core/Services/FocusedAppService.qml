@@ -21,10 +21,16 @@ pragma Singleton
 Singleton {
     id: focusedAppService
 
+    // Per-backend sources: Hyprland feeds these from its event stream,
+    // bspwm from BspwmService's polling backend. The computed properties
+    // below are the uniform API the bar consumes.
+    property string hyprWindowClass: ""
+    property string hyprWindowTitle: ""
+
     // Window class of the focused toplevel, "" when the desktop is focused.
-    property string windowClass: ""
+    readonly property string windowClass: CompositorService.isX11 ? BspwmService.activeWindowClass : hyprWindowClass
     // Title of the focused toplevel, "" when unknown.
-    property string windowTitle: ""
+    readonly property string windowTitle: CompositorService.isX11 ? BspwmService.activeWindowTitle : hyprWindowTitle
 
     // True while a real application window (not the desktop) is focused.
     readonly property bool hasWindow: windowClass !== ""
@@ -132,8 +138,8 @@ Singleton {
                 return ;
 
             let args = event.parse(2);
-            focusedAppService.windowClass = args[0] || "";
-            focusedAppService.windowTitle = args[1] || "";
+            focusedAppService.hyprWindowClass = args[0] || "";
+            focusedAppService.hyprWindowTitle = args[1] || "";
         }
 
         target: Hyprland
@@ -153,12 +159,15 @@ Singleton {
                     focusedAppService.windowClass = win.class || "";
                     focusedAppService.windowTitle = win.title || "";
                 } catch (e) {
-                    focusedAppService.windowClass = "";
-                    focusedAppService.windowTitle = "";
+                    focusedAppService.hyprWindowClass = "";
+                    focusedAppService.hyprWindowTitle = "";
                 }
             }
         }
     }
 
-    Component.onCompleted: activeWindowInitProc.running = true
+    Component.onCompleted: {
+        if (!CompositorService.isX11)
+            activeWindowInitProc.running = true;
+    }
 }

@@ -13,6 +13,15 @@ if [ -z "$WAYLAND_DISPLAY" ]; then
 fi
 export XDG_CURRENT_DESKTOP=${XDG_CURRENT_DESKTOP:-Hyprland}
 
+SESSION_TYPE="${XDG_SESSION_TYPE:-wayland}"
+if [ -z "$XDG_SESSION_TYPE" ]; then
+  if [ -n "$WAYLAND_DISPLAY" ]; then
+    SESSION_TYPE="wayland"
+  elif [ -n "$DISPLAY" ]; then
+    SESSION_TYPE="x11"
+  fi
+fi
+
 DIR="${XDG_VIDEOS_DIR:-$HOME/Videos}/Recordings"
 mkdir -p "$DIR"
 
@@ -20,8 +29,16 @@ LOG="/tmp/quickshell-record.log"
 TIMESTAMP=$(date +%Y-%m-%d-%H%M%S)
 FILENAME="$DIR/Recording-${TIMESTAMP}.mkv"
 
-# If already running, stop it cleanly
-if pidof wf-recorder >/dev/null 2>&1; then
+# If already running, stop it cleanly. The recorder depends on the
+# session: wf-recorder (Wayland) or ffmpeg x11grab (X11). Matching the
+# x11grab flag keeps an unrelated ffmpeg process safe from the kill.
+if [ "$SESSION_TYPE" = "x11" ]; then
+  if pgrep -f "ffmpeg.*x11grab" >/dev/null 2>&1; then
+    echo "ffmpeg (x11grab) is running, stopping it..." >>"$LOG"
+    pkill -INT -f "ffmpeg.*x11grab"
+    exit 0
+  fi
+elif pidof wf-recorder >/dev/null 2>&1; then
   echo "wf-recorder is running, stopping it..." >>"$LOG"
   killall -SIGINT wf-recorder
   exit 0
@@ -43,7 +60,12 @@ while getopts "sr" opt; do
     fi
     ;;
   r)
-    GEOM=$(slurp 2>/dev/null)
+    if [ "$SESSION_TYPE" = "x11" ]; then
+      # slop prints "WxH+X+Y" — the same shape slurp produces.
+      GEOM="$(slop -f '%wx%h+%x+%y' 2>/dev/null)"
+    else
+      GEOM=$(slurp 2>/dev/null)
+    fi
     if [ -z "$GEOM" ]; then
       echo "Region selection canceled" >>"$LOG"
       exit 0
@@ -54,6 +76,34 @@ while getopts "sr" opt; do
     ;;
   esac
 done
+
+# ------------------------- X11: ffmpeg x11grab --------------------------
+# The whole X display (or a slop region) is recorded by ffmpeg; wf-recorder
+# is wlroots-only and does not exist on bspwm. Audio comes from the same
+# pulse monitor source as on Wayland.
+if [ "$SESSION_TYPE" = "x11" ]; then
+  echo "--- Record started at $(date) (x11grab) ---" >>"$LOG"
+  CMD=("ffmpeg" "-y" "-f" "x11grab" "-framerate" "30")
+  if [ -n "$REGION" ]; then
+    SIZE="${REGION%%+*}"
+    REST="${REGION#*+}"
+    OFFX="${REST%%+*}"
+    OFFY="${REST##*+}"
+    CMD+=("-video_size" "$SIZE" "-i" "${DISPLAY:-:0}+${OFFX},${OFFY}")
+  else
+    DIMS=$(xdpyinfo 2>/dev/null | awk '/dimensions:/ {print $2; exit}')
+    CMD+=("-video_size" "${DIMS:-1920x1080}" "-i" "${DISPLAY:-:0}")
+  fi
+  CMD+=("-c:v" "libx264" "-preset" "veryfast" "-pix_fmt" "yuv420p")
+  if [ -n "$AUDIO_SOURCE" ]; then
+    pactl set-source-mute "$AUDIO_SOURCE" false 2>/dev/null || true
+    CMD+=("-f" "pulse" "-i" "$AUDIO_SOURCE")
+  fi
+  echo "Recording display: ${DISPLAY:-:0} | Region: $REGION | Audio: $AUDIO_SOURCE | Output: $FILENAME" >>"$LOG"
+  "${CMD[@]}" "$FILENAME" >>"$LOG" 2>&1
+  qs ipc call osd showMessage "Recording" "Saved" "record-icon" 2>/dev/null || true
+  exit 0
+fi
 
 MONITOR=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.monitor' 2>/dev/null)
 if [ -z "$MONITOR" ] || [ "$MONITOR" = "null" ]; then

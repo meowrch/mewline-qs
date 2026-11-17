@@ -91,6 +91,11 @@ Item {
     // line and reloading applies the matching workflow; the reload only
     // happens when the line actually changed (startup with a saved profile).
     function applyHyprWorkflow(profile) {
+        // The workflow presets live in the user's hyprland userprefs.lua —
+        // nothing to swap on bspwm.
+        if (CompositorService.isX11)
+            return ;
+
         let wf = profile === "performance" ? "gaming" : (profile === "power-saver" ? "powersaver" : "default");
         workflowSwapProc.command = ["python3", "-c",
             "import os, re\n" +

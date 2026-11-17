@@ -60,7 +60,7 @@ Rectangle {
 
     // Caps Lock flips the layout label case: ru <-> RU.
     function caseFor(text) {
-        return HyprlandService.capsLockOn ? text.toUpperCase() : text.toLowerCase();
+        return CompositorService.capsLockOn ? text.toUpperCase() : text.toLowerCase();
     }
 
     color: Theme.bgSecondary
@@ -103,7 +103,7 @@ Rectangle {
 
         // Current keyboard layout; Caps Lock flips the case (ru <-> RU).
         ThemedText {
-            text: root.caseFor(root.layoutLabel(HyprlandService.keyboardLayout))
+            text: root.caseFor(root.layoutLabel(CompositorService.keyboardLayout))
             font.pixelSize: Math.round(Constants.sizeSm * SettingsService.fontScale)
             font.weight: Font.DemiBold
             color: Theme.fg

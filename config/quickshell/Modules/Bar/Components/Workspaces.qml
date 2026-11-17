@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import qs.Core
 import qs.Core.Components
 import qs.Core.Services
@@ -17,47 +16,31 @@ Item {
     property int dotSpacing: compact ? 5 : 6
     readonly property int dotHeight: compact ? 6 : 8
     readonly property int activePillWidth: compact ? 18 : 24
-    readonly property int activeWsId: Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1
+    // State comes from the compositor abstraction layer (Hyprland on
+    // Wayland, BspwmService's report backend on X11).
+    readonly property int activeWsId: CompositorService.focusedWorkspaceId
+    readonly property var workspaceStates: CompositorService.workspaces
     readonly property int maxOccupiedWsId: {
         let maxId = 1;
-        if (Hyprland.workspaces && Hyprland.workspaces.values) {
-            const list = Hyprland.workspaces.values;
-            for (let i = 0; i < list.length; i++) {
-                const ws = list[i];
-                if (!ws || ws.id <= 0)
-                    continue;
+        for (let i = 0; i < workspaceStates.length; i++) {
+            const ws = workspaceStates[i];
+            if (!ws || !ws.occupied)
+                continue;
 
-                let hasWins = false;
-                if (ws.toplevels && ws.toplevels.values && ws.toplevels.values.length > 0)
-                    hasWins = true;
+            const id = parseInt(ws.name);
+            if (!isNaN(id) && id > maxId)
+                maxId = id;
 
-                if (!hasWins && Hyprland.toplevels && Hyprland.toplevels.values)
-                    hasWins = Hyprland.toplevels.values.some((top) => {
-                    return top && top.workspace && top.workspace.id === ws.id;
-                });
-
-                if (hasWins && ws.id > maxId)
-                    maxId = ws.id;
-
-            }
         }
-        if (Hyprland.toplevels && Hyprland.toplevels.values) {
-            for (let j = 0; j < Hyprland.toplevels.values.length; j++) {
-                const top = Hyprland.toplevels.values[j];
-                if (top && top.workspace && top.workspace.id > maxId)
-                    maxId = top.workspace.id;
-
-            }
-        }
-        return maxId;
+        return Math.max(maxId, root.activeWsId);
     }
     readonly property int visibleWorkspaceCount: Math.min(SettingsService.numberOfWorkspaces, Math.max(Math.max(activeWsId, maxOccupiedWsId) + 1, 5))
 
     function handleWheel(wheel) {
-        const currentId = Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1;
+        const currentId = root.activeWsId;
         const targetId = wheel.angleDelta.y > 0 ? (currentId - 1) : (currentId + 1);
         if (targetId >= 1 && targetId <= 10)
-            Hyprland.dispatch('hl.dsp.focus({workspace=' + targetId + '})');
+            CompositorService.switchWorkspace(targetId);
 
     }
 
@@ -109,25 +92,17 @@ Item {
                 id: wsSlot
 
                 readonly property int wsId: index + 1
+                readonly property bool isActive: root.activeWsId === wsSlot.wsId
                 readonly property bool isVisibleSlot: wsId <= root.visibleWorkspaceCount
-                readonly property var workspace: Hyprland.workspaces.values.find((ws) => {
-                    return ws.id === wsId;
-                })
-                readonly property bool isActive: root.activeWsId === wsId
-                readonly property bool hasActualWindows: {
-                    if (workspace && workspace.toplevels && workspace.toplevels.values) {
-                        if (workspace.toplevels.values.length > 0)
+                readonly property bool hasWindows: {
+                    for (let i = 0; i < root.workspaceStates.length; i++) {
+                        const ws = root.workspaceStates[i];
+                        if (ws && parseInt(ws.name) === wsSlot.wsId && ws.occupied)
                             return true;
 
                     }
-                    if (Hyprland.toplevels && Hyprland.toplevels.values)
-                        return Hyprland.toplevels.values.some((top) => {
-                        return top && top.workspace && top.workspace.id === wsId;
-                    });
-
                     return false;
                 }
-                readonly property bool hasWindows: hasActualWindows
                 readonly property bool isHovered: mouseAreaH.containsMouse
 
                 visible: opacity > 0.001
@@ -178,7 +153,7 @@ Item {
                     height: Math.max(parent.height, 18)
                     hoverEnabled: true
                     cursorShape: Qt.PointingHandCursor
-                    onClicked: Hyprland.dispatch('hl.dsp.focus({workspace=' + wsSlot.wsId + '})')
+                    onClicked: CompositorService.switchWorkspace(wsSlot.wsId)
                     onWheel: (wheel) => {
                         return root.handleWheel(wheel);
                     }
@@ -203,28 +178,6 @@ Item {
 
         }
 
-    }
-
-    Connections {
-        function onRawEvent(event) {
-            if (!event || !event.name)
-                return ;
-
-            const ev = event.name;
-            if (ev === "openwindow" || ev === "closewindow" || ev === "movewindowv2" || ev === "createworkspacev2" || ev === "destroyworkspacev2")
-                refreshDebounce.restart();
-
-        }
-
-        target: Hyprland
-    }
-
-    Timer {
-        id: refreshDebounce
-
-        interval: 100
-        repeat: false
-        onTriggered: Hyprland.refreshWorkspaces()
     }
 
 }

@@ -3,7 +3,6 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Widgets
 import qs.Core
@@ -240,15 +239,15 @@ Item {
         return "'" + String(text).replace(/'/g, "'\\''") + "'";
     }
 
-    // Launch through the compositor, exactly like the Hyprland keybinds do.
+    // Launch through the compositor abstraction (compositor dispatch on
+    // Wayland, plain spawn on X11).
     // A child started by the shell itself can die together with the closing
     // window, which is why terminal apps never showed up before.
     function launchShell(command) {
         if (!command)
             return ;
 
-        let request = Hyprland.usingLua ? "hl.dsp.exec_cmd(" + JSON.stringify(command) + ")" : "exec " + command;
-        Hyprland.dispatch(request);
+        CompositorService.launchCommand(command);
     }
 
     function launchApp(exec, terminal) {
