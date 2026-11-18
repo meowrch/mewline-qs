@@ -89,6 +89,18 @@ PanelWindow {
             isShellReady = true;
         });
     }
+
+    // X11: Escape closes whatever bar menu / drawer is open. The window owns
+    // the X keyboard while a menu is open (needsFocus → explicit activation),
+    // and a window-level Shortcut catches Escape regardless of which item
+    // holds Qt focus — the per-host Keys handlers only receive it after a
+    // click focuses them. On Wayland BarOverlayWindow registers a compositor
+    // Escape bind instead, so this stays X11-only.
+    Shortcut {
+        sequence: "Escape"
+        enabled: CompositorService.isX11 && root.isConvexMode && AppState.barMenuOpen
+        onActivated: AppState.closeAllWidgets()
+    }
     onVisibleChanged: {
         if (visible && SettingsService.barStyle === "convex") {
             shellFrameContainer.enableTransitionAnim = false;
@@ -292,6 +304,50 @@ PanelWindow {
             y: root.height - (root.bezelSize * root.fsTransitionProg)
             width: root.isConvexMode ? (root.width - (2 * root.bezelSize * root.fsTransitionProg)) : 0
             height: root.isConvexMode ? (root.bezelSize * root.fsTransitionProg) : 0
+        }
+
+        // X11: the mask is also the window's visual shape there (picom paints
+        // only what is inside it), so the bezel's rounded corner fills — which
+        // reach bezelSize + innerRadius past the screen edges — must be part
+        // of the mask or they get clipped to the thin strips and the screen
+        // corners look square until a panel opens (the panels overlay region
+        // then unclips the whole window). On Wayland the mask only routes
+        // input and the corners must stay click-through, hence the isX11 gate.
+        Region {
+            id: x11CornerMask
+
+            readonly property bool on: CompositorService.isX11 && root.isConvexMode
+            readonly property real extent: (root.bezelSize + Constants.size4Xl) * root.fsTransitionProg
+
+            // Top corners, hanging from the bar line
+            Region {
+                x: 0
+                y: root.barHeight * root.fsTransitionProg
+                width: x11CornerMask.on ? x11CornerMask.extent : 0
+                height: x11CornerMask.on ? Constants.size4Xl * root.fsTransitionProg : 0
+            }
+
+            Region {
+                x: root.width - (x11CornerMask.on ? x11CornerMask.extent : 0)
+                y: root.barHeight * root.fsTransitionProg
+                width: x11CornerMask.on ? x11CornerMask.extent : 0
+                height: x11CornerMask.on ? Constants.size4Xl * root.fsTransitionProg : 0
+            }
+
+            // Bottom corners, spanning the strip and the inner rounding
+            Region {
+                x: 0
+                y: root.height - (x11CornerMask.on ? x11CornerMask.extent : 0)
+                width: x11CornerMask.on ? x11CornerMask.extent : 0
+                height: x11CornerMask.on ? x11CornerMask.extent : 0
+            }
+
+            Region {
+                x: root.width - (x11CornerMask.on ? x11CornerMask.extent : 0)
+                y: root.height - (x11CornerMask.on ? x11CornerMask.extent : 0)
+                width: x11CornerMask.on ? x11CornerMask.extent : 0
+                height: x11CornerMask.on ? x11CornerMask.extent : 0
+            }
         }
 
         // Active Panels Overlay (Full Screen for Clicks/Focus)

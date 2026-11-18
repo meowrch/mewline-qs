@@ -10,7 +10,9 @@
 # creation order (X ids grow with creation; shell.qml maps the fullscreen
 # surfaces in order: BarOverlayWindow, ConvexDesktop, GamingOverlay).
 
-QS_DIR="${MEWLINE_QS_DIR:-$HOME/.config/quickshell}"
+# Default: the AUR package path (read-only, updated by pacman). Override
+# with MEWLINE_QS_DIR for a dev checkout or a ~/.config/quickshell copy.
+QS_DIR="${MEWLINE_QS_DIR:-/usr/share/mewline-qs/quickshell}"
 SCREEN=$(xdpyinfo 2>/dev/null | awk '/dimensions:/ {print $2}')
 SCREEN_W=${SCREEN%x*}
 SCREEN_H=${SCREEN#*x}

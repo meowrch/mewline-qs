@@ -51,6 +51,16 @@ FloatingWindow {
         onTriggered: root.windowReadyForFocus()
     }
 
+    // Escape closes the window while it holds keyboard focus. Standalone
+    // windows are normal managed windows, so unlike bar menus there is no
+    // shell-side Escape bind; a window Shortcut catches it regardless of
+    // which inner item (search field, slider, ...) has focus.
+    Shortcut {
+        sequence: "Escape"
+        enabled: root.isOpen
+        onActivated: root.isOpen = false
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: root.contentPadding

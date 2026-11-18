@@ -84,6 +84,11 @@ Item {
     // ------------------------------------------------------------------
 
     function handleReport(line) {
+        // A report line is proof the subscription is alive: gate the
+        // identity/layout polls on it. Without this the flag never left
+        // false, the 500ms focused-window poll never ran and the island
+        // never learned the focused app's name on bspwm.
+        root.connected = true;
         let monitorsArr = [];
         let cur = null;
         let focusedWs = "";

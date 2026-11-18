@@ -18,6 +18,18 @@ Item {
         widgetId: "controlCenter"
     }
 
+    // Virtual ids: no window of their own — ConvexRightHost renders the
+    // control-center host straight on the wifi (page 1) / bluetooth (page 2)
+    // device lists when these widgets are active. The loaders exist only to
+    // provide the /tmp/quickshell_* sockets for the sxhkd binds.
+    WidgetLoader {
+        widgetId: "wifiMenu"
+    }
+
+    WidgetLoader {
+        widgetId: "bluetoothMenu"
+    }
+
     WidgetLoader {
         widgetId: "notificationsCenter"
     }
