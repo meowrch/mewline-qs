@@ -1,7 +1,5 @@
 # Maintainer: dimflix <dimflix.official@gmail.com>
 pkgname=mewline-qs
-conflicts=('mewline-qs-git')
-provides=('mewline-qs-git')
 pkgver=2.3.0  # Автоматически обновится в workflow
 pkgrel=1
 pkgdesc="Quickshell shell for Hyprland and bspwm — bar, widgets and menus (successor of mewline)"
@@ -49,6 +47,5 @@ package() {
   cp -r config/bspwm "$pkgdir/usr/share/mewline-qs/bspwm"
 
   install -Dm644 README.md "$pkgdir/usr/share/doc/mewline-qs/README.md"
-  install -Dm644 CHANGELOG.md "$pkgdir/usr/share/doc/mewline-qs/CHANGELOG.md"
   install -Dm644 LICENSE "$pkgdir/usr/share/doc/mewline-qs/LICENSE"
 }
