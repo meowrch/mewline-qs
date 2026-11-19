@@ -34,6 +34,7 @@ Item {
     readonly property int barWidgetHeight: 28
     property int numberOfWorkspaces: 10
     property string deviceBatteryPosition: "left"
+    property string deviceBatteryDisplayMode: "auto"
     property bool deviceBatteryUseBatteryHub: true
     // Folder scanned by the wallpaper selector / shuffle. Changed from the
     // wallpaper settings page; absolute paths are preferred, "~" is expanded
@@ -195,6 +196,10 @@ Item {
         if (settingsLoaded)
             saveSettings();
     }
+    onDeviceBatteryDisplayModeChanged: {
+        if (settingsLoaded)
+            saveSettings();
+    }
     onDeviceBatteryUseBatteryHubChanged: {
         if (settingsLoaded)
             saveSettings();
@@ -311,6 +316,7 @@ Item {
                 "barStyle": settingsService.barStyle,
                 "numberOfWorkspaces": settingsService.numberOfWorkspaces,
                 "deviceBatteryPosition": settingsService.deviceBatteryPosition,
+                "deviceBatteryDisplayMode": settingsService.deviceBatteryDisplayMode,
                 "deviceBatteryUseBatteryHub": settingsService.deviceBatteryUseBatteryHub
             };
             // SDDM only reads fontFamily from its preferences file, so credentials
@@ -466,6 +472,8 @@ fi"];
                             settingsService.numberOfWorkspaces = prefs.numberOfWorkspaces;
                         if (["left", "right", "off"].indexOf(prefs.deviceBatteryPosition) !== -1)
                             settingsService.deviceBatteryPosition = prefs.deviceBatteryPosition;
+                        if (["auto", "percent", "bar"].indexOf(prefs.deviceBatteryDisplayMode) !== -1)
+                            settingsService.deviceBatteryDisplayMode = prefs.deviceBatteryDisplayMode;
                         if (typeof prefs.deviceBatteryUseBatteryHub === "boolean")
                             settingsService.deviceBatteryUseBatteryHub = prefs.deviceBatteryUseBatteryHub;
 

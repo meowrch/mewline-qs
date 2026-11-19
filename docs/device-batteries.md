@@ -12,13 +12,19 @@ In **Settings → Bar → Wireless Device Batteries**:
 - **BatteryHub Backend**: enabled by default, but optional. If the executable
   is absent, native battery readings continue to work.
 
-The display mode is automatic and follows the device count: one or two
-devices show the percentage in large digits next to the icon; three devices
-switch to compact icons with a proportional charge bar; more than three show
-the first three and an overflow badge whose tooltip lists every device.
-Hovering always shows the device name, percentage, transport and reported
-state. Unknown levels (the transport hides them, e.g. some JBL models) are
-shown last with a dash; they never pretend to be 0%.
+**Display** has three modes in Settings → Bar:
+
+- **Auto** (default): one or two devices show the percentage next to the icon
+  (the same size as the laptop battery percentage); three devices switch to
+  compact icons with a proportional charge bar.
+- **Percent**: the percentage next to the icon regardless of the count.
+- **Bar**: compact icons with a proportional charge bar.
+
+More than three devices show the first three and an overflow badge whose
+tooltip lists every device. Hovering always shows the device name,
+percentage, transport and reported state. Unknown levels (the transport
+hides them, e.g. some JBL models) are shown last with a dash; they never
+pretend to be 0%.
 
 Mouse, keyboard, headset, earbuds, gamepad and phone have themed SVG icons.
 Discharging batteries at 15% or less are red; charging uses the theme accent and

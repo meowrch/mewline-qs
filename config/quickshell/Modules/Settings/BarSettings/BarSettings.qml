@@ -23,6 +23,14 @@ AppContainer {
             onActivated: value => SettingsService.deviceBatteryPosition = value
         }
 
+        SettingSegmented {
+            label: "Display"
+            description: "Auto shows percentages for one or two devices and bars for three"
+            currentValue: SettingsService.deviceBatteryDisplayMode
+            model: [{text: "Auto", value: "auto"}, {text: "Percent", value: "percent"}, {text: "Bar", value: "bar"}]
+            onActivated: value => SettingsService.deviceBatteryDisplayMode = value
+        }
+
         SettingToggle {
             label: "BatteryHub Backend"
             description: "Optional wireless-battery --json for supported USB receivers (every 60s)"

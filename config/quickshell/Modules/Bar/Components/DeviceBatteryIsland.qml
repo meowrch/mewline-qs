@@ -12,12 +12,14 @@ Rectangle {
     property string position: "left"
     property real maxWidth: 180
     readonly property bool enabledHere: SettingsService.deviceBatteryPosition === position
-    // Display mode follows the device count: one or two devices show the
-    // percentage right next to the icon; three (or a capped layout with an
-    // overflow badge) switch to compact icons with a level bar to save room.
-    // Large fonts/narrow slots fall back to icons rather than an unreadable +1.
-    readonly property bool showPercent: DeviceBatteryService.devices.length <= 2
-        && maxWidth >= Math.round(62 * SettingsService.fontScale) + 14
+    // Display mode: "auto" follows the device count (one or two devices show
+    // the percentage next to the icon, three or more switch to compact icons
+    // with a level bar); "percent"/"bar" force one style. Narrow slots and
+    // large fonts fall back to icons rather than an unreadable +1.
+    readonly property string displayMode: SettingsService.deviceBatteryDisplayMode
+    readonly property bool showPercent: displayMode === "percent"
+        || (displayMode === "auto" && DeviceBatteryService.devices.length <= 2
+            && maxWidth >= Math.round(62 * SettingsService.fontScale) + 14)
     readonly property real cellWidth: showPercent ? Math.round(62 * SettingsService.fontScale) : Math.round(26 * SettingsService.fontScale)
     readonly property var arrangement: DeviceBattery.layout(enabledHere ? DeviceBatteryService.devices : [], maxWidth, cellWidth, 7, 4)
     readonly property var shownDevices: arrangement.shown
@@ -73,7 +75,7 @@ Rectangle {
                             visible: root.showPercent
                             anchors.verticalCenter: parent.verticalCenter
                             text: deviceCell.modelData.percent >= 0 ? deviceCell.modelData.percent + "%" : "—"
-                            font.pixelSize: Math.round(14 * SettingsService.fontScale)
+                            font.pixelSize: Math.round(Constants.sizeSm * SettingsService.fontScale)
                             font.weight: Font.DemiBold
                             color: deviceCell.statusColor
                         }
