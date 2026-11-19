@@ -59,27 +59,22 @@ Item {
                     anchors.fill: parent
                     opacity: deviceCell.modelData.asleep || deviceCell.modelData.lastKnown ? 0.45 : 1
 
-                    // Percentage mode centers the icon+digit group; compact
-                    // mode pins the icon to the top so the level bar below
-                    // keeps a small gap instead of touching it.
+                    // Percentage mode: the icon and the digits centered as one
+                    // group.
                     Row {
-                        id: iconRow
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.verticalCenter: root.showPercent ? parent.verticalCenter : undefined
-                        anchors.top: root.showPercent ? undefined : parent.top
-                        anchors.topMargin: root.showPercent ? 0 : 1
+                        visible: root.showPercent
+                        anchors.centerIn: parent
                         spacing: 4
 
                         SvgIcon {
                             anchors.verticalCenter: parent.verticalCenter
                             icon: DeviceBattery.iconFor(deviceCell.modelData)
-                            iconSize: Math.min(18, Math.floor((root.height - 10) / SettingsService.fontScale))
+                            iconSize: 18
                             flat: true
                             iconColor: deviceCell.statusColor
                         }
 
                         ThemedText {
-                            visible: root.showPercent
                             anchors.verticalCenter: parent.verticalCenter
                             text: deviceCell.modelData.percent >= 0 ? deviceCell.modelData.percent + "%" : "—"
                             font.pixelSize: Math.round(Constants.sizeSm * SettingsService.fontScale)
@@ -88,27 +83,40 @@ Item {
                         }
                     }
 
-                    // Compact mode only: with one or two devices the percentage
-                    // replaces the bar. No fill at 0%; no made-up level for
-                    // unknown telemetry.
-                    Rectangle {
-                        id: levelTrack
+                    // Compact mode: the icon and the level bar form a centered
+                    // group with a small gap — neither touches the capsule
+                    // edges. No fill at 0%; no made-up level for unknown
+                    // telemetry.
+                    Column {
                         visible: !root.showPercent
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.bottom: parent.bottom
-                        anchors.bottomMargin: 2
-                        width: parent.width - 12
-                        height: 2
-                        radius: 1
-                        color: Theme.border
+                        anchors.centerIn: parent
+                        spacing: 2
+                        width: root.cellWidth - 12
+
+                        SvgIcon {
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            icon: DeviceBattery.iconFor(deviceCell.modelData)
+                            iconSize: 18
+                            flat: true
+                            iconColor: deviceCell.statusColor
+                        }
 
                         Rectangle {
-                            height: parent.height
+                            id: levelTrack
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: parent.width
+                            height: 2
                             radius: 1
-                            width: deviceCell.modelData.percent >= 0 ? parent.width * deviceCell.modelData.percent / 100 : 0
-                            color: deviceCell.statusColor
-                            Behavior on width {
-                                NumberAnimation { duration: Constants.animNormal; easing.type: Easing.OutCubic }
+                            color: Theme.border
+
+                            Rectangle {
+                                height: parent.height
+                                radius: 1
+                                width: deviceCell.modelData.percent >= 0 ? parent.width * deviceCell.modelData.percent / 100 : 0
+                                color: deviceCell.statusColor
+                                Behavior on width {
+                                    NumberAnimation { duration: Constants.animNormal; easing.type: Easing.OutCubic }
+                                }
                             }
                         }
                     }
