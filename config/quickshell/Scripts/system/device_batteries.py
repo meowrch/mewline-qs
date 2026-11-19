@@ -154,7 +154,10 @@ def native_devices():
             existing["via"] = "Bluetooth"
             if existing["kind"] == "other":
                 existing["kind"] = device["kind"]
-        elif device["percent"] >= 0:
+        else:
+            # Connected but the transport hides the level (e.g. JBL sends it
+            # via AVRCP, which stock BlueZ does not map to Battery1): show the
+            # device honestly with an unknown percentage.
             devices.append(device)
     return devices
 

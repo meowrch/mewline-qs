@@ -95,7 +95,7 @@ Item {
         DeviceBatteryIsland {
             anchors.verticalCenter: parent.verticalCenter
             position: "left"
-            maxWidth: Math.min(128, Math.max(0, centerSection.x - gamingBadge.width - gamingWorkspaces.implicitWidth - 60))
+            maxWidth: Math.min(180, Math.max(0, centerSection.x - gamingBadge.width - gamingWorkspaces.implicitWidth - 60))
         }
 
     }
@@ -147,7 +147,7 @@ Item {
         DeviceBatteryIsland {
             anchors.verticalCenter: parent.verticalCenter
             position: "right"
-            maxWidth: Math.min(128, Math.max(0, root.width - centerSection.x - centerSection.width - gamingMedia.implicitWidth - gamingControls.width - gamingPower.implicitWidth - 60))
+            maxWidth: Math.min(180, Math.max(0, root.width - centerSection.x - centerSection.width - gamingMedia.implicitWidth - gamingControls.width - gamingPower.implicitWidth - 60))
         }
 
         Rectangle {

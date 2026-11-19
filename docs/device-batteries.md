@@ -9,10 +9,16 @@ buttons. The capsule also works in Gaming mode.
 In **Settings → Bar → Wireless Device Batteries**:
 
 - **Position**: Left (default), Right, Off. Off stops battery polling.
-- **Show Percentages**: off by default. Icons have a small proportional charge
-  bar; hovering shows the device name, percentage, transport and reported state.
 - **BatteryHub Backend**: enabled by default, but optional. If the executable
   is absent, native battery readings continue to work.
+
+The display mode is automatic and follows the device count: one or two
+devices show the percentage in large digits next to the icon; three devices
+switch to compact icons with a proportional charge bar; more than three show
+the first three and an overflow badge whose tooltip lists every device.
+Hovering always shows the device name, percentage, transport and reported
+state. Unknown levels (the transport hides them, e.g. some JBL models) are
+shown last with a dash; they never pretend to be 0%.
 
 Mouse, keyboard, headset, earbuds, gamepad and phone have themed SVG icons.
 Discharging batteries at 15% or less are red; charging uses the theme accent and

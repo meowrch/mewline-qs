@@ -46,7 +46,10 @@ function merge(nativeDevices, hubDevices) {
     return result.filter(function (d) { return d.connected; }).sort(function (a, b) {
         var aLow = a.percent >= 0 && a.percent <= 15 && !a.charging && !a.asleep;
         var bLow = b.percent >= 0 && b.percent <= 15 && !b.charging && !b.asleep;
-        return Number(bLow) - Number(aLow) || (order[a.kind] || 0) - (order[b.kind] || 0)
+        // Low batteries first, then known levels, unknown readings last.
+        var aRank = aLow ? 0 : (a.percent >= 0 ? 1 : 2);
+        var bRank = bLow ? 0 : (b.percent >= 0 ? 1 : 2);
+        return aRank - bRank || (order[a.kind] || 0) - (order[b.kind] || 0)
             || a.name.localeCompare(b.name) || a.key.localeCompare(b.key);
     });
 }

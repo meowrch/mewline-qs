@@ -10,10 +10,14 @@ Rectangle {
     id: root
 
     property string position: "left"
-    property real maxWidth: 128
+    property real maxWidth: 180
     readonly property bool enabledHere: SettingsService.deviceBatteryPosition === position
+    // Display mode follows the device count: one or two devices show the
+    // percentage right next to the icon; three (or a capped layout with an
+    // overflow badge) switch to compact icons with a level bar to save room.
     // Large fonts/narrow slots fall back to icons rather than an unreadable +1.
-    readonly property bool showPercent: SettingsService.deviceBatteryShowPercent && maxWidth >= Math.round(62 * SettingsService.fontScale) + 14 + (DeviceBatteryService.devices.length > 1 ? 28 : 0)
+    readonly property bool showPercent: DeviceBatteryService.devices.length <= 2
+        && maxWidth >= Math.round(62 * SettingsService.fontScale) + 14
     readonly property real cellWidth: showPercent ? Math.round(62 * SettingsService.fontScale) : Math.round(26 * SettingsService.fontScale)
     readonly property var arrangement: DeviceBattery.layout(enabledHere ? DeviceBatteryService.devices : [], maxWidth, cellWidth, 7, 4)
     readonly property var shownDevices: arrangement.shown
@@ -55,8 +59,7 @@ Rectangle {
 
                     Row {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.top: parent.top
-                        anchors.topMargin: 1
+                        anchors.verticalCenter: parent.verticalCenter
                         spacing: 4
 
                         SvgIcon {
@@ -70,15 +73,18 @@ Rectangle {
                             visible: root.showPercent
                             anchors.verticalCenter: parent.verticalCenter
                             text: deviceCell.modelData.percent >= 0 ? deviceCell.modelData.percent + "%" : "—"
-                            font.pixelSize: Math.round(10 * SettingsService.fontScale)
+                            font.pixelSize: Math.round(14 * SettingsService.fontScale)
                             font.weight: Font.DemiBold
                             color: deviceCell.statusColor
                         }
                     }
 
-                    // No fill at 0%; no made-up level for unknown telemetry.
+                    // Compact mode only: with one or two devices the percentage
+                    // replaces the bar. No fill at 0%; no made-up level for
+                    // unknown telemetry.
                     Rectangle {
                         id: levelTrack
+                        visible: !root.showPercent
                         anchors.horizontalCenter: parent.horizontalCenter
                         anchors.bottom: parent.bottom
                         anchors.bottomMargin: 1
@@ -101,7 +107,9 @@ Rectangle {
                     SvgIcon {
                         anchors.right: parent.right
                         anchors.top: parent.top
-                        visible: deviceCell.modelData.charging
+                        // In percentage mode the colored text already signals
+                        // charging; the bolt badge is for the compact cells.
+                        visible: deviceCell.modelData.charging && !root.showPercent
                         icon: "bolt"
                         iconSize: 8
                         flat: true

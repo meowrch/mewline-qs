@@ -24,13 +24,6 @@ AppContainer {
         }
 
         SettingToggle {
-            label: "Show Percentages"
-            description: "Otherwise use compact icons with a level bar; hover for details"
-            bindTarget: SettingsService
-            bindProperty: "deviceBatteryShowPercent"
-        }
-
-        SettingToggle {
             label: "BatteryHub Backend"
             description: "Optional wireless-battery --json for supported USB receivers (every 60s)"
             bindTarget: SettingsService

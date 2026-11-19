@@ -119,7 +119,7 @@ Rectangle {
             position: "left"
             // Reserve room for the center drawer without reading this section's
             // width: doing so would form a binding loop.
-            maxWidth: root.mainBar ? Math.min(128, Math.max(0, root.mainBar.centerX - root.sidePadding - trayChevron.implicitWidth - mewlineBtn.implicitWidth - workspacesWidget.implicitWidth - (root.trayOpen ? trayGroup.implicitWidth : 0) - contentRow.spacing * 5 - 16)) : 128
+            maxWidth: root.mainBar ? Math.min(180, Math.max(0, root.mainBar.centerX - root.sidePadding - trayChevron.implicitWidth - mewlineBtn.implicitWidth - workspacesWidget.implicitWidth - (root.trayOpen ? trayGroup.implicitWidth : 0) - contentRow.spacing * 5 - 16)) : 128
         }
 
         // System tray island: revealed next to the workspaces while the
