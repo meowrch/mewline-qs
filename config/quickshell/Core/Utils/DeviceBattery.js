@@ -65,23 +65,26 @@ function tooltip(device) {
     return device.name + " · " + level + (states.length ? "\n" + states.join(" · ") : "");
 }
 
-function layout(devices, maxWidth, cellWidth, padding, gap) {
+function layout(devices, maxWidth, cellWidth, padding, gap, overflowWidth) {
+    // overflowWidth matches the overflow capsule; the padding parameter is
+    // only used by strip-style layouts and stays 0 for separate capsules.
+    var overflowW = overflowWidth || 24;
     var available = Math.max(0, maxWidth - padding * 2);
     var count = Math.min(3, devices.length);
     // Reserve an overflow badge whenever devices would otherwise be hidden.
     while (count > 0) {
-        var overflow = count < devices.length ? 24 + gap : 0;
+        var overflow = count < devices.length ? overflowW + gap : 0;
         if (count * cellWidth + Math.max(0, count - 1) * gap + overflow <= available)
             break;
         count--;
     }
-    if (!devices.length || (count === 0 && available < 24))
+    if (!devices.length || (count === 0 && available < overflowW))
         return {shown: [], hidden: [], width: 0};
     var shown = devices.slice(0, count);
     var hidden = devices.slice(count);
     var width = count * cellWidth + Math.max(0, count - 1) * gap + padding * 2;
     if (hidden.length)
-        width += 24 + (count > 0 ? gap : 0);
+        width += overflowW + (count > 0 ? gap : 0);
     return {shown: shown, hidden: hidden, width: width};
 }
 
