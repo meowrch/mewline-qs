@@ -114,6 +114,12 @@ Rectangle {
 
         BatteryIsland {
             id: batteryIsland
+            Layout.alignment: Qt.AlignVCenter
+        }
+
+        DeviceBatteryIsland {
+            position: "right"
+            maxWidth: root.mainBar ? Math.min(128, Math.max(0, root.mainBar.width - root.mainBar.centerX - root.mainBar.centerWidth - root.sidePadding - (recIndicator.visible ? recIndicator.implicitWidth : 0) - privacyDots.Layout.preferredWidth - statusCapsule.implicitWidth - dateTimeIsland.implicitWidth - (batteryIsland.visible ? batteryIsland.implicitWidth : 0) - wifiBtGroup.implicitWidth - powerBtn.implicitWidth - contentRow.spacing * 8 - 16)) : 128
 
             Layout.alignment: Qt.AlignVCenter
         }

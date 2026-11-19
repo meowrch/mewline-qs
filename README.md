@@ -49,6 +49,7 @@
 - **Date & time** with keyboard layout
 - **Volume, brightness, microphone** — quick controls
 - **Battery** with charging status
+- **Wireless device batteries** — themed peripheral icons and charge bars in a compact island; [setup and hardware limits](docs/device-batteries.md)
 - **Privacy dots** — mic / camera / screen-share / location indicators
 - **Focused app** — icon and title of the active window
 - **OCR** — text recognition from a selected screen area

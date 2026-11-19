@@ -33,6 +33,9 @@ Item {
     property bool barConvexMode: true
     readonly property int barWidgetHeight: 28
     property int numberOfWorkspaces: 10
+    property string deviceBatteryPosition: "left"
+    property bool deviceBatteryShowPercent: false
+    property bool deviceBatteryUseBatteryHub: true
     // Folder scanned by the wallpaper selector / shuffle. Changed from the
     // wallpaper settings page; absolute paths are preferred, "~" is expanded
     // by resolveWallpaperFolder() before it reaches any command.
@@ -189,6 +192,18 @@ Item {
             saveSettings();
 
     }
+    onDeviceBatteryPositionChanged: {
+        if (settingsLoaded)
+            saveSettings();
+    }
+    onDeviceBatteryShowPercentChanged: {
+        if (settingsLoaded)
+            saveSettings();
+    }
+    onDeviceBatteryUseBatteryHubChanged: {
+        if (settingsLoaded)
+            saveSettings();
+    }
     onWallpaperFolderChanged: {
         if (settingsLoaded)
             saveSettings();
@@ -299,7 +314,10 @@ Item {
                 "cursorTheme": settingsService.cursorTheme,
                 "cursorSize": settingsService.cursorSize,
                 "barStyle": settingsService.barStyle,
-                "numberOfWorkspaces": settingsService.numberOfWorkspaces
+                "numberOfWorkspaces": settingsService.numberOfWorkspaces,
+                "deviceBatteryPosition": settingsService.deviceBatteryPosition,
+                "deviceBatteryShowPercent": settingsService.deviceBatteryShowPercent,
+                "deviceBatteryUseBatteryHub": settingsService.deviceBatteryUseBatteryHub
             };
             // SDDM only reads fontFamily from its preferences file, so credentials
             // are never written to /var/tmp (it is world readable and persists
@@ -452,6 +470,12 @@ fi"];
                         // ignored on purpose.
                         if (prefs.numberOfWorkspaces !== undefined)
                             settingsService.numberOfWorkspaces = prefs.numberOfWorkspaces;
+                        if (["left", "right", "off"].indexOf(prefs.deviceBatteryPosition) !== -1)
+                            settingsService.deviceBatteryPosition = prefs.deviceBatteryPosition;
+                        if (typeof prefs.deviceBatteryShowPercent === "boolean")
+                            settingsService.deviceBatteryShowPercent = prefs.deviceBatteryShowPercent;
+                        if (typeof prefs.deviceBatteryUseBatteryHub === "boolean")
+                            settingsService.deviceBatteryUseBatteryHub = prefs.deviceBatteryUseBatteryHub;
 
                     } catch (e) {
                         console.error("Error loading settings: " + e);

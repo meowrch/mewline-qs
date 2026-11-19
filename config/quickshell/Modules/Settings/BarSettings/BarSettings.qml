@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import Quickshell.Io
 import qs.Core
@@ -9,6 +10,41 @@ import qs.Modules.Settings.Components
 
 AppContainer {
     id: barSettingsRoot
+
+    AppGroup {
+        title: "Wireless Device Batteries"
+        icon: "device-headset"
+
+        SettingSegmented {
+            label: "Position"
+            description: "A separate island; hidden when no device reports a battery"
+            currentValue: SettingsService.deviceBatteryPosition
+            model: [{text: "Left", value: "left"}, {text: "Right", value: "right"}, {text: "Off", value: "off"}]
+            onActivated: value => SettingsService.deviceBatteryPosition = value
+        }
+
+        SettingToggle {
+            label: "Show Percentages"
+            description: "Otherwise use compact icons with a level bar; hover for details"
+            bindTarget: SettingsService
+            bindProperty: "deviceBatteryShowPercent"
+        }
+
+        SettingToggle {
+            label: "BatteryHub Backend"
+            description: "Optional wireless-battery --json for supported USB receivers (every 60s)"
+            bindTarget: SettingsService
+            bindProperty: "deviceBatteryUseBatteryHub"
+        }
+
+        ThemedText {
+            text: !SettingsService.deviceBatteryUseBatteryHub ? "Using Linux / Bluetooth battery readings only." : (DeviceBatteryService.batteryHubError ? "BatteryHub: " + DeviceBatteryService.batteryHubError : (DeviceBatteryService.batteryHubAvailable ? "BatteryHub detected. Linux / Bluetooth readings are also enabled." : "BatteryHub not detected yet. Linux / Bluetooth readings work without it."))
+            wrapMode: Text.Wrap
+            color: Theme.muted
+            customSize: Constants.sizeSm
+            Layout.fillWidth: true
+        }
+    }
 
     AppGroup {
         title: "Clock Format"

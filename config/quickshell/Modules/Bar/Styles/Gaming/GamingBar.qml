@@ -36,6 +36,7 @@ Item {
 
         // Badge Gaming Mode
         Rectangle {
+            id: gamingBadge
             anchors.verticalCenter: parent.verticalCenter
             height: Constants.size2Xl
             width: badgeContent.implicitWidth + Constants.sizeLg
@@ -85,9 +86,16 @@ Item {
         }
 
         Workspaces {
+            id: gamingWorkspaces
             anchors.verticalCenter: parent.verticalCenter
             compact: true
             bgColor: "transparent"
+        }
+
+        DeviceBatteryIsland {
+            anchors.verticalCenter: parent.verticalCenter
+            position: "left"
+            maxWidth: Math.min(128, Math.max(0, centerSection.x - gamingBadge.width - gamingWorkspaces.implicitWidth - 60))
         }
 
     }
@@ -132,10 +140,18 @@ Item {
         spacing: Constants.sizeXs
 
         MediaButton {
+            id: gamingMedia
             anchors.verticalCenter: parent.verticalCenter
         }
 
+        DeviceBatteryIsland {
+            anchors.verticalCenter: parent.verticalCenter
+            position: "right"
+            maxWidth: Math.min(128, Math.max(0, root.width - centerSection.x - centerSection.width - gamingMedia.implicitWidth - gamingControls.width - gamingPower.implicitWidth - 60))
+        }
+
         Rectangle {
+            id: gamingControls
             anchors.verticalCenter: parent.verticalCenter
             height: Constants.size2Xl + 4
             width: Math.max(64, statusControlsRow.implicitWidth + 12)
@@ -171,6 +187,7 @@ Item {
         }
 
         PowerButton {
+            id: gamingPower
             anchors.verticalCenter: parent.verticalCenter
             widgetId: "powerMenu"
         }

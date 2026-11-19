@@ -8,6 +8,8 @@ url="https://github.com/meowrch/mewline-qs"
 license=('GPL-3.0-only')
 depends=('quickshell')
 optdepends=(
+  'python: runtime helper scripts and peripheral battery polling'
+  'python-dbus: Bluetooth battery levels via BlueZ Battery1'
   'bspwm: X11 window management (required on bspwm)'
   'sxhkd: X11 hotkey daemon for the widget binds (required on bspwm)'
   'picom: X11 compositor (required on bspwm: corners, blur, animations)'
