@@ -11,13 +11,13 @@ Item {
     id: root
 
     property var widget: null
-    // Lock is built in: hyprlock on Wayland, betterlockscreen on X11 — no
-    // external script dependency. Suspend locks after wake, matching the
-    // user's lock flow.
-    readonly property string sessionType: Quickshell.env("XDG_SESSION_TYPE")
-    readonly property string lockCommand: sessionType === "x11" ? "betterlockscreen -l dim" : "hyprlock"
+    // Lock is built in: hyprlock on Hyprland, swaylock via screen-lock.sh
+    // on niri, betterlockscreen on X11. Suspend locks after wake, matching
+    // the user's lock flow.
+    readonly property string wm: CompositorService.wm
+    readonly property string lockCommand: wm === "x11" ? "betterlockscreen -l dim" : (wm === "niri" ? "sh ~/.local/bin/screen-lock.sh" : "hyprlock")
     // Logout: end the session through the running compositor.
-    readonly property string logoutCommand: sessionType === "x11" ? "bspc quit || loginctl terminate-user \"\"" : "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then uwsm stop; else hyprctl dispatch 'hl.dsp.exit()' || loginctl terminate-user \"\"; fi"
+    readonly property string logoutCommand: wm === "x11" ? "bspc quit || loginctl terminate-user \"\"" : (wm === "niri" ? "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then uwsm stop; else niri msg action quit --skip-confirmation 2>/dev/null || loginctl terminate-user \"\"; fi" : "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then uwsm stop; else hyprctl dispatch 'hl.dsp.exit()' || loginctl terminate-user \"\"; fi")
     property var menuModel: [{
         "id": "lock",
         "label": "Lock",

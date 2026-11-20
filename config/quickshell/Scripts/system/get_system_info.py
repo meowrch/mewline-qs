@@ -276,31 +276,63 @@ def get_gpus() -> str:
 
 
 def get_displays() -> str:
-    """Detects active display resolutions and refresh rates from Hyprland or DRM."""
+    """Detects active display resolutions and refresh rates from niri, Hyprland or DRM."""
     displays = []
-    # 1. Hyprland monitors
-    try:
-        mon_proc = subprocess.run(
-            ["hyprctl", "monitors", "-j"],
-            capture_output=True,
-            text=True,
-            errors="ignore",
-        )
-        if mon_proc.returncode == 0:
-            mons = json.loads(mon_proc.stdout)
-            for m in mons:
-                w = m.get("width", 0)
-                h = m.get("height", 0)
-                rr = int(m.get("refreshRate", 60))
-                model = m.get("model", "").strip()
-                name = m.get("name", "")
-                label = model if (model and model.lower() != "unknown") else name
-                if label:
-                    displays.append(f"{label} ({w}x{h} @ {rr}Hz)")
-                else:
-                    displays.append(f"{w}x{h} @ {rr}Hz")
-    except Exception:
-        pass
+    # 1. niri outputs (NIRI_SOCKET env gate, same as CompositorService)
+    if os.environ.get("NIRI_SOCKET"):
+        try:
+            nir_proc = subprocess.run(
+                ["niri", "msg", "--json", "outputs"],
+                capture_output=True,
+                text=True,
+                errors="ignore",
+            )
+            if nir_proc.returncode == 0:
+                reply = json.loads(nir_proc.stdout)
+                outputs = (reply.get("Ok") or {}).get("Outputs") or {}
+                for name, out in outputs.items():
+                    logical = out.get("logical") or {}
+                    w = int(logical.get("width", 0))
+                    h = int(logical.get("height", 0))
+                    rr = 60
+                    cm = out.get("current_mode")
+                    modes = out.get("modes") or []
+                    if cm is not None and cm < len(modes):
+                        # refresh_rate is reported in millihertz
+                        rr = max(60, int(round(modes[cm].get("refresh_rate", 60000) / 1000)))
+                    model = out.get("model", "").strip()
+                    label = model if (model and model.lower() != "unknown") else name
+                    if label:
+                        displays.append(f"{label} ({w}x{h} @ {rr}Hz)")
+                    else:
+                        displays.append(f"{w}x{h} @ {rr}Hz")
+        except Exception:
+            pass
+
+    # 2. Hyprland monitors
+    if not displays:
+        try:
+            mon_proc = subprocess.run(
+                ["hyprctl", "monitors", "-j"],
+                capture_output=True,
+                text=True,
+                errors="ignore",
+            )
+            if mon_proc.returncode == 0:
+                mons = json.loads(mon_proc.stdout)
+                for m in mons:
+                    w = m.get("width", 0)
+                    h = m.get("height", 0)
+                    rr = int(m.get("refreshRate", 60))
+                    model = m.get("model", "").strip()
+                    name = m.get("name", "")
+                    label = model if (model and model.lower() != "unknown") else name
+                    if label:
+                        displays.append(f"{label} ({w}x{h} @ {rr}Hz)")
+                    else:
+                        displays.append(f"{w}x{h} @ {rr}Hz")
+        except Exception:
+            pass
 
     if displays:
         return ", ".join(displays)
@@ -355,8 +387,20 @@ def get_system_specs():
     # the environment quickshell was started from and goes stale after chsh.
     data["shell"] = Path(pwd.getpwuid(os.getuid()).pw_shell).name
 
-    # Window Manager / Compositor
-    data["wm"] = "Hyprland (Wayland)"
+    # Window Manager / Compositor — env-based detection with the same
+    # priority the shell's CompositorService uses: NIRI_SOCKET first, then
+    # the Hyprland instance, then the session type.
+    if os.environ.get("NIRI_SOCKET"):
+        data["wm"] = "Niri (Wayland)"
+    elif (
+        os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
+        or os.environ.get("XDG_CURRENT_DESKTOP", "").lower() == "hyprland"
+    ):
+        data["wm"] = "Hyprland (Wayland)"
+    elif os.environ.get("XDG_SESSION_TYPE") == "x11":
+        data["wm"] = "bspwm (X11)"
+    else:
+        data["wm"] = "Hyprland (Wayland)"
 
     # Installed Packages Count
     n_pacman = 0

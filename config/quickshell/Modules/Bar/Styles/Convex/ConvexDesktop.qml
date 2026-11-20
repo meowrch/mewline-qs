@@ -138,10 +138,11 @@ PanelWindow {
         }
     }
 
-    // HyprlandFocusGrab is Wayland-only; on X11 the window holds the
-    // keyboard through the explicit activation above.
+    // HyprlandFocusGrab is a Hyprland protocol; on niri the window holds
+    // the keyboard through WlrLayershell keyboardFocus, on X11 through the
+    // explicit activation above.
     Loader {
-        active: CompositorService.isWayland
+        active: CompositorService.isHyprland
 
         sourceComponent: HyprlandFocusGrab {
             id: surfaceFocusGrab

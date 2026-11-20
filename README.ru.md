@@ -5,7 +5,7 @@
 # ≽ܫ≼ Mewline
 
 ### *Динамический остров. Следующая эволюция.*
-**Quickshell-шелл для дистрибутива [meowrch](https://github.com/meowrch/meowrch) — Hyprland и bspwm**
+**Quickshell-шелл для дистрибутива [meowrch](https://github.com/meowrch/meowrch) — Hyprland, niri и bspwm**
 
 <br>
 

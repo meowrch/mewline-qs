@@ -79,7 +79,10 @@ PanelWindow {
 
     Connections {
         function onBarMenuOpenChanged() {
-            if (!CompositorService.isWayland)
+            // The dynamic Escape bind is a Hyprland-only safety net
+            // (hyprctl eval); niri and bspwm rely on the layer window
+            // keyboard focus + the sxhkd barscape bind respectively.
+            if (CompositorService.wm !== "hyprland")
                 return ;
 
             if (AppState.barMenuOpen)
@@ -102,9 +105,10 @@ PanelWindow {
         right: true
     }
 
-    // HyprlandFocusGrab is Wayland-only.
+    // HyprlandFocusGrab is a Hyprland protocol: niri covers menu keyboard
+    // focus through the WlrLayershell OnDemand path above.
     Loader {
-        active: CompositorService.isWayland
+        active: CompositorService.isHyprland
 
         sourceComponent: HyprlandFocusGrab {
             // needsFocus (not PanelWindow.focusable) drives the grab: this is

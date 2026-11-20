@@ -4,13 +4,14 @@ import Quickshell.Hyprland
 import Quickshell.Io
 pragma Singleton
 
-// Compositor abstraction layer. The shell must run on both Hyprland
-// (Wayland) and bspwm (X11): everything compositor-facing goes through
+// Compositor abstraction layer. The shell must run on Hyprland (Wayland),
+// niri (Wayland) and bspwm (X11): everything compositor-facing goes through
 // this singleton instead of touching Hyprland/WlrLayershell directly.
 //
-// Session detection is synchronous (env only): a Wayland session with
-// Hyprland is the default build target; anything else is treated as the
-// bspwm/X11 build. The backends are HyprlandService (Wayland) and
+// Session detection is synchronous (env only): a Wayland session is
+// Hyprland unless NIRI_SOCKET is set (niri exports it for its IPC), and
+// anything non-Wayland is treated as the bspwm/X11 build. The backends are
+// HyprlandService (Wayland/Hyprland), NiriService (Wayland/niri) and
 // BspwmService (X11) — this file only normalizes their state and routes
 // commands.
 
@@ -22,10 +23,12 @@ Item {
     // ------------------------------------------------------------------
     readonly property string sessionType: (Quickshell.env("XDG_SESSION_TYPE") || "").toLowerCase()
     readonly property bool isWayland: sessionType === "wayland" || (sessionType === "" && Quickshell.env("WAYLAND_DISPLAY") !== "")
+    readonly property bool isNiri: isWayland && Quickshell.env("NIRI_SOCKET") !== ""
     readonly property bool isX11: !isWayland
-    // Backend identifier ("hyprland" / "bspwm") — matches the per-WM keys
-    // used by the config files.
-    readonly property string wm: isWayland ? "hyprland" : "bspwm"
+    readonly property bool isHyprland: isWayland && !isNiri
+    // Backend identifier ("hyprland" / "niri" / "bspwm") — matches the
+    // per-WM keys used by the config files.
+    readonly property string wm: isX11 ? "bspwm" : (isNiri ? "niri" : "hyprland")
 
     // ------------------------------------------------------------------
     // Uniform state — declared in the "Normalized state" section below as
@@ -38,11 +41,44 @@ Item {
     property bool capsLockOn: false
     property string capsLedPath: ""
 
+    // XKB layout code for a keymap display name ("English (US)" -> "us").
+    // Hyprland (hyprctl keymap names) and niri (KeyboardLayoutsChanged
+    // names) both report RMLVO-style display names.
+    readonly property var layoutNameMap: ({
+        "Arabic": "ara",
+        "English (US)": "us",
+        "English (UK)": "gb",
+        "English": "us",
+        "Spanish (Latin American)": "latam",
+        "Spanish (Spain)": "es",
+        "Spanish": "latam",
+        "French (Canada)": "ca",
+        "French": "fr",
+        "German": "de",
+        "Italian": "it",
+        "Portuguese (Brazil)": "br",
+        "Portuguese": "pt",
+        "Russian": "ru",
+        "Ukrainian": "ua",
+        "Polish": "pl",
+        "Turkish": "tr",
+        "Japanese": "jp",
+        "Korean": "kr",
+        "Dutch": "nl",
+        "Swedish": "se",
+        "Norwegian": "no",
+        "Danish": "dk",
+        "Finnish": "fi",
+        "Czech": "cz",
+        "Greek": "gr",
+        "Hebrew": "il"
+    })
+
     // ------------------------------------------------------------------
     // Wayland/Hyprland state mirrors (bindings, no manual refresh needed)
     // ------------------------------------------------------------------
     readonly property var hyprWorkspaces: {
-        if (!isWayland)
+        if (!isHyprland)
             return [];
 
         const list = (Hyprland.workspaces && Hyprland.workspaces.values) ? Hyprland.workspaces.values : [];
@@ -92,22 +128,23 @@ Item {
     // ------------------------------------------------------------------
     // Normalized state per backend
     // ------------------------------------------------------------------
-    readonly property var workspaces: isWayland ? hyprWorkspaces : (BspwmService.workspaces || [])
+    readonly property var workspaces: isX11 ? (BspwmService.workspaces || []) : (isNiri ? (NiriService.workspaces || []) : hyprWorkspaces)
 
     // Numeric id of the focused workspace (parseInt of the desktop name on
-    // bspwm, the Hyprland workspace id on Wayland).
-    readonly property int focusedWorkspaceId: isWayland ? (Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1) : ((parseInt(BspwmService.focusedDesktop) || 0) || 1)
+    // bspwm, the workspace slot id on niri, the Hyprland workspace id on
+    // Hyprland).
+    readonly property int focusedWorkspaceId: isX11 ? ((parseInt(BspwmService.focusedDesktop) || 0) || 1) : (isNiri ? NiriService.focusedWorkspaceId : (Hyprland.focusedWorkspace ? Hyprland.focusedWorkspace.id : 1))
 
-    readonly property bool hasFullscreen: isWayland ? ((Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.hasFullscreen) ? HyprlandService.isTrueFullscreen : false) : BspwmService.focusedFullscreen
+    readonly property bool hasFullscreen: isX11 ? BspwmService.focusedFullscreen : (isNiri ? NiriService.focusedFullscreen : ((Hyprland.focusedWorkspace && Hyprland.focusedWorkspace.hasFullscreen) ? HyprlandService.isTrueFullscreen : false))
 
-    readonly property string keyboardLayout: isWayland ? HyprlandService.keyboardLayout : BspwmService.keyboardLayout
+    readonly property string keyboardLayout: isX11 ? BspwmService.keyboardLayout : (isNiri ? NiriService.keyboardLayout : HyprlandService.keyboardLayout)
 
-    readonly property var layoutCodes: isWayland ? hyprLayoutCodes : BspwmService.layoutCodes
+    readonly property var layoutCodes: isX11 ? BspwmService.layoutCodes : (isNiri ? NiriService.layoutCodes : hyprLayoutCodes)
 
     // Highest refresh rate among the connected monitors — the wallpaper
     // transition target. On X11 it comes from a xrandr poll (current mode
-    // of every output is starred).
-    readonly property int maxMonitorRefresh: isWayland ? hyprMaxRefresh : x11MaxRefresh
+    // of every output is starred), on niri from the IPC outputs query.
+    readonly property int maxMonitorRefresh: isX11 ? x11MaxRefresh : (isNiri ? NiriService.maxMonitorRefresh : hyprMaxRefresh)
 
     property int x11MaxRefresh: 60
     readonly property string x11RefreshCmd: "xrandr --query 2>/dev/null | grep '\\*' | grep -oE '[0-9]+(\\.[0-9]+)?\\*' | tr -d '*' | sort -nr | head -1"
@@ -139,7 +176,7 @@ Item {
         }
     }
 
-    // Caps Lock LED probe + poll (shared by both backends).
+    // Caps Lock LED probe + poll (kernel level — shared by all backends).
     Process {
         id: capsLedProbe
 
@@ -180,7 +217,7 @@ Item {
         interval: 100
         repeat: false
         onTriggered: {
-            if (root.isWayland)
+            if (root.isHyprland)
                 Hyprland.refreshWorkspaces();
 
         }
@@ -188,7 +225,7 @@ Item {
 
     Connections {
         function onRawEvent(event) {
-            if (!root.isWayland || !event || !event.name)
+            if (!root.isHyprland || !event || !event.name)
                 return ;
 
             const ev = event.name;
@@ -211,8 +248,10 @@ Item {
     // ------------------------------------------------------------------
 
     function switchWorkspace(id) {
-        if (root.isWayland)
+        if (root.isHyprland)
             Hyprland.dispatch('hl.dsp.focus({workspace=' + id + '})');
+        else if (root.isNiri)
+            NiriService.switchWorkspace(id);
         else
             BspwmService.command(["desktop", "-f", String(id)]);
     }
@@ -220,10 +259,11 @@ Item {
     // Launch an application command string through the compositor the way
     // the session keybinds do (keeps env/scratchpad behavior consistent).
     function launchCommand(cmd) {
-        if (root.isWayland) {
+        if (root.isHyprland) {
             const request = Hyprland.usingLua ? "hl.dsp.exec_cmd(" + JSON.stringify(cmd) + ")" : "exec " + cmd;
             Hyprland.dispatch(request);
         } else {
+            // bspwm and niri: plain detached spawn inherits the session env
             Quickshell.execDetached(["sh", "-c", cmd]);
         }
     }

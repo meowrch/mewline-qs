@@ -122,7 +122,17 @@ if [ "$SESSION_TYPE" = "x11" ]; then
   exit 0
 fi
 
-MONITOR=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.monitor' 2>/dev/null)
+MONITOR=""
+if [ -n "$NIRI_SOCKET" ]; then
+  # niri has no hyprctl: focused output first, then any connected output
+  MONITOR=$(niri msg --json focused-output 2>/dev/null | jq -r '.Ok.FocusedOutput.name // empty' 2>/dev/null)
+  if [ -z "$MONITOR" ]; then
+    MONITOR=$(niri msg --json outputs 2>/dev/null | jq -r '.Ok.Outputs | keys[0] // empty' 2>/dev/null)
+  fi
+fi
+if [ -z "$MONITOR" ]; then
+  MONITOR=$(hyprctl activeworkspace -j 2>/dev/null | jq -r '.monitor' 2>/dev/null)
+fi
 if [ -z "$MONITOR" ] || [ "$MONITOR" = "null" ]; then
   MONITOR=$(hyprctl monitors -j 2>/dev/null | jq -r '.[0].name' 2>/dev/null)
 fi

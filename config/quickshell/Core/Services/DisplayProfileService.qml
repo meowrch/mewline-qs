@@ -23,11 +23,14 @@ Item {
         return "Max Perf & Scanout";
     }
 
-    // Night light: hyprsunset on Wayland, redshift one-shot mode on X11.
+    // Night light: hyprsunset on Hyprland, redshift one-shot mode on X11,
+    // gammastep on niri (wlr-gamma-control, redshift-compatible CLI).
     function applyNightLight(state) {
         if (state) {
             if (CompositorService.isX11)
                 nightLightProc.command = ["redshift", "-P", "-O", displayProfileService.nightLightTemperature.toString() + "K"];
+            else if (CompositorService.isNiri)
+                nightLightProc.command = ["gammastep", "-P", "-O", displayProfileService.nightLightTemperature.toString() + "K"];
             else
                 nightLightProc.command = ["hyprsunset", "-t", displayProfileService.nightLightTemperature.toString()];
             nightLightProc.running = false;
@@ -36,6 +39,8 @@ Item {
             nightLightProc.running = false;
             if (CompositorService.isX11)
                 resetRedshiftProc.running = true;
+            else if (CompositorService.isNiri)
+                resetGammastepProc.running = true;
             else
                 pkillSunsetProc.running = true;
         }
@@ -53,9 +58,11 @@ Item {
         gameModePwrProc.running = false;
         gameModePwrProc.running = true;
         displayProfileService.caffeineActive = enable;
-        // The compositor-side tuning is a Hyprland workflow; there is
-        // nothing compositor-side to flip on bspwm (picom rules are static).
-        if (!CompositorService.isWayland)
+        // The compositor-side tuning is a Hyprland workflow: bspwm has
+        // static picom rules and niri has no runtime config API (its
+        // direct scanout is already automatic), so there is nothing to
+        // flip there — caffeine still inhibits idle.
+        if (CompositorService.wm !== "hyprland")
             return ;
 
         if (enable) {
@@ -170,6 +177,12 @@ Item {
         id: pkillSunsetProc
 
         command: ["pkill", "hyprsunset"]
+    }
+
+    Process {
+        id: resetGammastepProc
+
+        command: ["sh", "-c", "pkill gammastep 2>/dev/null; gammastep -x 2>/dev/null"]
     }
 
     Process {

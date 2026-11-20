@@ -2,7 +2,7 @@
 pkgname=mewline-qs
 pkgver=2.3.0  # Автоматически обновится в workflow
 pkgrel=1
-pkgdesc="Quickshell shell for Hyprland and bspwm — bar, widgets and menus (successor of mewline)"
+pkgdesc="Quickshell shell for Hyprland, niri and bspwm — bar, widgets and menus (successor of mewline)"
 arch=('any')
 url="https://github.com/meowrch/mewline-qs"
 license=('GPL-3.0-only')

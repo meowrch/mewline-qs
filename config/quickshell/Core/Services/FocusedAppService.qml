@@ -22,15 +22,16 @@ Singleton {
     id: focusedAppService
 
     // Per-backend sources: Hyprland feeds these from its event stream,
-    // bspwm from BspwmService's polling backend. The computed properties
-    // below are the uniform API the bar consumes.
+    // niri from NiriService's event stream, bspwm from BspwmService's
+    // polling backend. The computed properties below are the uniform API
+    // the bar consumes.
     property string hyprWindowClass: ""
     property string hyprWindowTitle: ""
 
     // Window class of the focused toplevel, "" when the desktop is focused.
-    readonly property string windowClass: CompositorService.isX11 ? BspwmService.activeWindowClass : hyprWindowClass
+    readonly property string windowClass: CompositorService.isX11 ? BspwmService.activeWindowClass : (CompositorService.isNiri ? NiriService.activeWindowClass : hyprWindowClass)
     // Title of the focused toplevel, "" when unknown.
-    readonly property string windowTitle: CompositorService.isX11 ? BspwmService.activeWindowTitle : hyprWindowTitle
+    readonly property string windowTitle: CompositorService.isX11 ? BspwmService.activeWindowTitle : (CompositorService.isNiri ? NiriService.activeWindowTitle : hyprWindowTitle)
 
     // True while a real application window (not the desktop) is focused.
     readonly property bool hasWindow: windowClass !== ""
@@ -134,7 +135,7 @@ Singleton {
 
     Connections {
         function onRawEvent(event) {
-            if (event.name !== "activewindow")
+            if (!CompositorService.isHyprland || event.name !== "activewindow")
                 return ;
 
             let args = event.parse(2);
@@ -156,8 +157,8 @@ Singleton {
             onStreamFinished: {
                 try {
                     let win = JSON.parse(text.trim());
-                    focusedAppService.windowClass = win.class || "";
-                    focusedAppService.windowTitle = win.title || "";
+                    focusedAppService.hyprWindowClass = win.class || "";
+                    focusedAppService.hyprWindowTitle = win.title || "";
                 } catch (e) {
                     focusedAppService.hyprWindowClass = "";
                     focusedAppService.hyprWindowTitle = "";
@@ -167,7 +168,9 @@ Singleton {
     }
 
     Component.onCompleted: {
-        if (!CompositorService.isX11)
+        // Hyprland only: niri and bspwm seed their focused window through
+        // their own backends (NiriService event stream / BspwmService poll).
+        if (CompositorService.isHyprland)
             activeWindowInitProc.running = true;
     }
 }

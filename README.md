@@ -5,7 +5,7 @@
 # ≽ܫ≼ Mewline
 
 ### *The dynamic island, evolved.*
-**A Quickshell shell for the [meowrch](https://github.com/meowrch/meowrch) distribution — Hyprland & bspwm**
+**A Quickshell shell for the [meowrch](https://github.com/meowrch/meowrch) distribution — Hyprland, niri & bspwm**
 
 <br>
 

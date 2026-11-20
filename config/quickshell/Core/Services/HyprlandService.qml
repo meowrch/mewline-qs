@@ -38,12 +38,19 @@ Item {
     property bool isTrueFullscreen: false
 
     function reloadHyprPrefs() {
+        // Only meaningful on Hyprland: niri/bspwm keep the defaults below.
+        if (CompositorService.wm !== "hyprland")
+            return ;
+
         if (!readHyprPrefsProc.running)
             readHyprPrefsProc.running = true;
 
     }
 
     function checkFullscreen() {
+        if (CompositorService.wm !== "hyprland")
+            return ;
+
         if (checkFullscreenProc.running)
             checkFullscreenProc.running = false;
 
@@ -92,6 +99,9 @@ Item {
 
     Connections {
         function onRawEvent(event) {
+            if (CompositorService.wm !== "hyprland")
+                return ;
+
             if (event.name === "activelayout") {
                 activeLayoutProc.running = true;
             } else if (event.name === "fullscreen") {
@@ -130,36 +140,9 @@ Item {
                 if (parts[2] !== undefined && parts[2].trim() !== "")
                     hyprlandService.layoutList = parts[2].trim();
                 let code = "us";
-                // Comprehensive map of Hyprland keymap display names to XKB layout codes
-                const layoutMap = {
-                    "Arabic": "ara",
-                    "English (US)": "us",
-                    "English (UK)": "gb",
-                    "English": "us",
-                    "Spanish (Latin American)": "latam",
-                    "Spanish (Spain)": "es",
-                    "Spanish": "latam",
-                    "French (Canada)": "ca",
-                    "French": "fr",
-                    "German": "de",
-                    "Italian": "it",
-                    "Portuguese (Brazil)": "br",
-                    "Portuguese": "pt",
-                    "Russian": "ru",
-                    "Ukrainian": "ua",
-                    "Polish": "pl",
-                    "Turkish": "tr",
-                    "Japanese": "jp",
-                    "Korean": "kr",
-                    "Dutch": "nl",
-                    "Swedish": "se",
-                    "Norwegian": "no",
-                    "Danish": "dk",
-                    "Finnish": "fi",
-                    "Czech": "cz",
-                    "Greek": "gr",
-                    "Hebrew": "il"
-                };
+                // Keymap display name → XKB code (shared with NiriService
+                // via CompositorService.layoutNameMap)
+                const layoutMap = CompositorService.layoutNameMap;
                 // Prefer the exact XKB layout code already reported by Hyprland
                 if (xkbCode !== "" && xkbCode !== "null" && xkbCode !== "undefined") {
                     code = xkbCode;
@@ -236,8 +219,10 @@ Item {
 
     Component.onCompleted: {
         // Seed the layout list once at startup — the activelayout event only
-        // fires on switches, not on shell reloads.
-        activeLayoutProc.running = true;
+        // fires on switches, not on shell reloads. Hyprland only: niri and
+        // bspwm expose their layouts through their own backends.
+        if (CompositorService.wm === "hyprland")
+            activeLayoutProc.running = true;
     }
 
 }
