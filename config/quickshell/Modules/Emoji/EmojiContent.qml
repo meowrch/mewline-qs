@@ -156,6 +156,9 @@ Item {
                 currentIndex: root.selectedIndex
                 highlightMoveDuration: Constants.animFast
                 visible: root.filtered.length > 0
+                // GridView sections are unavailable in this Quickshell build
+                // (verified with a minimal case) — the catalogue arrives
+                // pre-sorted by category from get_emojis.py instead.
                 Keys.onPressed: function(event) {
                     if (event.key === Qt.Key_Left) {
                         root.moveSelection(-1);
@@ -203,6 +206,10 @@ Item {
                     }
 
                     Text {
+                        // Color emoji glyphs ignore this color; monochrome
+                        // symbols (arrows, stars, trigrams) tint with the
+                        // accent so they stay visible on the dark drawer.
+                        color: Theme.accent
                         anchors.centerIn: parent
                         text: emojiCell.modelData.char
                         font.pixelSize: 30
