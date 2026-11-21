@@ -114,19 +114,17 @@ sudo udevadm control --reload-rules
 Follow upstream's Linux documentation for troubleshooting:
 `wireless-battery --list`, `wireless-battery --dump`, `wireless-battery --json`.
 
-## Try the feature branch
+## Try it from a checkout
 
 Run from a checkout rather than replacing the installed package:
 
 ```sh
-git fetch origin
-git switch feat/wireless-device-batteries
 quickshell -p config/quickshell
 ```
 
 Stop the existing shell instance first through your normal session/autostart
-management, so you do not have two bars. `main` and your installed files are
-unchanged by this branch.
+management, so you do not have two bars. The feature ships in releases since
+**2.4.0**.
 
 Diagnostic reads, without opening a GUI:
 
