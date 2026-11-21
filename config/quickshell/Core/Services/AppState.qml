@@ -23,7 +23,7 @@ Item {
     property bool hasActiveNotification: false
     property real activeNotificationWidth: 0
     property real activeNotificationHeight: 0
-    readonly property var focusWidgets: ["launcher", "clipboard", "wallpaper", "powerMenu"]
+    readonly property var focusWidgets: ["launcher", "clipboard", "wallpaper", "powerMenu", "emoji"]
     readonly property var standaloneWindows: ["mewline_settings"]
     readonly property int activeTrayIndex: {
         if (!activeWidget || !activeWidget.startsWith("systemTray_"))

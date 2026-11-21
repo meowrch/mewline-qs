@@ -70,6 +70,7 @@
 | **Wallpapers** | change wallpaper with live preview | Super + Alt + W |
 | **Pawlette** | theme & accent variant selector | Super + Alt + T |
 | **Power menu** | logout / reboot / shutdown / lock | Super + Alt + P |
+| **Emoji** | searchable emoji picker, click to copy | Super + Alt + . |
 | **Settings** | full shell configuration app | Super + Alt + O |
 
 > [!NOTE]

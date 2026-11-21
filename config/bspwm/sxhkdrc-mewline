@@ -1,26 +1,45 @@
 # mewline-qs keybinds for bspwm/sxhkd.
-# Mirrors the fabric-cli island binds of the meowrch sxhkdrc, retargeted at
-# the quickshell shell: toggles go through the widget sockets
+# Mirrors the island binds of the meowrch sxhkdrc, retargeted at the
+# quickshell shell: toggles go through the widget sockets
 # (/tmp/quickshell_<widgetId>), which are compositor- and path-independent.
 # The Escape key is handled by the shell windows themselves — no global
 # Escape grab that would eat Esc inside applications.
 
 super + alt + p
-	socat - UNIX-CONNECT:/tmp/quickshell_powerMenu
+    socat - UNIX-CONNECT:/tmp/quickshell_powerMenu
+
 super + alt + d
-	socat - UNIX-CONNECT:/tmp/quickshell_calendar
+    socat - UNIX-CONNECT:/tmp/quickshell_calendar
+
 super + alt + b
-	socat - UNIX-CONNECT:/tmp/quickshell_controlCenter
+    socat - UNIX-CONNECT:/tmp/quickshell_bluetoothMenu
+
 super + alt + a
-	socat - UNIX-CONNECT:/tmp/quickshell_launcher
+    socat - UNIX-CONNECT:/tmp/quickshell_launcher
+
 super + alt + w
-	socat - UNIX-CONNECT:/tmp/quickshell_wallpaper
-super + alt + less
-	$HOME/.local/bin/rofi-menus/rofimoji.sh
+    socat - UNIX-CONNECT:/tmp/quickshell_wallpaper
+
+super + alt + period
+    socat - UNIX-CONNECT:/tmp/quickshell_emoji
+
 super + alt + v
-	socat - UNIX-CONNECT:/tmp/quickshell_clipboard
+    socat - UNIX-CONNECT:/tmp/quickshell_clipboard
+
 super + alt + n
-	socat - UNIX-CONNECT:/tmp/quickshell_controlCenter
+    socat - UNIX-CONNECT:/tmp/quickshell_wifiMenu
+
 super + alt + t
-	socat - UNIX-CONNECT:/tmp/quickshell_pawlette
-# Workspaces overview: no shell widget yet — bind left empty on purpose.
+    socat - UNIX-CONNECT:/tmp/quickshell_pawlette
+
+super + alt + i
+    socat - UNIX-CONNECT:/tmp/quickshell_dashboard
+
+super + alt + u
+    socat - UNIX-CONNECT:/tmp/quickshell_systemUsage
+
+super + alt + o
+    socat - UNIX-CONNECT:/tmp/quickshell_mewline_settings
+
+super + alt + m
+    socat - UNIX-CONNECT:/tmp/quickshell_music

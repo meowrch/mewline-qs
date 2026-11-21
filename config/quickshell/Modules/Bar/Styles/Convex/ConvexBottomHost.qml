@@ -8,6 +8,7 @@ import qs.Core.Components
 import qs.Core.Services
 import qs.Modules.Bar.Styles.Convex
 import qs.Modules.Clipboard
+import qs.Modules.Emoji
 import qs.Modules.Launcher
 import qs.Modules.PowerMenu
 import qs.Modules.WallpaperSelector
@@ -29,6 +30,9 @@ Item {
 
         if (AppState.isWidgetOpen("powerMenu"))
             return "powerMenu";
+
+        if (AppState.isWidgetOpen("emoji"))
+            return "emoji";
 
         return "";
     }
@@ -62,6 +66,8 @@ Item {
             return wallpaperComp;
         case "powerMenu":
             return powerMenuComp;
+        case "emoji":
+            return emojiComp;
         default:
             return null;
         }
@@ -129,6 +135,9 @@ Item {
 
         if (typeof loader.item.resetPowerMenu === "function")
             loader.item.resetPowerMenu();
+
+        if (typeof loader.item.resetEmoji === "function")
+            loader.item.resetEmoji();
 
         AppState.barMenuFocusItem = (loader.item && loader.item.initialFocusItem) ? loader.item.initialFocusItem : null;
         Qt.callLater(() => {
@@ -307,6 +316,15 @@ Item {
         id: wallpaperComp
 
         WallpaperSelectorContent {
+            widget: widgetProxy
+        }
+
+    }
+
+    Component {
+        id: emojiComp
+
+        EmojiContent {
             widget: widgetProxy
         }
 

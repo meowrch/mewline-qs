@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Core.Components
 import qs.Modules.Clipboard
+import qs.Modules.Emoji
 import qs.Modules.Launcher
 import qs.Modules.Settings
 import qs.Modules.ThemeSelector
@@ -63,6 +64,17 @@ Item {
 
         sourceComponent: Component {
             Clipboard {
+            }
+
+        }
+
+    }
+
+    WidgetLoader {
+        widgetId: "emoji"
+
+        sourceComponent: Component {
+            Emoji {
             }
 
         }
