@@ -46,7 +46,7 @@ jobs:
           sed -i \
             -e "s/^pkgver=.*/pkgver=${VERSION}/" \
             -e "s/^pkgrel=.*/pkgrel=2/" \
-            -e "s|^source=.*|source=(\"\$url/archive/refs/tags/\${TAG}.tar.gz\")|" \
+            -e "s|^source=.*|source=(\"\$url/archive/refs/tags/v\$pkgver.tar.gz\")|" \
             -e "s/^sha256sums=.*/sha256sums=('${HASH}')/" \
             PKGBUILD.stable
 
