@@ -18,7 +18,10 @@ Item {
     readonly property int searchBarHeight: Constants.size4Xl
     readonly property int layoutSpacing: Constants.sizeSm
     readonly property int cellSize: 56
-    readonly property int gridColumns: Math.max(1, Math.floor((preferredContentWidth - Constants.size3Xl * 2) / (cellSize + 4)))
+    // Real rendered columns: the drawer width minus the grid margins, one
+    // cell plus spacing per column. Kept in sync with what the GridView
+    // actually lays out, or arrow-key rows drift off the visual rows.
+    readonly property int gridColumns: Math.max(1, Math.floor((emojiView.width - Constants.sizeLg * 2) / (cellSize + 4)))
     readonly property int visibleRows: 4
     readonly property int gridHeight: visibleRows * cellSize + (visibleRows - 1) * 4
     property var allEmojis: []
@@ -64,15 +67,12 @@ Item {
         if (count === 0)
             return ;
 
-        let next = root.selectedIndex + delta;
-        if (next < 0)
-            next = 0;
-
-        if (next > count - 1)
-            next = count - 1;
-
+        // No selection yet: any arrow starts at the first cell instead of
+        // the raw (-1 + delta) jump that landed mid-row.
+        let current = root.selectedIndex < 0 ? 0 : root.selectedIndex;
+        let next = Math.max(0, Math.min(count - 1, current + delta));
         root.selectedIndex = next;
-        emojiView.positionViewAtIndex(root.selectedIndex, GridView.Contain);
+        emojiView.positionViewAtIndex(next, GridView.Contain);
     }
 
     onSearchTextChanged: {
@@ -218,13 +218,14 @@ Item {
                     HoverHandler {
                         id: hover
 
+                        // Single source of truth: hovering routes through
+                        // selectedIndex, never through a direct currentIndex
+                        // write (that would break the binding and desync the
+                        // keyboard and mouse selections).
                         onHoveredChanged: {
                             if (hovered)
-                                emojiView.currentIndex = index;
+                                root.selectedIndex = index;
 
-                        }
-                        onPointChanged: {
-                            emojiView.currentIndex = index;
                         }
                     }
 
