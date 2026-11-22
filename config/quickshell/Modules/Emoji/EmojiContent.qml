@@ -184,10 +184,13 @@ Item {
                 }
 
                 highlight: Rectangle {
+                    // bgTertiary so the selection is actually visible against
+                    // the capsule background (bgSecondary on bgSecondary was
+                    // invisible — navigation "worked" with no feedback).
                     width: root.cellSize
                     height: root.cellSize
-                    radius: Constants.sizeXs
-                    color: Theme.bgSecondary
+                    radius: Constants.sizeMd
+                    color: Theme.bgTertiary
                 }
 
                 delegate: Item {
@@ -202,7 +205,7 @@ Item {
                         anchors.fill: parent
                         anchors.margins: 2
                         radius: Constants.sizeMd
-                        color: hover.hovered || parent.selected ? Theme.bgSecondary : "transparent"
+                        color: hover.hovered || parent.selected ? Theme.bgTertiary : "transparent"
                     }
 
                     Text {
