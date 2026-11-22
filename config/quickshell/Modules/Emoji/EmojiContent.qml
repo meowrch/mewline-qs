@@ -18,11 +18,10 @@ Item {
     readonly property int searchBarHeight: Constants.size4Xl
     readonly property int layoutSpacing: Constants.sizeSm
     readonly property int cellSize: 56
-    // Real rendered columns — the same wrap math Qt uses for the GridView
-    // ((width + spacing) / (cell + spacing)), or arrow-key rows drift one
-    // column off the visual rows. EmojiContent spans the full window width
-    // (the drawer padding is applied inside it), so no extra subtraction.
-    readonly property int gridColumns: Math.max(1, Math.floor((emojiView.width + 4) / (cellSize + 4)))
+    // Real rendered columns — the GridView has no spacing of its own, so its
+    // wrap is floor(width / cellWidth). Any other formula drifts one column
+    // sideways per vertical move.
+    readonly property int gridColumns: Math.max(1, Math.floor(emojiView.width / cellSize))
     readonly property int visibleRows: 4
     readonly property int gridHeight: visibleRows * cellSize + (visibleRows - 1) * 4
     property var allEmojis: []
