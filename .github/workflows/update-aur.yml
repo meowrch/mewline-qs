@@ -3,31 +3,51 @@ name: AUR Packages Deployment
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to deploy (e.g. v2.4.0)'
+        required: true
+        default: 'v2.4.0'
 
 jobs:
   deploy-stable:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Resolve tag
+        id: resolve
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Get release version
-        id: get_version
-        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v7
+        with:
+          ref: main
 
       - name: Calculate SHA256
         id: sha256
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
         run: |
-          URL="https://github.com/meowrch/mewline-qs/archive/refs/tags/v${{ steps.get_version.outputs.version }}.tar.gz"
+          URL="https://github.com/meowrch/mewline-qs/archive/refs/tags/${TAG}.tar.gz"
           HASH=$(curl -sL "$URL" | sha256sum | cut -d' ' -f1)
-          echo "hash=$HASH" >> $GITHUB_OUTPUT
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
 
       - name: Update Stable PKGBUILD
+        env:
+          TAG: ${{ steps.resolve.outputs.tag }}
+          HASH: ${{ steps.sha256.outputs.hash }}
         run: |
+          VERSION="${TAG#v}"
           sed -i \
-            -e "s/^pkgver=.*/pkgver=${{ steps.get_version.outputs.version }}/" \
-            -e "s|^source=.*|source=(\"\$url/archive/refs/tags/v\$pkgver.tar.gz\")|" \
-            -e "s/^sha256sums=.*/sha256sums=('${{ steps.sha256.outputs.hash }}')/" \
+            -e "s/^pkgver=.*/pkgver=${VERSION}/" \
+            -e "s/^pkgrel=.*/pkgrel=2/" \
+            -e "s|^source=.*|source=(\"\$url/archive/refs/tags/\${TAG}.tar.gz\")|" \
+            -e "s/^sha256sums=.*/sha256sums=('${HASH}')/" \
             PKGBUILD.stable
 
       - name: Deploy Stable version
@@ -39,4 +59,4 @@ jobs:
           commit_username: ${{ secrets.AUR_USERNAME }}
           commit_email: ${{ secrets.AUR_EMAIL }}
           ssh_private_key: ${{ secrets.AUR_SSH_KEY }}
-          commit_message: "Stable release v${{ steps.get_version.outputs.version }}"
+          commit_message: "Stable release ${TAG}"
