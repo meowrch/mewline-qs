@@ -16,25 +16,18 @@ Item {
     property int dotSpacing: compact ? 5 : 6
     readonly property int dotHeight: compact ? 6 : 8
     readonly property int activePillWidth: compact ? 18 : 24
+    // "numbers" replaces the dots with mini capsules showing the slot number.
+    readonly property bool numbersMode: SettingsService.workspaceDisplayMode === "numbers"
+    readonly property int capsuleHeight: compact ? 16 : 20
+    readonly property int capsuleMinWidth: compact ? 16 : 20
+    readonly property int capsulePadding: compact ? 8 : 10
+    // Extra width for the focused slot, so it reads as a pill rather than
+    // a circle even for single-digit workspaces.
+    readonly property int activeCapsuleExtra: compact ? 10 : 18
     // State comes from the compositor abstraction layer (Hyprland on
     // Wayland, BspwmService's report backend on X11).
     readonly property int activeWsId: CompositorService.focusedWorkspaceId
     readonly property var workspaceStates: CompositorService.workspaces
-    readonly property int maxOccupiedWsId: {
-        let maxId = 1;
-        for (let i = 0; i < workspaceStates.length; i++) {
-            const ws = workspaceStates[i];
-            if (!ws || !ws.occupied)
-                continue;
-
-            const id = parseInt(ws.name);
-            if (!isNaN(id) && id > maxId)
-                maxId = id;
-
-        }
-        return Math.max(maxId, root.activeWsId);
-    }
-    readonly property int visibleWorkspaceCount: Math.min(SettingsService.numberOfWorkspaces, Math.max(Math.max(activeWsId, maxOccupiedWsId) + 1, 5))
 
     function handleWheel(wheel) {
         const currentId = root.activeWsId;
@@ -83,7 +76,7 @@ Item {
         id: hLayout
 
         anchors.centerIn: parent
-        spacing: root.dotSpacing
+        spacing: root.numbersMode ? (root.compact ? 3 : 4) : root.dotSpacing
 
         Repeater {
             model: SettingsService.numberOfWorkspaces
@@ -93,7 +86,6 @@ Item {
 
                 readonly property int wsId: index + 1
                 readonly property bool isActive: root.activeWsId === wsSlot.wsId
-                readonly property bool isVisibleSlot: wsId <= root.visibleWorkspaceCount
                 readonly property bool hasWindows: {
                     for (let i = 0; i < root.workspaceStates.length; i++) {
                         const ws = root.workspaceStates[i];
@@ -103,30 +95,60 @@ Item {
                     }
                     return false;
                 }
+                // Only occupied workspaces and the focused one are shown;
+                // empty slots stay hidden until they get a window or focus.
+                readonly property bool isVisibleSlot: isActive || hasWindows
                 readonly property bool isHovered: mouseAreaH.containsMouse
 
                 visible: opacity > 0.001
                 opacity: isVisibleSlot ? 1 : 0
-                height: root.dotHeight
-                width: isActive ? root.activePillWidth : root.dotHeight
+                height: root.numbersMode ? root.capsuleHeight : root.dotHeight
+                width: root.numbersMode ? (Math.max(root.capsuleMinWidth, wsNumber.implicitWidth + root.capsulePadding) + (isActive ? root.activeCapsuleExtra : 0)) : (isActive ? root.activePillWidth : root.dotHeight)
 
                 Rectangle {
                     id: dotItem
 
                     anchors.centerIn: parent
-                    height: root.dotHeight
+                    height: parent.height
                     width: parent.width
                     radius: DisplayProfileService.gameModeActive ? 0 : height / 2
+                    border.width: root.numbersMode && !wsSlot.isActive ? 1 : 0
+                    border.color: Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.14)
                     color: {
                         if (wsSlot.isActive)
                             return Theme.accent;
+
+                        if (root.numbersMode) {
+                            // Capsules: a faint tint so the number stays legible.
+                            const alpha = wsSlot.isHovered ? 0.22 : 0.12;
+                            return Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, alpha);
+                        }
 
                         if (wsSlot.hasWindows)
                             return wsSlot.isHovered ? Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.95) : Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.65);
 
                         return wsSlot.isHovered ? Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.45) : Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.22);
                     }
-                    scale: mouseAreaH.pressed ? 0.85 : (wsSlot.isHovered && !wsSlot.isActive ? 1.2 : 1)
+                    scale: mouseAreaH.pressed ? 0.9 : (wsSlot.isHovered && !wsSlot.isActive ? (root.numbersMode ? 1.06 : 1.2) : 1)
+
+                    ThemedText {
+                        id: wsNumber
+
+                        anchors.centerIn: parent
+                        visible: root.numbersMode
+                        text: wsSlot.wsId
+                        customSize: root.compact ? 8 : 10
+                        font.weight: wsSlot.isActive ? Font.Bold : Font.Medium
+                        color: wsSlot.isActive ? Theme.bg : (wsSlot.isHovered ? Theme.fg : Qt.rgba(Theme.fg.r, Theme.fg.g, Theme.fg.b, 0.8))
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Constants.animFast
+                            }
+
+                        }
+
+                    }
 
                     Behavior on color {
                         ColorAnimation {

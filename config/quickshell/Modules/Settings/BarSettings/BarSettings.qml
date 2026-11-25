@@ -78,9 +78,17 @@ AppContainer {
         title: "Workspaces"
         icon: "slider"
 
+        SettingSegmented {
+            label: "Display"
+            description: "Minimal dots, or numbered capsules with the workspace number"
+            currentValue: SettingsService.workspaceDisplayMode
+            model: [{text: "Dots", value: "dots"}, {text: "Numbers", value: "numbers"}]
+            onActivated: value => SettingsService.workspaceDisplayMode = value
+        }
+
         SettingSpinBox {
             label: "Number of Workspaces"
-            description: "Set the total number of workspaces shown on the bar"
+            description: "Highest workspace number the bar tracks; empty ones stay hidden"
             value: SettingsService.numberOfWorkspaces
             from: 1
             to: 20

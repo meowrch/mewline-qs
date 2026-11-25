@@ -33,6 +33,9 @@ Item {
     property bool barConvexMode: true
     readonly property int barWidgetHeight: 28
     property int numberOfWorkspaces: 10
+    // Workspace indicator style: "dots" (minimal) or "numbers" (mini
+    // capsules with the workspace number).
+    property string workspaceDisplayMode: "dots"
     property string deviceBatteryPosition: "left"
     property string deviceBatteryDisplayMode: "auto"
     property bool deviceBatteryUseBatteryHub: true
@@ -192,6 +195,11 @@ Item {
             saveSettings();
 
     }
+    onWorkspaceDisplayModeChanged: {
+        if (settingsLoaded)
+            saveSettings();
+
+    }
     onDeviceBatteryPositionChanged: {
         if (settingsLoaded)
             saveSettings();
@@ -315,6 +323,7 @@ Item {
                 "cursorSize": settingsService.cursorSize,
                 "barStyle": settingsService.barStyle,
                 "numberOfWorkspaces": settingsService.numberOfWorkspaces,
+                "workspaceDisplayMode": settingsService.workspaceDisplayMode,
                 "deviceBatteryPosition": settingsService.deviceBatteryPosition,
                 "deviceBatteryDisplayMode": settingsService.deviceBatteryDisplayMode,
                 "deviceBatteryUseBatteryHub": settingsService.deviceBatteryUseBatteryHub
@@ -470,6 +479,8 @@ fi"];
                         // ignored on purpose.
                         if (prefs.numberOfWorkspaces !== undefined)
                             settingsService.numberOfWorkspaces = prefs.numberOfWorkspaces;
+                        if (["dots", "numbers"].indexOf(prefs.workspaceDisplayMode) !== -1)
+                            settingsService.workspaceDisplayMode = prefs.workspaceDisplayMode;
                         if (["left", "right", "off"].indexOf(prefs.deviceBatteryPosition) !== -1)
                             settingsService.deviceBatteryPosition = prefs.deviceBatteryPosition;
                         if (["auto", "percent", "bar"].indexOf(prefs.deviceBatteryDisplayMode) !== -1)
