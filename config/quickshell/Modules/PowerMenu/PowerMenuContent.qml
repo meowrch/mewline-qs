@@ -15,9 +15,14 @@ Item {
     // on niri, betterlockscreen on X11. Suspend locks after wake, matching
     // the user's lock flow.
     readonly property string wm: CompositorService.wm
-    readonly property string lockCommand: wm === "x11" ? "betterlockscreen -l dim" : (wm === "niri" ? "sh ~/.local/bin/screen-lock.sh" : "hyprlock")
-    // Logout: end the session through the running compositor.
-    readonly property string logoutCommand: wm === "x11" ? "bspc quit || loginctl terminate-user \"\"" : (wm === "niri" ? "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then uwsm stop; else niri msg action quit --skip-confirmation 2>/dev/null || loginctl terminate-user \"\"; fi" : "if command -v uwsm >/dev/null 2>&1 && uwsm check is-active 2>/dev/null; then uwsm stop; else hyprctl dispatch 'hl.dsp.exit()' || loginctl terminate-user \"\"; fi")
+    readonly property string lockCommand: wm === "bspwm" ? "betterlockscreen -l dim" : (wm === "niri" ? "sh ~/.local/bin/screen-lock.sh" : "hyprlock")
+    // Logout: end the session through the running compositor. uwsm is only
+    // used when the session was actually started through it (wayland-wm@
+    // unit active) — "uwsm check is-active" merely reports that a
+    // compositor is running and would silently fail to stop a plain
+    // niri-session/hyprland launch.
+    readonly property string uwsmStop: "if systemctl --user list-units 'wayland-wm@*.service' --state=active --no-legend 2>/dev/null | grep -q .; then uwsm stop; else "
+    readonly property string logoutCommand: wm === "bspwm" ? "bspc quit || loginctl terminate-user \"$USER\"" : (wm === "niri" ? uwsmStop + "niri msg action quit --skip-confirmation 2>/dev/null || loginctl terminate-user \"$USER\"; fi" : uwsmStop + "hyprctl dispatch 'hl.dsp.exit()' || loginctl terminate-user \"$USER\"; fi")
     property var menuModel: [{
         "id": "lock",
         "label": "Lock",
