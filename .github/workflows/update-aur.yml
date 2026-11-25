@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Release tag to deploy (e.g. v2.4.0)'
+        description: 'Release tag to deploy (e.g. v2.5.0)'
         required: true
-        default: 'v2.4.0'
+        default: 'v2.5.0'
 
 jobs:
   deploy-stable:
@@ -45,7 +45,7 @@ jobs:
           VERSION="${TAG#v}"
           sed -i \
             -e "s/^pkgver=.*/pkgver=${VERSION}/" \
-            -e "s/^pkgrel=.*/pkgrel=2/" \
+            -e "s/^pkgrel=.*/pkgrel=1/" \
             -e "s|^source=.*|source=(\"\$url/archive/refs/tags/v\$pkgver.tar.gz\")|" \
             -e "s/^sha256sums=.*/sha256sums=('${HASH}')/" \
             PKGBUILD.stable

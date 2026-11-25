@@ -9,7 +9,7 @@
 
 <br>
 
-[![Version](https://img.shields.io/badge/version-2.4.0-fab387?labelColor=1C2325&style=for-the-badge)]
+[![Version](https://img.shields.io/badge/version-2.5.0-fab387?labelColor=1C2325&style=for-the-badge)]
 [![Issues](https://img.shields.io/github/issues/meowrch/mewline-qs?color=ffb29b&labelColor=1C2325&style=for-the-badge)](https://github.com/meowrch/mewline-qs/issues)
 [![License](https://img.shields.io/github/license/meowrch/mewline-qs?color=FCA2AA&labelColor=1C2325&style=for-the-badge)](./LICENSE)
 
