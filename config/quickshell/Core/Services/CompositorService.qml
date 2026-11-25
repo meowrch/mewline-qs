@@ -22,8 +22,10 @@ Item {
     // Session detection
     // ------------------------------------------------------------------
     readonly property string sessionType: (Quickshell.env("XDG_SESSION_TYPE") || "").toLowerCase()
-    readonly property bool isWayland: sessionType === "wayland" || (sessionType === "" && Quickshell.env("WAYLAND_DISPLAY") !== "")
-    readonly property bool isNiri: isWayland && Quickshell.env("NIRI_SOCKET") !== ""
+    // Quickshell.env() returns undefined for unset variables, and
+    // `undefined !== ""` is true — always coalesce before comparing.
+    readonly property bool isWayland: sessionType === "wayland" || (sessionType === "" && (Quickshell.env("WAYLAND_DISPLAY") || "") !== "")
+    readonly property bool isNiri: isWayland && (Quickshell.env("NIRI_SOCKET") || "") !== ""
     readonly property bool isX11: !isWayland
     readonly property bool isHyprland: isWayland && !isNiri
     // Backend identifier ("hyprland" / "niri" / "bspwm") — matches the
@@ -248,9 +250,22 @@ Item {
     // ------------------------------------------------------------------
 
     function switchWorkspace(id) {
-        if (root.isHyprland)
-            Hyprland.dispatch('hl.dsp.focus({workspace=' + id + '})');
-        else if (root.isNiri)
+        if (root.isHyprland) {
+            // Prefer the workspace object: activate() branches on the config
+            // provider internally, so it works with both hyprland.conf and
+            // hyprland.lua. Only a not-yet-created workspace needs a raw
+            // dispatcher, whose syntax depends on the provider.
+            const list = (Hyprland.workspaces && Hyprland.workspaces.values) ? Hyprland.workspaces.values : [];
+            for (let i = 0; i < list.length; i++) {
+                if (list[i] && list[i].id === id) {
+                    list[i].activate();
+                    return ;
+                }
+            }
+            // Read usingLua at call time — it only turns true after
+            // Quickshell's async `j/status` request lands.
+            Hyprland.dispatch(Hyprland.usingLua ? 'hl.dsp.focus({workspace=' + id + '})' : 'workspace ' + id);
+        } else if (root.isNiri)
             NiriService.switchWorkspace(id);
         else
             BspwmService.command(["desktop", "-f", String(id)]);
